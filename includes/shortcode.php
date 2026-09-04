@@ -35,7 +35,7 @@ function signatur_render_shortcode($atts)
 
     $signature = $wpdb->get_row(
         $wpdb->prepare(
-            'SELECT title FROM ' . signatur_get_table_name() . ' WHERE id = %d',
+            'SELECT title, link FROM ' . signatur_get_table_name() . ' WHERE id = %d',
             $id
         )
     );
@@ -44,5 +44,11 @@ function signatur_render_shortcode($atts)
         return esc_html__('Signature not found.', 'signatur');
     }
 
-    return '<div class="signatur-signature">' . esc_html($signature->title) . '</div>';
+    $title = esc_html($signature->title);
+
+    if (! empty($signature->link)) {
+        $title = '<a href="' . esc_url($signature->link) . '" target="_blank" rel="noopener noreferrer">' . $title . '</a>';
+    }
+
+    return '<div class="signatur-signature">' . $title . '</div>';
 }

@@ -78,3 +78,7 @@ msgstr "Signature deleted."
 #: signatur.php
 msgid "Signature updated."
 msgstr "Signature updated."
+
+#: signatur.php
+msgid "Link"
+msgstr "Link"

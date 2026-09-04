@@ -78,3 +78,7 @@ msgstr "Подпись удалена."
 #: signatur.php
 msgid "Signature updated."
 msgstr "Подпись обновлена."
+
+#: signatur.php
+msgid "Link"
+msgstr "Ссылка"

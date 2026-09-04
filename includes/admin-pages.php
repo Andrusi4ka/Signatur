@@ -123,19 +123,21 @@ function signatur_render_add_signature_page()
 {
     $id    = isset($_GET['id']) ? absint($_GET['id']) : 0;
     $title = '';
+    $link  = '';
 
     if ($id) {
         global $wpdb;
 
         $signature = $wpdb->get_row(
             $wpdb->prepare(
-                'SELECT title FROM ' . signatur_get_table_name() . ' WHERE id = %d',
+                'SELECT title, link FROM ' . signatur_get_table_name() . ' WHERE id = %d',
                 $id
             )
         );
 
         if ($signature) {
             $title = $signature->title;
+            $link  = $signature->link;
         } else {
             $id = 0;
         }
@@ -158,7 +160,11 @@ function signatur_render_add_signature_page()
                             <label for="signatur_title"><?php esc_html_e('Title', 'signatur'); ?></label>
                         </th>
                         <td>
-                            <input type="text" id="signatur_title" name="signatur_title" class="regular-text" value="<?php echo esc_attr($title); ?>" required>
+                            <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
+                                <input type="text" id="signatur_title" name="signatur_title" class="regular-text" value="<?php echo esc_attr($title); ?>" required>
+                                <label for="signatur_link"><?php esc_html_e('Link', 'signatur'); ?></label>
+                                <input type="url" id="signatur_link" name="signatur_link" class="regular-text" value="<?php echo esc_attr($link); ?>" placeholder="https://example.com">
+                            </div>
                         </td>
                     </tr>
                 </tbody>
