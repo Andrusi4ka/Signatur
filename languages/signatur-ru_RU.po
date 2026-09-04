@@ -22,3 +22,59 @@ msgstr "Добавить подпись"
 #: signatur.php
 msgid "Your email signatures will appear here."
 msgstr "Здесь будут отображаться ваши подписи электронной почты."
+
+#: signatur.php
+msgid "Title"
+msgstr "Название"
+
+#: signatur.php
+msgid "Save"
+msgstr "Сохранить"
+
+#: signatur.php
+msgid "ID"
+msgstr "ID"
+
+#: signatur.php
+msgid "Signature saved."
+msgstr "Подпись сохранена."
+
+#: signatur.php
+msgid "Signature not found."
+msgstr "Подпись не найдена."
+
+#: signatur.php
+msgid "You are not allowed to perform this action."
+msgstr "У вас нет прав для выполнения этого действия."
+
+#: signatur.php
+msgid "Shortcode"
+msgstr "Шорткод"
+
+#: signatur.php
+msgid "Actions"
+msgstr "Действия"
+
+#: signatur.php
+msgid "Edit"
+msgstr "Редактировать"
+
+#: signatur.php
+msgid "Delete"
+msgstr "Удалить"
+
+#: signatur.php
+msgid "Edit signature"
+msgstr "Редактировать подпись"
+
+#: signatur.php
+msgid "Are you sure you want to delete this signature?"
+msgstr "Вы уверены, что хотите удалить эту подпись?"
+
+#: signatur.php
+msgid "Signature deleted."
+msgstr "Подпись удалена."
+
+#: signatur.php
+msgid "Signature updated."
+msgstr "Подпись обновлена."

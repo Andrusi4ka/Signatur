@@ -3,7 +3,7 @@
 /**
  * Plugin Name: Signatures
  * Description: Creates and manages email signature templates.
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: Relevant AS (Andrii Boiko)
  * Plugin URI: https://relevant.no/
  * Author URI: https://relevant.no/
@@ -15,81 +15,20 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
+define('SIGNATUR_DB_VERSION', '1.1.0');
+define('SIGNATUR_PLUGIN_FILE', __FILE__);
+define('SIGNATUR_PLUGIN_DIR', plugin_dir_path(__FILE__));
+
+require_once SIGNATUR_PLUGIN_DIR . 'includes/i18n.php';
+require_once SIGNATUR_PLUGIN_DIR . 'includes/database.php';
+require_once SIGNATUR_PLUGIN_DIR . 'includes/admin-pages.php';
+require_once SIGNATUR_PLUGIN_DIR . 'includes/actions.php';
+require_once SIGNATUR_PLUGIN_DIR . 'includes/shortcode.php';
+
+register_activation_hook(__FILE__, 'signatur_activate');
 add_action('plugins_loaded', 'signatur_load_textdomain');
+add_action('plugins_loaded', 'signatur_maybe_upgrade_database');
 add_action('admin_menu', 'signatur_register_admin_pages');
-
-/**
- * Load translations bundled with the plugin.
- */
-function signatur_load_textdomain()
-{
-    load_plugin_textdomain(
-        'signatur',
-        false,
-        dirname(plugin_basename(__FILE__)) . '/languages'
-    );
-}
-
-/**
- * Register the Signatures menu and its two initial admin pages.
- */
-function signatur_register_admin_pages()
-{
-    add_menu_page(
-        __('All signatures', 'signatur'),
-        __('Signatures', 'signatur'),
-        'manage_options',
-        'signatur-all-signatures',
-        'signatur_render_all_signatures_page',
-        'dashicons-email-alt',
-        25
-    );
-
-    add_submenu_page(
-        'signatur-all-signatures',
-        __('All signatures', 'signatur'),
-        __('All signatures', 'signatur'),
-        'manage_options',
-        'signatur-all-signatures',
-        'signatur_render_all_signatures_page'
-    );
-
-    add_submenu_page(
-        'signatur-all-signatures',
-        __('Add signature', 'signatur'),
-        __('Add signature', 'signatur'),
-        'manage_options',
-        'signatur-add-signature',
-        'signatur_render_add_signature_page'
-    );
-}
-
-/**
- * Render the signatures list page.
- */
-function signatur_render_all_signatures_page()
-{
-?>
-    <div class="wrap">
-        <h1 class="wp-heading-inline"><?php esc_html_e('All signatures', 'signatur'); ?></h1>
-        <a href="<?php echo esc_url(admin_url('admin.php?page=signatur-add-signature')); ?>" class="page-title-action">
-            <?php esc_html_e('Add signature', 'signatur'); ?>
-        </a>
-        <hr class="wp-header-end">
-
-        <p><?php esc_html_e('Your email signatures will appear here.', 'signatur'); ?></p>
-    </div>
-<?php
-}
-
-/**
- * Render the signature creation page.
- */
-function signatur_render_add_signature_page()
-{
-?>
-    <div class="wrap">
-        <h1><?php esc_html_e('Add signature', 'signatur'); ?></h1>
-    </div>
-<?php
-}
+add_action('admin_post_signatur_save_signature', 'signatur_handle_save_signature');
+add_action('admin_post_signatur_delete_signature', 'signatur_handle_delete_signature');
+add_action('init', 'signatur_register_shortcode');
