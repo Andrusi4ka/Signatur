@@ -32,10 +32,6 @@ msgid "Save"
 msgstr "Lagre"
 
 #: signatur.php
-msgid "ID"
-msgstr "ID"
-
-#: signatur.php
 msgid "Signature saved."
 msgstr "Signatur lagret."
 
@@ -82,3 +78,47 @@ msgstr "Signatur oppdatert."
 #: signatur.php
 msgid "Add link"
 msgstr "Legg til lenke"
+
+#: signatur.php
+msgid "Edit row"
+msgstr "Rediger rad"
+
+#: signatur.php
+msgid "Delete row"
+msgstr "Slett rad"
+
+#: signatur.php
+msgid "Add row"
+msgstr "Legg til rad"
+
+#: signatur.php
+msgid "Cancel"
+msgstr "Avbryt"
+
+#: signatur.php
+msgid "Signature width"
+msgstr "Signaturbredde"
+
+#: signatur.php
+msgid "px"
+msgstr "px"
+
+#: signatur.php
+msgid "min. 200px"
+msgstr "min. 200px"
+
+#: signatur.php
+msgid "Top"
+msgstr "Topp"
+
+#: signatur.php
+msgid "Left"
+msgstr "Venstre"
+
+#: signatur.php
+msgid "Bottom"
+msgstr "Bunn"
+
+#: signatur.php
+msgid "Right"
+msgstr "Høyre"

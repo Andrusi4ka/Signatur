@@ -32,10 +32,6 @@ msgid "Save"
 msgstr "Сохранить"
 
 #: signatur.php
-msgid "ID"
-msgstr "ID"
-
-#: signatur.php
 msgid "Signature saved."
 msgstr "Подпись сохранена."
 
@@ -82,3 +78,47 @@ msgstr "Подпись обновлена."
 #: signatur.php
 msgid "Add link"
 msgstr "Добавить ссылку"
+
+#: signatur.php
+msgid "Edit row"
+msgstr "Редактировать строку"
+
+#: signatur.php
+msgid "Delete row"
+msgstr "Удалить строку"
+
+#: signatur.php
+msgid "Add row"
+msgstr "Добавить строку"
+
+#: signatur.php
+msgid "Cancel"
+msgstr "Отмена"
+
+#: signatur.php
+msgid "Signature width"
+msgstr "Ширина подписи"
+
+#: signatur.php
+msgid "px"
+msgstr "px"
+
+#: signatur.php
+msgid "min. 200px"
+msgstr "мин. 200px"
+
+#: signatur.php
+msgid "Top"
+msgstr "Верх"
+
+#: signatur.php
+msgid "Left"
+msgstr "Лево"
+
+#: signatur.php
+msgid "Bottom"
+msgstr "Низ"
+
+#: signatur.php
+msgid "Right"
+msgstr "Право"
