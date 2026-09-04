@@ -80,5 +80,5 @@ msgid "Signature updated."
 msgstr "Подпись обновлена."
 
 #: signatur.php
-msgid "Link"
-msgstr "Ссылка"
+msgid "Add link"
+msgstr "Добавить ссылку"

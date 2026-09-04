@@ -145,6 +145,13 @@ function signatur_render_add_signature_page()
 
     $page_title = $id ? __('Edit signature', 'signatur') : __('Add signature', 'signatur');
 ?>
+    <style>
+        #signatur_link_toggle:hover,
+        #signatur_link_toggle:focus {
+            background: #f0f0f1;
+            border-color: #646970;
+        }
+    </style>
     <div class="wrap">
         <h1><?php echo esc_html($page_title); ?></h1>
 
@@ -162,8 +169,12 @@ function signatur_render_add_signature_page()
                         <td>
                             <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
                                 <input type="text" id="signatur_title" name="signatur_title" class="regular-text" value="<?php echo esc_attr($title); ?>" required>
-                                <label for="signatur_link"><?php esc_html_e('Link', 'signatur'); ?></label>
-                                <input type="url" id="signatur_link" name="signatur_link" class="regular-text" value="<?php echo esc_attr($link); ?>" placeholder="https://example.com">
+                                <button type="button" id="signatur_link_toggle" title="<?php esc_attr_e('Add link', 'signatur'); ?>" aria-label="<?php esc_attr_e('Add link', 'signatur'); ?>" style="display:inline-flex; align-items:center; justify-content:center; background:#f6f7f7; border:1px solid #8c8f94; border-radius:4px; cursor:pointer; width:32px; height:32px; padding:0;">
+                                    <img src="<?php echo esc_url(plugins_url('assets/icon-link.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
+                                </button>
+                                <span id="signatur_link_field" style="<?php echo $link ? '' : 'display:none;'; ?>">
+                                    <input type="url" id="signatur_link" name="signatur_link" class="regular-text" value="<?php echo esc_attr($link); ?>" placeholder="https://example.com">
+                                </span>
                             </div>
                         </td>
                     </tr>
@@ -173,5 +184,18 @@ function signatur_render_add_signature_page()
             <?php submit_button(__('Save', 'signatur')); ?>
         </form>
     </div>
+
+    <script>
+        (function () {
+            var toggle = document.getElementById('signatur_link_toggle');
+            var field = document.getElementById('signatur_link_field');
+            var input = document.getElementById('signatur_link');
+
+            toggle.addEventListener('click', function () {
+                field.style.display = '';
+                input.focus();
+            });
+        })();
+    </script>
 <?php
 }
