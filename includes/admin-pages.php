@@ -121,16 +121,17 @@ function signatur_render_all_signatures_page()
  */
 function signatur_render_add_signature_page()
 {
-    $id    = isset($_GET['id']) ? absint($_GET['id']) : 0;
-    $title = '';
-    $link  = '';
+    $id       = isset($_GET['id']) ? absint($_GET['id']) : 0;
+    $title    = '';
+    $link     = '';
+    $settings = signatur_get_default_settings();
 
     if ($id) {
         global $wpdb;
 
         $signature = $wpdb->get_row(
             $wpdb->prepare(
-                'SELECT title, link FROM ' . signatur_get_table_name() . ' WHERE id = %d',
+                'SELECT title, link, settings FROM ' . signatur_get_table_name() . ' WHERE id = %d',
                 $id
             )
         );
@@ -138,10 +139,22 @@ function signatur_render_add_signature_page()
         if ($signature) {
             $title = $signature->title;
             $link  = $signature->link;
+
+            $decoded = json_decode((string) $signature->settings, true);
+
+            if (is_array($decoded)) {
+                $settings = wp_parse_args($decoded, $settings);
+                $settings['padding'] = wp_parse_args(
+                    is_array($decoded['padding'] ?? null) ? $decoded['padding'] : array(),
+                    $settings['padding']
+                );
+            }
         } else {
             $id = 0;
         }
     }
+
+    $group_width = $settings['width'] + 80;
 
     $page_title = $id ? __('Edit signature', 'signatur') : __('Add signature', 'signatur');
 ?>
@@ -211,11 +224,16 @@ function signatur_render_add_signature_page()
             height: 30px;
             line-height: 28px;
         }
+
+        #signatur_field_table td {
+            height: 38px;
+            box-sizing: border-box;
+        }
     </style>
     <div class="wrap">
         <h1><?php echo esc_html($page_title); ?></h1>
 
-        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
+        <form id="signatur_form" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
             <?php wp_nonce_field('signatur_save_signature'); ?>
             <input type="hidden" name="action" value="signatur_save_signature">
             <input type="hidden" name="signatur_id" value="<?php echo esc_attr($id); ?>">
@@ -241,31 +259,41 @@ function signatur_render_add_signature_page()
                 </tbody>
             </table>
 
-            <div id="signatur_row_group" style="width:380px; margin:16px auto 0;">
-                <div id="signatur_row_top_wrap" style="width:300px; display:flex; justify-content:center;">
+            <input type="hidden" name="signatur_settings" id="signatur_settings_input" value="<?php echo esc_attr(wp_json_encode($settings)); ?>">
+
+            <div id="signatur_row_group" style="width:<?php echo esc_attr($group_width); ?>px; margin:16px auto 0;">
+                <div id="signatur_row_top_wrap" style="width:<?php echo esc_attr($settings['width']); ?>px; display:flex; justify-content:center;">
                     <button type="button" class="signatur-icon-button" data-modal-title="<?php echo esc_attr__('Edit signature', 'signatur'); ?>" data-modal-type="width" title="<?php esc_attr_e('Edit signature', 'signatur'); ?>" aria-label="<?php esc_attr_e('Edit signature', 'signatur'); ?>">
                         <img src="<?php echo esc_url(plugins_url('assets/icon-edit.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
                     </button>
                 </div>
 
-                <div style="display:flex; align-items:center; gap:8px; margin-top:8px;">
-                    <table id="signatur_field_table" class="widefat striped" style="width:300px;">
-                        <tbody>
-                            <tr>
-                                <td>&nbsp;</td>
-                            </tr>
+                <div style="display:flex; align-items:flex-start; gap:8px; margin-top:8px;">
+                    <table id="signatur_field_table" class="widefat striped" style="width:<?php echo esc_attr($settings['width']); ?>px; padding-top:<?php echo esc_attr($settings['padding']['top']); ?>px; padding-right:<?php echo esc_attr($settings['padding']['right']); ?>px; padding-bottom:<?php echo esc_attr($settings['padding']['bottom']); ?>px; padding-left:<?php echo esc_attr($settings['padding']['left']); ?>px;">
+                        <tbody id="signatur_field_tbody">
+                            <?php for ($i = 0; $i < $settings['rows']; $i++) : ?>
+                                <tr>
+                                    <td>&nbsp;</td>
+                                </tr>
+                            <?php endfor; ?>
                         </tbody>
                     </table>
-                    <button type="button" class="signatur-icon-button" data-modal-title="<?php echo esc_attr__('Edit row', 'signatur'); ?>" title="<?php esc_attr_e('Edit row', 'signatur'); ?>" aria-label="<?php esc_attr_e('Edit row', 'signatur'); ?>">
-                        <img src="<?php echo esc_url(plugins_url('assets/icon-edit.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
-                    </button>
-                    <button type="button" class="signatur-icon-button" title="<?php esc_attr_e('Delete row', 'signatur'); ?>" aria-label="<?php esc_attr_e('Delete row', 'signatur'); ?>">
-                        <img src="<?php echo esc_url(plugins_url('assets/icon-delete.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
-                    </button>
+                    <div id="signatur_rows_actions" style="display:flex; flex-direction:column;">
+                        <?php for ($i = 0; $i < $settings['rows']; $i++) : ?>
+                            <div class="signatur-row-actions" style="height:38px; display:flex; align-items:center; gap:8px;">
+                                <button type="button" class="signatur-icon-button" data-modal-title="<?php echo esc_attr__('Edit row', 'signatur'); ?>" title="<?php esc_attr_e('Edit row', 'signatur'); ?>" aria-label="<?php esc_attr_e('Edit row', 'signatur'); ?>">
+                                    <img src="<?php echo esc_url(plugins_url('assets/icon-edit.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
+                                </button>
+                                <button type="button" class="signatur-icon-button" title="<?php esc_attr_e('Delete row', 'signatur'); ?>" aria-label="<?php esc_attr_e('Delete row', 'signatur'); ?>">
+                                    <img src="<?php echo esc_url(plugins_url('assets/icon-delete.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
+                                </button>
+                            </div>
+                        <?php endfor; ?>
+                    </div>
                 </div>
 
-                <div id="signatur_row_bottom_wrap" style="width:300px; display:flex; justify-content:center; margin-top:8px;">
-                    <button type="button" class="signatur-icon-button" data-modal-title="<?php echo esc_attr__('Add row', 'signatur'); ?>" title="<?php esc_attr_e('Add row', 'signatur'); ?>" aria-label="<?php esc_attr_e('Add row', 'signatur'); ?>">
+                <div id="signatur_row_bottom_wrap" style="width:<?php echo esc_attr($settings['width']); ?>px; display:flex; justify-content:center; margin-top:8px;">
+                    <button type="button" id="signatur_row_add" class="signatur-icon-button" title="<?php esc_attr_e('Add row', 'signatur'); ?>" aria-label="<?php esc_attr_e('Add row', 'signatur'); ?>">
                         <img src="<?php echo esc_url(plugins_url('assets/icon-plus.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
                     </button>
                 </div>
@@ -303,6 +331,23 @@ function signatur_render_add_signature_page()
                 <input type="number" id="signatur_padding_right" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Right', 'signatur'); ?>" style="width:50px;">
             </p>
         </template>
+
+        <template id="signatur_row_template">
+            <tr>
+                <td>&nbsp;</td>
+            </tr>
+        </template>
+
+        <template id="signatur_row_actions_template">
+            <div class="signatur-row-actions" style="height:38px; display:flex; align-items:center; gap:8px;">
+                <button type="button" class="signatur-icon-button" data-modal-title="<?php echo esc_attr__('Edit row', 'signatur'); ?>" title="<?php esc_attr_e('Edit row', 'signatur'); ?>" aria-label="<?php esc_attr_e('Edit row', 'signatur'); ?>">
+                    <img src="<?php echo esc_url(plugins_url('assets/icon-edit.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
+                </button>
+                <button type="button" class="signatur-icon-button" title="<?php esc_attr_e('Delete row', 'signatur'); ?>" aria-label="<?php esc_attr_e('Delete row', 'signatur'); ?>">
+                    <img src="<?php echo esc_url(plugins_url('assets/icon-delete.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
+                </button>
+            </div>
+        </template>
     </div>
 
     <script>
@@ -326,6 +371,10 @@ function signatur_render_add_signature_page()
             var rowTopWrap = document.getElementById('signatur_row_top_wrap');
             var rowBottomWrap = document.getElementById('signatur_row_bottom_wrap');
             var fieldTable = document.getElementById('signatur_field_table');
+            var fieldTbody = document.getElementById('signatur_field_tbody');
+            var rowsActions = document.getElementById('signatur_rows_actions');
+            var rowTemplate = document.getElementById('signatur_row_template');
+            var rowActionsTemplate = document.getElementById('signatur_row_actions_template');
             var minWidth = 200;
             var paddingSides = ['top', 'right', 'bottom', 'left'];
             var activeModalType = null;
@@ -384,10 +433,19 @@ function signatur_render_add_signature_page()
                 modalOverlay.style.display = 'none';
             }
 
-            document.querySelectorAll('[data-modal-title]').forEach(function (button) {
-                button.addEventListener('click', function () {
+            document.addEventListener('click', function (e) {
+                var button = e.target.closest('[data-modal-title]');
+
+                if (button) {
                     openModal(button.getAttribute('data-modal-title'), button.getAttribute('data-modal-type'));
-                });
+                }
+            });
+
+            var rowAddButton = document.getElementById('signatur_row_add');
+
+            rowAddButton.addEventListener('click', function () {
+                fieldTbody.appendChild(rowTemplate.content.cloneNode(true));
+                rowsActions.appendChild(rowActionsTemplate.content.cloneNode(true));
             });
 
             modalCancel.addEventListener('click', closeModal);
@@ -397,10 +455,10 @@ function signatur_render_add_signature_page()
                     var widthInput = document.getElementById('signatur_width_input');
                     var width = clampWidth(widthInput.value);
 
-                    fieldTable.style.width = width + 'px';
                     rowTopWrap.style.width = width + 'px';
                     rowBottomWrap.style.width = width + 'px';
                     rowGroup.style.width = (width + 80) + 'px';
+                    fieldTable.style.width = width + 'px';
 
                     paddingSides.forEach(function (side) {
                         var paddingInput = document.getElementById('signatur_padding_' + side);
@@ -418,6 +476,24 @@ function signatur_render_add_signature_page()
                 if (e.target === modalOverlay) {
                     closeModal();
                 }
+            });
+
+            var form = document.getElementById('signatur_form');
+            var settingsInput = document.getElementById('signatur_settings_input');
+
+            form.addEventListener('submit', function () {
+                var padding = {};
+
+                paddingSides.forEach(function (side) {
+                    var property = 'padding' + side.charAt(0).toUpperCase() + side.slice(1);
+                    padding[side] = parseInt(fieldTable.style[property], 10) || 0;
+                });
+
+                settingsInput.value = JSON.stringify({
+                    width: parseInt(fieldTable.style.width, 10) || minWidth,
+                    padding: padding,
+                    rows: fieldTbody.querySelectorAll('tr').length
+                });
             });
         })();
     </script>

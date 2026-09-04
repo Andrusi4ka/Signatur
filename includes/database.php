@@ -41,6 +41,7 @@ function signatur_create_table()
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
         title VARCHAR(255) NOT NULL,
         link VARCHAR(255) NOT NULL DEFAULT '',
+        settings LONGTEXT NULL,
         created_at DATETIME NOT NULL,
         updated_at DATETIME NOT NULL,
         PRIMARY KEY  (id)
@@ -58,4 +59,62 @@ function signatur_get_table_name()
     global $wpdb;
 
     return $wpdb->prefix . 'signatur_signatures';
+}
+
+/**
+ * Default values for the visual signature builder settings.
+ */
+function signatur_get_default_settings()
+{
+    return array(
+        'width'   => 300,
+        'padding' => array(
+            'top'    => 0,
+            'right'  => 0,
+            'bottom' => 0,
+            'left'   => 0,
+        ),
+        'rows'    => 1,
+    );
+}
+
+/**
+ * Validate and normalize the builder settings submitted with the form,
+ * returning a JSON string ready to store in the database.
+ */
+function signatur_sanitize_settings($raw_json)
+{
+    $defaults = signatur_get_default_settings();
+    $decoded  = json_decode((string) $raw_json, true);
+
+    if (! is_array($decoded)) {
+        $decoded = array();
+    }
+
+    $width = isset($decoded['width']) ? absint($decoded['width']) : $defaults['width'];
+
+    if ($width < 200) {
+        $width = 200;
+    }
+
+    $raw_padding = isset($decoded['padding']) && is_array($decoded['padding']) ? $decoded['padding'] : array();
+    $padding     = array();
+
+    foreach (array('top', 'right', 'bottom', 'left') as $side) {
+        $padding[$side] = isset($raw_padding[$side]) ? absint($raw_padding[$side]) : 0;
+    }
+
+    $rows = isset($decoded['rows']) ? absint($decoded['rows']) : $defaults['rows'];
+
+    if ($rows < 1) {
+        $rows = 1;
+    }
+
+    return wp_json_encode(
+        array(
+            'width'   => $width,
+            'padding' => $padding,
+            'rows'    => $rows,
+        )
+    );
 }
