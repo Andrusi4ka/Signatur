@@ -117,6 +117,27 @@ function signatur_render_all_signatures_page()
 }
 
 /**
+ * Render the edit/delete-column/delete-row buttons shown beside a table row.
+ */
+function signatur_render_row_actions_buttons()
+{
+?>
+    <button type="button" class="signatur-icon-button" data-modal-title="<?php echo esc_attr__('Edit row', 'signatur'); ?>" title="<?php esc_attr_e('Edit row', 'signatur'); ?>" aria-label="<?php esc_attr_e('Edit row', 'signatur'); ?>">
+        <img src="<?php echo esc_url(plugins_url('assets/icon-edit.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
+    </button>
+    <button type="button" class="signatur-icon-button signatur-column-add" title="<?php esc_attr_e('Add column', 'signatur'); ?>" aria-label="<?php esc_attr_e('Add column', 'signatur'); ?>">
+        <img src="<?php echo esc_url(plugins_url('assets/icon-plus.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
+    </button>
+    <button type="button" class="signatur-icon-button signatur-column-remove" title="<?php esc_attr_e('Remove column', 'signatur'); ?>" aria-label="<?php esc_attr_e('Remove column', 'signatur'); ?>">
+        <img src="<?php echo esc_url(plugins_url('assets/icon-minus.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
+    </button>
+    <button type="button" class="signatur-icon-button" title="<?php esc_attr_e('Delete row', 'signatur'); ?>" aria-label="<?php esc_attr_e('Delete row', 'signatur'); ?>">
+        <img src="<?php echo esc_url(plugins_url('assets/icon-delete.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
+    </button>
+<?php
+}
+
+/**
  * Render the signature creation page.
  */
 function signatur_render_add_signature_page()
@@ -154,7 +175,7 @@ function signatur_render_add_signature_page()
         }
     }
 
-    $group_width = $settings['width'] + 80;
+    $group_width = $settings['width'] + 160;
 
     $page_title = $id ? __('Edit signature', 'signatur') : __('Add signature', 'signatur');
 ?>
@@ -176,6 +197,16 @@ function signatur_render_add_signature_page()
         .signatur-icon-button:focus {
             background: #f0f0f1;
             border-color: #646970;
+        }
+
+        .signatur-icon-button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .signatur-icon-button:disabled:hover {
+            background: #f6f7f7;
+            border-color: #8c8f94;
         }
 
         #signatur_modal_overlay {
@@ -225,9 +256,14 @@ function signatur_render_add_signature_page()
             line-height: 28px;
         }
 
+        #signatur_field_table {
+            border-collapse: collapse;
+        }
+
         #signatur_field_table td {
             height: 38px;
             box-sizing: border-box;
+            border: 1px solid #dcdcde;
         }
     </style>
     <div class="wrap">
@@ -281,12 +317,7 @@ function signatur_render_add_signature_page()
                     <div id="signatur_rows_actions" style="display:flex; flex-direction:column;">
                         <?php for ($i = 0; $i < $settings['rows']; $i++) : ?>
                             <div class="signatur-row-actions" style="height:38px; display:flex; align-items:center; gap:8px;">
-                                <button type="button" class="signatur-icon-button" data-modal-title="<?php echo esc_attr__('Edit row', 'signatur'); ?>" title="<?php esc_attr_e('Edit row', 'signatur'); ?>" aria-label="<?php esc_attr_e('Edit row', 'signatur'); ?>">
-                                    <img src="<?php echo esc_url(plugins_url('assets/icon-edit.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
-                                </button>
-                                <button type="button" class="signatur-icon-button" title="<?php esc_attr_e('Delete row', 'signatur'); ?>" aria-label="<?php esc_attr_e('Delete row', 'signatur'); ?>">
-                                    <img src="<?php echo esc_url(plugins_url('assets/icon-delete.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
-                                </button>
+                                <?php signatur_render_row_actions_buttons(); ?>
                             </div>
                         <?php endfor; ?>
                     </div>
@@ -340,12 +371,7 @@ function signatur_render_add_signature_page()
 
         <template id="signatur_row_actions_template">
             <div class="signatur-row-actions" style="height:38px; display:flex; align-items:center; gap:8px;">
-                <button type="button" class="signatur-icon-button" data-modal-title="<?php echo esc_attr__('Edit row', 'signatur'); ?>" title="<?php esc_attr_e('Edit row', 'signatur'); ?>" aria-label="<?php esc_attr_e('Edit row', 'signatur'); ?>">
-                    <img src="<?php echo esc_url(plugins_url('assets/icon-edit.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
-                </button>
-                <button type="button" class="signatur-icon-button" title="<?php esc_attr_e('Delete row', 'signatur'); ?>" aria-label="<?php esc_attr_e('Delete row', 'signatur'); ?>">
-                    <img src="<?php echo esc_url(plugins_url('assets/icon-delete.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
-                </button>
+                <?php signatur_render_row_actions_buttons(); ?>
             </div>
         </template>
     </div>
@@ -443,10 +469,78 @@ function signatur_render_add_signature_page()
 
             var rowAddButton = document.getElementById('signatur_row_add');
 
+            function syncRowActionsState() {
+                var groups = rowsActions.querySelectorAll('.signatur-row-actions');
+
+                groups.forEach(function (group, index) {
+                    var row = fieldTbody.children[index];
+                    var removeButton = group.querySelector('.signatur-column-remove');
+
+                    if (row && removeButton) {
+                        removeButton.disabled = row.children.length <= 1;
+                    }
+                });
+            }
+
+            function syncColumnWidths() {
+                var rows = Array.prototype.slice.call(fieldTbody.children);
+                var maxColumns = rows.reduce(function (max, row) {
+                    return Math.max(max, row.children.length);
+                }, 1);
+
+                rows.forEach(function (row) {
+                    var columns = row.children.length;
+
+                    Array.prototype.forEach.call(row.children, function (cell, i) {
+                        if (i === columns - 1 && columns < maxColumns) {
+                            cell.setAttribute('colspan', maxColumns - columns + 1);
+                        } else {
+                            cell.removeAttribute('colspan');
+                        }
+                    });
+                });
+            }
+
             rowAddButton.addEventListener('click', function () {
                 fieldTbody.appendChild(rowTemplate.content.cloneNode(true));
                 rowsActions.appendChild(rowActionsTemplate.content.cloneNode(true));
+                syncRowActionsState();
+                syncColumnWidths();
             });
+
+            rowsActions.addEventListener('click', function (e) {
+                var group = e.target.closest('.signatur-row-actions');
+
+                if (! group) {
+                    return;
+                }
+
+                var index = Array.prototype.indexOf.call(rowsActions.children, group);
+                var row = fieldTbody.children[index];
+
+                if (! row) {
+                    return;
+                }
+
+                if (e.target.closest('.signatur-column-add')) {
+                    var cell = document.createElement('td');
+                    cell.innerHTML = '&nbsp;';
+                    row.appendChild(cell);
+                    syncRowActionsState();
+                    syncColumnWidths();
+                }
+
+                var removeButton = e.target.closest('.signatur-column-remove');
+
+                if (removeButton && ! removeButton.disabled && row.children.length > 1) {
+                    row.removeChild(row.lastElementChild);
+                    syncRowActionsState();
+                    syncColumnWidths();
+                }
+            });
+
+            syncRowActionsState();
+            syncColumnWidths();
 
             modalCancel.addEventListener('click', closeModal);
 
@@ -457,7 +551,7 @@ function signatur_render_add_signature_page()
 
                     rowTopWrap.style.width = width + 'px';
                     rowBottomWrap.style.width = width + 'px';
-                    rowGroup.style.width = (width + 80) + 'px';
+                    rowGroup.style.width = (width + 160) + 'px';
                     fieldTable.style.width = width + 'px';
 
                     paddingSides.forEach(function (side) {

@@ -122,3 +122,11 @@ msgstr "Bunn"
 #: signatur.php
 msgid "Right"
 msgstr "Høyre"
+
+#: signatur.php
+msgid "Add column"
+msgstr "Legg til kolonne"
+
+#: signatur.php
+msgid "Remove column"
+msgstr "Fjern kolonne"

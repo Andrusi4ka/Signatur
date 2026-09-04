@@ -122,3 +122,11 @@ msgstr "Bottom"
 #: signatur.php
 msgid "Right"
 msgstr "Right"
+
+#: signatur.php
+msgid "Add column"
+msgstr "Add column"
+
+#: signatur.php
+msgid "Remove column"
+msgstr "Remove column"

@@ -122,3 +122,11 @@ msgstr "Низ"
 #: signatur.php
 msgid "Right"
 msgstr "Право"
+
+#: signatur.php
+msgid "Add column"
+msgstr "Додати колонку"
+
+#: signatur.php
+msgid "Remove column"
+msgstr "Видалити колонку"
