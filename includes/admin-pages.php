@@ -247,9 +247,28 @@ function signatur_render_add_signature_page()
             background: #d5e5f8;
         }
 
+        #signatur_field_table thead th.signatur-column-header {
+            box-sizing: border-box;
+            height: 22px;
+            padding: 0;
+            font-size: 11px;
+            font-weight: normal;
+            text-align: center;
+            color: #646970;
+            background: #f0f0f1;
+            border: 1px solid #dcdcde;
+            user-select: none;
+        }
+
+        #signatur_field_table thead th.signatur-column-header:hover {
+            background: #d5e5f8;
+            color: #1d2327;
+        }
+
         #signatur_column_add,
         #signatur_column_combine,
-        #signatur_column_remove {
+        #signatur_column_remove,
+        #signatur_column_split {
             display: none;
             position: fixed;
             z-index: 100001;
@@ -314,6 +333,13 @@ function signatur_render_add_signature_page()
                                 <col style="width:<?php echo esc_attr($column_width); ?>px;">
                             <?php endforeach; ?>
                         </colgroup>
+                        <thead>
+                            <tr id="signatur_field_header_row">
+                                <?php foreach ($settings['columns'] as $column_index => $column_width) : ?>
+                                    <th class="signatur-column-header" data-index="<?php echo esc_attr($column_index); ?>"><?php echo esc_html($column_index + 1); ?></th>
+                                <?php endforeach; ?>
+                            </tr>
+                        </thead>
                         <tbody id="signatur_field_tbody">
                             <?php foreach ($settings['rows'] as $row_cells) : ?>
                                 <tr>
@@ -338,6 +364,7 @@ function signatur_render_add_signature_page()
                         </tbody>
                     </table>
                     <div id="signatur_rows_actions" style="display:flex; flex-direction:column;">
+                        <div class="signatur-row-actions" style="height:22px;" aria-hidden="true"></div>
                         <?php foreach ($settings['rows'] as $row_spans) : ?>
                             <div class="signatur-row-actions" style="height:38px; display:flex; align-items:center; gap:8px;">
                                 <?php signatur_render_row_actions_buttons(); ?>
@@ -355,6 +382,10 @@ function signatur_render_add_signature_page()
 
             <?php submit_button(__('Save', 'signatur')); ?>
         </form>
+
+        <button type="button" id="signatur_column_split" class="signatur-icon-button" title="<?php esc_attr_e('Split cell', 'signatur'); ?>" aria-label="<?php esc_attr_e('Split cell', 'signatur'); ?>">
+            <img src="<?php echo esc_url(plugins_url('assets/icon-shift.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
+        </button>
 
         <button type="button" id="signatur_column_add" class="signatur-icon-button" title="<?php esc_attr_e('Add column', 'signatur'); ?>" aria-label="<?php esc_attr_e('Add column', 'signatur'); ?>">
             <img src="<?php echo esc_url(plugins_url('assets/icon-plus.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
@@ -432,6 +463,7 @@ function signatur_render_add_signature_page()
             var rowsActions = document.getElementById('signatur_rows_actions');
             var rowActionsTemplate = document.getElementById('signatur_row_actions_template');
             var colgroup = document.getElementById('signatur_field_colgroup');
+            var headerRow = document.getElementById('signatur_field_header_row');
             var resizeHandles = document.getElementById('signatur_col_resize_handles');
             var minWidth = 200;
             var minColumnWidth = 20;
@@ -624,6 +656,21 @@ function signatur_render_add_signature_page()
                     col.style.width = width + 'px';
                     colgroup.appendChild(col);
                 });
+
+                renderColumnHeaders();
+            }
+
+            function renderColumnHeaders() {
+                headerRow.innerHTML = '';
+
+                columnWidths.forEach(function (width, index) {
+                    var header = document.createElement('th');
+
+                    header.className = 'signatur-column-header';
+                    header.setAttribute('data-index', index);
+                    header.textContent = index + 1;
+                    headerRow.appendChild(header);
+                });
             }
 
             function renderResizeHandles() {
@@ -633,8 +680,8 @@ function signatur_render_add_signature_page()
                     return;
                 }
 
-                var tableRect = fieldTable.getBoundingClientRect();
-                var offset = tableRect.left;
+                var headerRect = headerRow.getBoundingClientRect();
+                var offset = headerRect.left;
 
                 for (var i = 0; i < columnWidths.length - 1; i++) {
                     offset += columnWidths[i];
@@ -643,8 +690,8 @@ function signatur_render_add_signature_page()
 
                     handle.className = 'signatur-col-resize-handle';
                     handle.setAttribute('data-index', i);
-                    handle.style.top = tableRect.top + 'px';
-                    handle.style.height = tableRect.height + 'px';
+                    handle.style.top = headerRect.top + 'px';
+                    handle.style.height = headerRect.height + 'px';
                     handle.style.left = offset + 'px';
                     resizeHandles.appendChild(handle);
                 }
@@ -740,6 +787,61 @@ function signatur_render_add_signature_page()
                 renderResizeHandles();
             }
 
+            /**
+             * Undo a merge on `cell`: shrink it back to a single 1x1 cell and
+             * recreate a plain <td> for every grid position it used to cover
+             * (its own row for the extra columns, and every row below it was
+             * spanning down into, which currently have no <td> there at all).
+             */
+            function splitCell(cell) {
+                var colspan = getCellColSpan(cell);
+                var rowspan = getCellRowSpan(cell);
+
+                if (colspan <= 1 && rowspan <= 1) {
+                    return;
+                }
+
+                var grid = buildGrid();
+                var pos = findCellPosition(grid, cell);
+
+                if (! pos) {
+                    return;
+                }
+
+                var startRow = pos.row;
+                var startCol = pos.col;
+                var rows = Array.prototype.slice.call(fieldTbody.children);
+
+                setCellColSpan(cell, 1);
+                setCellRowSpan(cell, 1);
+
+                for (var r = startRow; r < startRow + rowspan; r++) {
+                    var row = rows[r];
+                    var rowSlots = grid[r] || [];
+                    var referenceCell = null;
+
+                    for (var col = startCol + colspan; col < rowSlots.length; col++) {
+                        if (rowSlots[col] && rowSlots[col].owner) {
+                            referenceCell = rowSlots[col].cell;
+                            break;
+                        }
+                    }
+
+                    var firstCol = (r === startRow) ? startCol + 1 : startCol;
+
+                    for (var c = firstCol; c < startCol + colspan; c++) {
+                        var newCell = document.createElement('td');
+                        newCell.innerHTML = '&nbsp;';
+
+                        if (referenceCell) {
+                            row.insertBefore(newCell, referenceCell);
+                        } else {
+                            row.appendChild(newCell);
+                        }
+                    }
+                }
+            }
+
             rowAddButton.addEventListener('click', function () {
                 var row = document.createElement('tr');
 
@@ -754,6 +856,7 @@ function signatur_render_add_signature_page()
                 renderResizeHandles();
             });
 
+            renderColumnHeaders();
             renderResizeHandles();
 
             var resizing = null;
@@ -815,6 +918,7 @@ function signatur_render_add_signature_page()
             var columnAddButton = document.getElementById('signatur_column_add');
             var columnCombineButton = document.getElementById('signatur_column_combine');
             var columnRemoveButton = document.getElementById('signatur_column_remove');
+            var columnSplitButton = document.getElementById('signatur_column_split');
             var activeColumnCell = null;
             var selectedCells = [];
             var isSelecting = false;
@@ -832,6 +936,12 @@ function signatur_render_add_signature_page()
                 });
             }
 
+            /**
+             * A selection may only grow along one axis from the anchor cell -
+             * straight across a row, or straight down a column, never both at
+             * once. When the drag moves diagonally, whichever axis moved
+             * further wins and the other is locked back to the anchor.
+             */
             function selectRectangle(fromCell, toCell) {
                 var grid = buildGrid();
                 var fromPos = findCellPosition(grid, fromCell);
@@ -841,10 +951,20 @@ function signatur_render_add_signature_page()
                     return [];
                 }
 
-                var minRow = Math.min(fromPos.row, toPos.row);
-                var maxRow = Math.max(fromPos.row, toPos.row);
-                var minCol = Math.min(fromPos.col, toPos.col);
-                var maxCol = Math.max(fromPos.col, toPos.col);
+                var rowDelta = Math.abs(toPos.row - fromPos.row);
+                var colDelta = Math.abs(toPos.col - fromPos.col);
+                var minRow, maxRow, minCol, maxCol;
+
+                if (rowDelta >= colDelta) {
+                    minRow = Math.min(fromPos.row, toPos.row);
+                    maxRow = Math.max(fromPos.row, toPos.row);
+                    minCol = maxCol = fromPos.col;
+                } else {
+                    minCol = Math.min(fromPos.col, toPos.col);
+                    maxCol = Math.max(fromPos.col, toPos.col);
+                    minRow = maxRow = fromPos.row;
+                }
+
                 var cells = [];
 
                 for (var r = minRow; r <= maxRow; r++) {
@@ -863,19 +983,31 @@ function signatur_render_add_signature_page()
             function positionColumnButtons(cell) {
                 var buttonSize = 32;
                 var gap = 4;
+                var showSplit = getCellColSpan(cell) > 1 || getCellRowSpan(cell) > 1;
                 var showRemove = columnWidths.length > 1;
-                var groupWidth = showRemove ? (buttonSize * 2 + gap) : buttonSize;
+                var buttonCount = 1 + (showSplit ? 1 : 0) + (showRemove ? 1 : 0);
+                var groupWidth = buttonSize * buttonCount + gap * (buttonCount - 1);
                 var rect = cell.getBoundingClientRect();
                 var top = rect.top + (rect.height - buttonSize) / 2;
-                var groupLeft = rect.left + (rect.width - groupWidth) / 2;
+                var left = rect.left + (rect.width - groupWidth) / 2;
+
+                if (showSplit) {
+                    columnSplitButton.style.top = top + 'px';
+                    columnSplitButton.style.left = left + 'px';
+                    columnSplitButton.style.display = 'inline-flex';
+                    left += buttonSize + gap;
+                } else {
+                    columnSplitButton.style.display = 'none';
+                }
 
                 columnAddButton.style.top = top + 'px';
-                columnAddButton.style.left = groupLeft + 'px';
+                columnAddButton.style.left = left + 'px';
                 columnAddButton.style.display = 'inline-flex';
+                left += buttonSize + gap;
 
                 if (showRemove) {
                     columnRemoveButton.style.top = top + 'px';
-                    columnRemoveButton.style.left = (groupLeft + buttonSize + gap) + 'px';
+                    columnRemoveButton.style.left = left + 'px';
                     columnRemoveButton.style.display = 'inline-flex';
                 } else {
                     columnRemoveButton.style.display = 'none';
@@ -915,10 +1047,15 @@ function signatur_render_add_signature_page()
                 columnRemoveButton.style.display = 'none';
             }
 
+            function hideColumnSplitButton() {
+                columnSplitButton.style.display = 'none';
+            }
+
             function hideColumnButtons() {
                 activeColumnCell = null;
                 hideColumnAddButton();
                 hideColumnRemoveButton();
+                hideColumnSplitButton();
             }
 
             function clearSelection() {
@@ -968,6 +1105,15 @@ function signatur_render_add_signature_page()
 
                 removeColumnAt(start + span - 1);
                 hideColumnButtons();
+            });
+
+            columnSplitButton.addEventListener('click', function () {
+                if (! activeColumnCell) {
+                    return;
+                }
+
+                splitCell(activeColumnCell);
+                clearSelection();
             });
 
             function finishSelection() {

@@ -134,3 +134,7 @@ msgstr "Удалить колонку"
 #: signatur.php
 msgid "Combine columns"
 msgstr "Объединить колонки"
+
+#: signatur.php
+msgid "Split cell"
+msgstr "Разделить ячейку"

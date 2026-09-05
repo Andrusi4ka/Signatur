@@ -134,3 +134,7 @@ msgstr "Fjern kolonne"
 #: signatur.php
 msgid "Combine columns"
 msgstr "Slå sammen kolonner"
+
+#: signatur.php
+msgid "Split cell"
+msgstr "Del opp celle"

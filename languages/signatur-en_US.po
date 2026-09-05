@@ -134,3 +134,7 @@ msgstr "Remove column"
 #: signatur.php
 msgid "Combine columns"
 msgstr "Combine columns"
+
+#: signatur.php
+msgid "Split cell"
+msgstr "Split cell"
