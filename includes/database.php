@@ -63,6 +63,10 @@ function signatur_get_table_name()
 
 /**
  * Default values for the visual signature builder settings.
+ *
+ * `columns` holds the pixel width of every grid column, shared by all rows.
+ * `rows` holds one array per row, listing the colspan of each of its cells
+ * left to right; each row's values always sum to count(columns).
  */
 function signatur_get_default_settings()
 {
@@ -74,7 +78,8 @@ function signatur_get_default_settings()
             'bottom' => 0,
             'left'   => 0,
         ),
-        'rows'    => 1,
+        'columns' => array(300),
+        'rows'    => array(array(1)),
     );
 }
 
@@ -104,16 +109,58 @@ function signatur_sanitize_settings($raw_json)
         $padding[$side] = isset($raw_padding[$side]) ? absint($raw_padding[$side]) : 0;
     }
 
-    $rows = isset($decoded['rows']) ? absint($decoded['rows']) : $defaults['rows'];
+    $columns = array();
 
-    if ($rows < 1) {
-        $rows = 1;
+    if (isset($decoded['columns']) && is_array($decoded['columns'])) {
+        foreach ($decoded['columns'] as $column_width) {
+            $columns[] = max(20, absint($column_width));
+
+            if (count($columns) >= 50) {
+                break;
+            }
+        }
+    }
+
+    if (empty($columns)) {
+        $columns = array($width);
+    }
+
+    $column_count = count($columns);
+    $rows         = array();
+
+    if (isset($decoded['rows']) && is_array($decoded['rows'])) {
+        foreach ($decoded['rows'] as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            $spans = array();
+
+            foreach ($row as $span) {
+                $spans[] = max(1, absint($span));
+            }
+
+            if (empty($spans) || array_sum($spans) !== $column_count) {
+                $spans = array($column_count);
+            }
+
+            $rows[] = $spans;
+
+            if (count($rows) >= 100) {
+                break;
+            }
+        }
+    }
+
+    if (empty($rows)) {
+        $rows = array(array($column_count));
     }
 
     return wp_json_encode(
         array(
             'width'   => $width,
             'padding' => $padding,
+            'columns' => $columns,
             'rows'    => $rows,
         )
     );

@@ -152,18 +152,9 @@ function signatur_render_add_signature_page()
         );
 
         if ($signature) {
-            $title = $signature->title;
-            $link  = $signature->link;
-
-            $decoded = json_decode((string) $signature->settings, true);
-
-            if (is_array($decoded)) {
-                $settings = wp_parse_args($decoded, $settings);
-                $settings['padding'] = wp_parse_args(
-                    is_array($decoded['padding'] ?? null) ? $decoded['padding'] : array(),
-                    $settings['padding']
-                );
-            }
+            $title    = $signature->title;
+            $link     = $signature->link;
+            $settings = json_decode(signatur_sanitize_settings($signature->settings), true);
         } else {
             $id = 0;
         }
@@ -242,6 +233,7 @@ function signatur_render_add_signature_page()
 
         #signatur_field_table {
             border-collapse: collapse;
+            table-layout: fixed;
         }
 
         #signatur_field_table td {
@@ -261,6 +253,20 @@ function signatur_render_add_signature_page()
             display: none;
             position: fixed;
             z-index: 100001;
+        }
+
+        .signatur-col-resize-handle {
+            position: fixed;
+            width: 7px;
+            margin-left: -3px;
+            cursor: col-resize;
+            z-index: 100000;
+            background: transparent;
+        }
+
+        .signatur-col-resize-handle:hover {
+            background: #2271b1;
+            opacity: 0.5;
         }
     </style>
     <div class="wrap">
@@ -303,20 +309,27 @@ function signatur_render_add_signature_page()
 
                 <div style="display:flex; align-items:flex-start; gap:8px; margin-top:8px;">
                     <table id="signatur_field_table" class="widefat striped" style="width:<?php echo esc_attr($settings['width']); ?>px; padding-top:<?php echo esc_attr($settings['padding']['top']); ?>px; padding-right:<?php echo esc_attr($settings['padding']['right']); ?>px; padding-bottom:<?php echo esc_attr($settings['padding']['bottom']); ?>px; padding-left:<?php echo esc_attr($settings['padding']['left']); ?>px;">
+                        <colgroup id="signatur_field_colgroup">
+                            <?php foreach ($settings['columns'] as $column_width) : ?>
+                                <col style="width:<?php echo esc_attr($column_width); ?>px;">
+                            <?php endforeach; ?>
+                        </colgroup>
                         <tbody id="signatur_field_tbody">
-                            <?php for ($i = 0; $i < $settings['rows']; $i++) : ?>
+                            <?php foreach ($settings['rows'] as $row_spans) : ?>
                                 <tr>
-                                    <td>&nbsp;</td>
+                                    <?php foreach ($row_spans as $span) : ?>
+                                        <td<?php echo $span > 1 ? ' colspan="' . (int) $span . '"' : ''; ?>>&nbsp;</td>
+                                    <?php endforeach; ?>
                                 </tr>
-                            <?php endfor; ?>
+                            <?php endforeach; ?>
                         </tbody>
                     </table>
                     <div id="signatur_rows_actions" style="display:flex; flex-direction:column;">
-                        <?php for ($i = 0; $i < $settings['rows']; $i++) : ?>
+                        <?php foreach ($settings['rows'] as $row_spans) : ?>
                             <div class="signatur-row-actions" style="height:38px; display:flex; align-items:center; gap:8px;">
                                 <?php signatur_render_row_actions_buttons(); ?>
                             </div>
-                        <?php endfor; ?>
+                        <?php endforeach; ?>
                     </div>
                 </div>
 
@@ -341,6 +354,8 @@ function signatur_render_add_signature_page()
         <button type="button" id="signatur_column_remove" class="signatur-icon-button" title="<?php esc_attr_e('Remove column', 'signatur'); ?>" aria-label="<?php esc_attr_e('Remove column', 'signatur'); ?>">
             <img src="<?php echo esc_url(plugins_url('assets/icon-minus.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
         </button>
+
+        <div id="signatur_col_resize_handles"></div>
 
         <div id="signatur_modal_overlay">
             <div id="signatur_modal">
@@ -370,12 +385,6 @@ function signatur_render_add_signature_page()
                 <input type="number" id="signatur_padding_bottom" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Bottom', 'signatur'); ?>" style="width:50px;">
                 <input type="number" id="signatur_padding_right" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Right', 'signatur'); ?>" style="width:50px;">
             </p>
-        </template>
-
-        <template id="signatur_row_template">
-            <tr>
-                <td>&nbsp;</td>
-            </tr>
         </template>
 
         <template id="signatur_row_actions_template">
@@ -408,11 +417,16 @@ function signatur_render_add_signature_page()
             var fieldTable = document.getElementById('signatur_field_table');
             var fieldTbody = document.getElementById('signatur_field_tbody');
             var rowsActions = document.getElementById('signatur_rows_actions');
-            var rowTemplate = document.getElementById('signatur_row_template');
             var rowActionsTemplate = document.getElementById('signatur_row_actions_template');
+            var colgroup = document.getElementById('signatur_field_colgroup');
+            var resizeHandles = document.getElementById('signatur_col_resize_handles');
             var minWidth = 200;
+            var minColumnWidth = 20;
             var paddingSides = ['top', 'right', 'bottom', 'left'];
             var activeModalType = null;
+            var columnWidths = Array.prototype.map.call(colgroup.children, function (col) {
+                return parseInt(col.style.width, 10) || minColumnWidth;
+            });
 
             function clampWidth(value) {
                 var width = parseInt(value, 10);
@@ -478,32 +492,223 @@ function signatur_render_add_signature_page()
 
             var rowAddButton = document.getElementById('signatur_row_add');
 
-            function syncColumnWidths() {
-                var rows = Array.prototype.slice.call(fieldTbody.children);
-                var maxColumns = rows.reduce(function (max, row) {
-                    return Math.max(max, row.children.length);
-                }, 1);
+            function getCellSpan(cell) {
+                return parseInt(cell.getAttribute('colspan'), 10) || 1;
+            }
 
-                rows.forEach(function (row) {
-                    var columns = row.children.length;
+            function setCellSpan(cell, span) {
+                if (span > 1) {
+                    cell.setAttribute('colspan', span);
+                } else {
+                    cell.removeAttribute('colspan');
+                }
+            }
 
-                    Array.prototype.forEach.call(row.children, function (cell, i) {
-                        if (i === columns - 1 && columns < maxColumns) {
-                            cell.setAttribute('colspan', maxColumns - columns + 1);
-                        } else {
-                            cell.removeAttribute('colspan');
-                        }
-                    });
+            function getCellStartIndex(row, targetCell) {
+                var pos = 0;
+                var start = 0;
+
+                Array.prototype.some.call(row.children, function (cell) {
+                    if (cell === targetCell) {
+                        start = pos;
+                        return true;
+                    }
+
+                    pos += getCellSpan(cell);
+
+                    return false;
+                });
+
+                return start;
+            }
+
+            function renderColgroup() {
+                colgroup.innerHTML = '';
+
+                columnWidths.forEach(function (width) {
+                    var col = document.createElement('col');
+                    col.style.width = width + 'px';
+                    colgroup.appendChild(col);
                 });
             }
 
+            function renderResizeHandles() {
+                resizeHandles.innerHTML = '';
+
+                if (columnWidths.length < 2) {
+                    return;
+                }
+
+                var tableRect = fieldTable.getBoundingClientRect();
+                var offset = tableRect.left;
+
+                for (var i = 0; i < columnWidths.length - 1; i++) {
+                    offset += columnWidths[i];
+
+                    var handle = document.createElement('div');
+
+                    handle.className = 'signatur-col-resize-handle';
+                    handle.setAttribute('data-index', i);
+                    handle.style.top = tableRect.top + 'px';
+                    handle.style.height = tableRect.height + 'px';
+                    handle.style.left = offset + 'px';
+                    resizeHandles.appendChild(handle);
+                }
+            }
+
+            /**
+             * Insert a new grid column at `index` (0..columnWidths.length) across
+             * every row. If the insertion point falls inside a merged cell, that
+             * cell's span simply grows by one instead of creating a new <td>.
+             */
+            function insertColumnAt(index, width) {
+                columnWidths.splice(index, 0, width);
+
+                Array.prototype.forEach.call(fieldTbody.children, function (row) {
+                    var cells = Array.prototype.slice.call(row.children);
+                    var pos = 0;
+
+                    for (var i = 0; i < cells.length; i++) {
+                        var cell = cells[i];
+                        var span = getCellSpan(cell);
+                        var end = pos + span;
+
+                        if (index > pos && index < end) {
+                            setCellSpan(cell, span + 1);
+                            return;
+                        }
+
+                        if (index === end) {
+                            var newCell = document.createElement('td');
+                            newCell.innerHTML = '&nbsp;';
+                            row.insertBefore(newCell, cell.nextElementSibling);
+                            return;
+                        }
+
+                        pos = end;
+                    }
+
+                    var firstCell = document.createElement('td');
+                    firstCell.innerHTML = '&nbsp;';
+                    row.insertBefore(firstCell, row.firstElementChild);
+                });
+
+                renderColgroup();
+                renderResizeHandles();
+            }
+
+            /**
+             * Remove grid column `index` from every row. A cell that only covers
+             * that one column is removed outright; a merged cell covering it
+             * simply shrinks by one.
+             */
+            function removeColumnAt(index) {
+                if (columnWidths.length <= 1) {
+                    return;
+                }
+
+                var removedWidth = columnWidths.splice(index, 1)[0];
+                var neighborIndex = index < columnWidths.length ? index : index - 1;
+                columnWidths[neighborIndex] += removedWidth;
+
+                Array.prototype.forEach.call(fieldTbody.children, function (row) {
+                    var cells = Array.prototype.slice.call(row.children);
+                    var pos = 0;
+
+                    for (var i = 0; i < cells.length; i++) {
+                        var cell = cells[i];
+                        var span = getCellSpan(cell);
+                        var end = pos + span;
+
+                        if (index >= pos && index < end) {
+                            if (span > 1) {
+                                setCellSpan(cell, span - 1);
+                            } else {
+                                row.removeChild(cell);
+                            }
+
+                            return;
+                        }
+
+                        pos = end;
+                    }
+                });
+
+                renderColgroup();
+                renderResizeHandles();
+            }
+
             rowAddButton.addEventListener('click', function () {
-                fieldTbody.appendChild(rowTemplate.content.cloneNode(true));
+                var row = document.createElement('tr');
+
+                columnWidths.forEach(function () {
+                    var cell = document.createElement('td');
+                    cell.innerHTML = '&nbsp;';
+                    row.appendChild(cell);
+                });
+
+                fieldTbody.appendChild(row);
                 rowsActions.appendChild(rowActionsTemplate.content.cloneNode(true));
-                syncColumnWidths();
+                renderResizeHandles();
             });
 
-            syncColumnWidths();
+            renderResizeHandles();
+
+            var resizing = null;
+
+            resizeHandles.addEventListener('mousedown', function (e) {
+                var handle = e.target.closest('.signatur-col-resize-handle');
+
+                if (! handle) {
+                    return;
+                }
+
+                e.preventDefault();
+
+                var index = parseInt(handle.getAttribute('data-index'), 10);
+
+                resizing = {
+                    index: index,
+                    startX: e.clientX,
+                    widthA: columnWidths[index],
+                    widthB: columnWidths[index + 1]
+                };
+            });
+
+            document.addEventListener('mousemove', function (e) {
+                if (! resizing) {
+                    return;
+                }
+
+                var delta = e.clientX - resizing.startX;
+                var newA = resizing.widthA + delta;
+                var newB = resizing.widthB - delta;
+
+                if (newA < minColumnWidth) {
+                    newA = minColumnWidth;
+                    newB = resizing.widthA + resizing.widthB - newA;
+                }
+
+                if (newB < minColumnWidth) {
+                    newB = minColumnWidth;
+                    newA = resizing.widthA + resizing.widthB - newB;
+                }
+
+                columnWidths[resizing.index] = newA;
+                columnWidths[resizing.index + 1] = newB;
+                renderColgroup();
+                renderResizeHandles();
+            });
+
+            function stopResizing() {
+                resizing = null;
+            }
+
+            document.addEventListener('mouseup', stopResizing);
+            document.documentElement.addEventListener('mouseleave', stopResizing);
+
+            window.addEventListener('scroll', renderResizeHandles, true);
+            window.addEventListener('resize', renderResizeHandles);
 
             var columnAddButton = document.getElementById('signatur_column_add');
             var columnCombineButton = document.getElementById('signatur_column_combine');
@@ -543,7 +748,7 @@ function signatur_render_add_signature_page()
             function positionColumnButtons(cell) {
                 var buttonSize = 32;
                 var gap = 4;
-                var showRemove = cell.parentNode.children.length > 1;
+                var showRemove = columnWidths.length > 1;
                 var groupWidth = showRemove ? (buttonSize * 2 + gap) : buttonSize;
                 var rect = cell.getBoundingClientRect();
                 var top = rect.top + (rect.height - buttonSize) / 2;
@@ -628,18 +833,17 @@ function signatur_render_add_signature_page()
             });
 
             columnRemoveButton.addEventListener('click', function () {
-                if (! activeColumnCell) {
+                if (! activeColumnCell || columnWidths.length <= 1) {
+                    hideColumnButtons();
                     return;
                 }
 
                 var row = activeColumnCell.parentNode;
+                var start = getCellStartIndex(row, activeColumnCell);
+                var span = getCellSpan(activeColumnCell);
 
-                if (row.children.length > 1) {
-                    row.removeChild(activeColumnCell);
-                }
-
+                removeColumnAt(start + span - 1);
                 hideColumnButtons();
-                syncColumnWidths();
             });
 
             function finishSelection() {
@@ -668,12 +872,17 @@ function signatur_render_add_signature_page()
                     return;
                 }
 
-                var cell = document.createElement('td');
-                cell.innerHTML = '&nbsp;';
-                activeColumnCell.parentNode.insertBefore(cell, activeColumnCell.nextElementSibling);
+                var row = activeColumnCell.parentNode;
+                var start = getCellStartIndex(row, activeColumnCell);
+                var span = getCellSpan(activeColumnCell);
+                var insertIndex = start + span;
+                var neighborWidth = columnWidths[start];
+                var newWidth = Math.max(minColumnWidth, Math.floor(neighborWidth / 2));
+
+                columnWidths[start] = Math.max(minColumnWidth, neighborWidth - newWidth);
+                insertColumnAt(insertIndex, newWidth);
 
                 hideColumnButtons();
-                syncColumnWidths();
             });
 
             columnCombineButton.addEventListener('click', function () {
@@ -682,11 +891,11 @@ function signatur_render_add_signature_page()
                 }
 
                 var totalSpan = selectedCells.reduce(function (sum, cell) {
-                    return sum + (parseInt(cell.getAttribute('colspan'), 10) || 1);
+                    return sum + getCellSpan(cell);
                 }, 0);
 
                 var firstCell = selectedCells[0];
-                firstCell.setAttribute('colspan', totalSpan);
+                setCellSpan(firstCell, totalSpan);
                 firstCell.classList.remove('signatur-cell-selected');
 
                 selectedCells.slice(1).forEach(function (cell) {
@@ -695,7 +904,6 @@ function signatur_render_add_signature_page()
 
                 selectedCells = [];
                 clearSelection();
-                syncColumnWidths();
             });
 
             document.addEventListener('click', function (e) {
@@ -720,6 +928,26 @@ function signatur_render_add_signature_page()
                     rowBottomWrap.style.width = width + 'px';
                     rowGroup.style.width = (width + 80) + 'px';
                     fieldTable.style.width = width + 'px';
+
+                    var oldWidth = columnWidths.reduce(function (sum, w) {
+                        return sum + w;
+                    }, 0);
+                    var ratio = width / oldWidth;
+                    var used = 0;
+
+                    columnWidths = columnWidths.map(function (w, i) {
+                        if (i === columnWidths.length - 1) {
+                            return Math.max(minColumnWidth, width - used);
+                        }
+
+                        var scaled = Math.max(minColumnWidth, Math.round(w * ratio));
+                        used += scaled;
+
+                        return scaled;
+                    });
+
+                    renderColgroup();
+                    renderResizeHandles();
 
                     paddingSides.forEach(function (side) {
                         var paddingInput = document.getElementById('signatur_padding_' + side);
@@ -750,10 +978,17 @@ function signatur_render_add_signature_page()
                     padding[side] = parseInt(fieldTable.style[property], 10) || 0;
                 });
 
+                var rows = Array.prototype.map.call(fieldTbody.children, function (row) {
+                    return Array.prototype.map.call(row.children, function (cell) {
+                        return getCellSpan(cell);
+                    });
+                });
+
                 settingsInput.value = JSON.stringify({
                     width: parseInt(fieldTable.style.width, 10) || minWidth,
                     padding: padding,
-                    rows: fieldTbody.querySelectorAll('tr').length
+                    columns: columnWidths,
+                    rows: rows
                 });
             });
         })();
