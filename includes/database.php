@@ -217,10 +217,6 @@ function signatur_sanitize_settings($raw_json)
                 }
             }
 
-            if (empty($cells)) {
-                continue;
-            }
-
             $rows[] = $cells;
 
             if (count($rows) >= 100) {

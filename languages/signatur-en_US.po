@@ -128,6 +128,14 @@ msgid "Right"
 msgstr "Right"
 
 #: signatur.php
+msgid "Undo"
+msgstr "Undo"
+
+#: signatur.php
+msgid "Redo"
+msgstr "Redo"
+
+#: signatur.php
 msgid "Add column"
 msgstr "Add column"
 
