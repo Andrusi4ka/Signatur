@@ -943,9 +943,11 @@ function signatur_render_add_signature_page()
              * further wins and the other is locked back to the anchor.
              *
              * Growing down a column also stops at the first row whose cell in
-             * that column has a different colspan than the anchor's - cells
-             * of different widths are never selected (or mergeable) together
-             * vertically.
+             * that column covers a different set of columns than the
+             * anchor's (same colspan alone isn't enough - two cells can both
+             * be 2 columns wide yet start at different columns, which is just
+             * as invalid a pairing). Such a row, and anything past it, is
+             * simply never part of the selection.
              */
             function selectRectangle(fromCell, toCell) {
                 var grid = buildGrid();
@@ -963,14 +965,14 @@ function signatur_render_add_signature_page()
                 if (rowDelta >= colDelta) {
                     minCol = maxCol = fromPos.col;
 
-                    var anchorColspan = getCellColSpan(fromCell);
+                    var anchorSlot = grid[fromPos.row] && grid[fromPos.row][minCol];
                     var step = toPos.row >= fromPos.row ? 1 : -1;
                     var boundaryRow = fromPos.row;
 
                     for (var r = fromPos.row + step; r !== toPos.row + step; r += step) {
                         var slot = grid[r] && grid[r][minCol];
 
-                        if (! slot || getCellColSpan(slot.cell) !== anchorColspan) {
+                        if (! anchorSlot || ! slot || slot.start !== anchorSlot.start || slot.end !== anchorSlot.end) {
                             break;
                         }
 
@@ -1001,13 +1003,17 @@ function signatur_render_add_signature_page()
             }
 
             /**
-             * Cells spread across more than one row are never mergeable when
-             * their colspans differ from each other - this mirrors the same
-             * rule selectRectangle() already enforces while dragging, kept
-             * here too as a guard against the merge being triggered any other
-             * way. A same-row (horizontal) merge has no such constraint.
+             * Cells spread across more than one row are never mergeable
+             * unless every row in range has a cell covering that exact same
+             * set of columns - matching colspan alone isn't enough, since two
+             * cells can both be 2 columns wide yet start at different
+             * columns (a "staircase" pairing that isn't a real rectangle).
+             * This mirrors the rule selectRectangle() already enforces while
+             * dragging, kept here too as a guard against the merge being
+             * triggered any other way. A same-row (horizontal) merge has no
+             * such constraint.
              */
-            function hasVerticalColspanMismatch(cells) {
+            function hasVerticalRangeMismatch(cells) {
                 var grid = buildGrid();
                 var positions = cells.map(function (cell) {
                     return findCellPosition(grid, cell);
@@ -1026,11 +1032,59 @@ function signatur_render_add_signature_page()
                     return false;
                 }
 
-                var colspan = getCellColSpan(cells[0]);
+                var anchorSlot = grid[positions[0].row] && grid[positions[0].row][positions[0].col];
 
-                return cells.some(function (cell) {
-                    return getCellColSpan(cell) !== colspan;
+                for (var i = 0; i < positions.length; i++) {
+                    var slot = grid[positions[i].row] && grid[positions[i].row][positions[i].col];
+
+                    if (! anchorSlot || ! slot || slot.start !== anchorSlot.start || slot.end !== anchorSlot.end) {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            /**
+             * Mirrors hasVerticalRangeMismatch() for the other direction:
+             * cells spread across more than one column are never mergeable
+             * unless every one of them spans exactly the same set of rows -
+             * matching rowspan alone isn't enough, since two cells can both
+             * be 2 rows tall yet start at different rows. A single-row
+             * (horizontal-only) merge has no such constraint.
+             */
+            function hasHorizontalRangeMismatch(cells) {
+                var grid = buildGrid();
+                var positions = cells.map(function (cell) {
+                    return findCellPosition(grid, cell);
+                }).filter(function (pos) {
+                    return null !== pos;
                 });
+
+                if (positions.length < 2) {
+                    return false;
+                }
+
+                var minCol = Math.min.apply(null, positions.map(function (pos) { return pos.col; }));
+                var maxCol = Math.max.apply(null, positions.map(function (pos) { return pos.col; }));
+
+                if (minCol === maxCol) {
+                    return false;
+                }
+
+                var anchorRowStart = positions[0].row;
+                var anchorRowEnd = anchorRowStart + getCellRowSpan(cells[0]);
+
+                for (var i = 0; i < positions.length; i++) {
+                    var rowStart = positions[i].row;
+                    var rowEnd = rowStart + getCellRowSpan(cells[i]);
+
+                    if (rowStart !== anchorRowStart || rowEnd !== anchorRowEnd) {
+                        return true;
+                    }
+                }
+
+                return false;
             }
 
             function positionColumnButtons(cell) {
@@ -1143,7 +1197,13 @@ function signatur_render_add_signature_page()
                     return;
                 }
 
-                highlightSelection(selectRectangle(selectionAnchor, cell));
+                var cells = selectRectangle(selectionAnchor, cell);
+
+                if (hasVerticalRangeMismatch(cells) || hasHorizontalRangeMismatch(cells)) {
+                    return;
+                }
+
+                highlightSelection(cells);
             });
 
             columnRemoveButton.addEventListener('click', function () {
@@ -1180,7 +1240,9 @@ function signatur_render_add_signature_page()
                     activeColumnCell = selectedCells[0];
                     positionColumnButtons(activeColumnCell);
                 } else if (selectedCells.length >= 2) {
-                    if (! hasVerticalColspanMismatch(selectedCells)) {
+                    if (hasVerticalRangeMismatch(selectedCells) || hasHorizontalRangeMismatch(selectedCells)) {
+                        clearSelection();
+                    } else {
                         positionColumnCombineButton(selectedCells);
                     }
                 } else {
@@ -1211,34 +1273,55 @@ function signatur_render_add_signature_page()
             });
 
             columnCombineButton.addEventListener('click', function () {
-                if (selectedCells.length < 2 || hasVerticalColspanMismatch(selectedCells)) {
+                if (selectedCells.length < 2 || hasVerticalRangeMismatch(selectedCells) || hasHorizontalRangeMismatch(selectedCells)) {
                     return;
                 }
 
                 var grid = buildGrid();
-                var positions = selectedCells.map(function (cell) {
-                    return findCellPosition(grid, cell);
-                }).filter(function (pos) {
-                    return null !== pos;
+                var cellPositions = selectedCells.map(function (cell) {
+                    return { cell: cell, pos: findCellPosition(grid, cell) };
+                }).filter(function (item) {
+                    return null !== item.pos;
                 });
 
-                if (positions.length < 2) {
+                if (cellPositions.length < 2) {
                     return;
                 }
 
-                var minRow = Math.min.apply(null, positions.map(function (pos) { return pos.row; }));
-                var maxRow = Math.max.apply(null, positions.map(function (pos) { return pos.row; }));
-                var minCol = Math.min.apply(null, positions.map(function (pos) { return pos.col; }));
-                var maxCol = Math.max.apply(null, positions.map(function (pos) { return pos.col; }));
+                /*
+                 * The merged rectangle's true bounds come from each cell's
+                 * full extent (its grid slot's start/end for columns, its
+                 * own rowspan for rows) - not just its top-left grid
+                 * position. Using only the start position here previously
+                 * collapsed any cell already wider/taller than 1 back down
+                 * to 1 when it got re-set below.
+                 */
+                var minRow = Infinity;
+                var maxRow = -Infinity;
+                var minCol = Infinity;
+                var maxCol = -Infinity;
+
+                cellPositions.forEach(function (item) {
+                    var slot = grid[item.pos.row] && grid[item.pos.row][item.pos.col];
+
+                    if (! slot) {
+                        return;
+                    }
+
+                    minRow = Math.min(minRow, item.pos.row);
+                    maxRow = Math.max(maxRow, item.pos.row + getCellRowSpan(item.cell) - 1);
+                    minCol = Math.min(minCol, slot.start);
+                    maxCol = Math.max(maxCol, slot.end - 1);
+                });
 
                 var rectCells = [];
 
                 for (var r = minRow; r <= maxRow; r++) {
                     for (var c = minCol; c <= maxCol; c++) {
-                        var slot = grid[r] && grid[r][c];
+                        var rectSlot = grid[r] && grid[r][c];
 
-                        if (slot && rectCells.indexOf(slot.cell) === -1) {
-                            rectCells.push(slot.cell);
+                        if (rectSlot && rectCells.indexOf(rectSlot.cell) === -1) {
+                            rectCells.push(rectSlot.cell);
                         }
                     }
                 }
