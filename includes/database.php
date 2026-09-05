@@ -65,8 +65,11 @@ function signatur_get_table_name()
  * Default values for the visual signature builder settings.
  *
  * `columns` holds the pixel width of every grid column, shared by all rows.
- * `rows` holds one array per row, listing the colspan of each of its cells
- * left to right; each row's values always sum to count(columns).
+ * `rows` holds one array per row, listing [colspan, rowspan] for each of its
+ * cells left to right. A cell's rowspan makes it also occupy that same
+ * column range in the rows below it, which therefore carry no cell of their
+ * own there (standard HTML table semantics) - see
+ * signatur_validate_grid_rows() for the full occupancy check.
  */
 function signatur_get_default_settings()
 {
@@ -79,8 +82,70 @@ function signatur_get_default_settings()
             'left'   => 0,
         ),
         'columns' => array(300),
-        'rows'    => array(array(1)),
+        'rows'    => array(array(array(1, 1))),
     );
+}
+
+/**
+ * Check that `rows` forms a valid rectangular grid: every row, once cells
+ * covered by a rowspan from an earlier row are accounted for, covers
+ * exactly `column_count` columns, and no rowspan reaches past the last row.
+ */
+function signatur_validate_grid_rows($rows, $column_count)
+{
+    $row_count = count($rows);
+    $pending   = array();
+
+    foreach ($rows as $row_index => $row) {
+        $col = 0;
+
+        foreach ($row as $cell) {
+            while (isset($pending[$col]) && $pending[$col] > 0) {
+                $pending[$col]--;
+
+                if (0 === $pending[$col]) {
+                    unset($pending[$col]);
+                }
+
+                $col++;
+            }
+
+            $colspan = $cell[0];
+            $rowspan = $cell[1];
+
+            if ($col + $colspan > $column_count) {
+                return false;
+            }
+
+            if ($row_index + $rowspan > $row_count) {
+                return false;
+            }
+
+            if ($rowspan > 1) {
+                for ($c = $col; $c < $col + $colspan; $c++) {
+                    $pending[$c] = $rowspan - 1;
+                }
+            }
+
+            $col += $colspan;
+        }
+
+        while (isset($pending[$col]) && $pending[$col] > 0) {
+            $pending[$col]--;
+
+            if (0 === $pending[$col]) {
+                unset($pending[$col]);
+            }
+
+            $col++;
+        }
+
+        if ($col !== $column_count) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 /**
@@ -134,17 +199,28 @@ function signatur_sanitize_settings($raw_json)
                 continue;
             }
 
-            $spans = array();
+            $cells = array();
 
-            foreach ($row as $span) {
-                $spans[] = max(1, absint($span));
+            foreach ($row as $cell) {
+                if (! is_array($cell) || count($cell) < 2) {
+                    continue;
+                }
+
+                $cells[] = array(
+                    max(1, absint($cell[0])),
+                    max(1, absint($cell[1])),
+                );
+
+                if (count($cells) >= 50) {
+                    break;
+                }
             }
 
-            if (empty($spans) || array_sum($spans) !== $column_count) {
-                $spans = array($column_count);
+            if (empty($cells)) {
+                continue;
             }
 
-            $rows[] = $spans;
+            $rows[] = $cells;
 
             if (count($rows) >= 100) {
                 break;
@@ -152,8 +228,9 @@ function signatur_sanitize_settings($raw_json)
         }
     }
 
-    if (empty($rows)) {
-        $rows = array(array($column_count));
+    if (empty($rows) || ! signatur_validate_grid_rows($rows, $column_count)) {
+        $row_count = empty($rows) ? 1 : count($rows);
+        $rows      = array_fill(0, $row_count, array(array($column_count, 1)));
     }
 
     return wp_json_encode(

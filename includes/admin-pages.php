@@ -315,10 +315,23 @@ function signatur_render_add_signature_page()
                             <?php endforeach; ?>
                         </colgroup>
                         <tbody id="signatur_field_tbody">
-                            <?php foreach ($settings['rows'] as $row_spans) : ?>
+                            <?php foreach ($settings['rows'] as $row_cells) : ?>
                                 <tr>
-                                    <?php foreach ($row_spans as $span) : ?>
-                                        <td<?php echo $span > 1 ? ' colspan="' . (int) $span . '"' : ''; ?>>&nbsp;</td>
+                                    <?php foreach ($row_cells as $cell_span) : ?>
+                                        <?php
+                                        $colspan = $cell_span[0];
+                                        $rowspan = $cell_span[1];
+                                        $attrs   = '';
+
+                                        if ($colspan > 1) {
+                                            $attrs .= ' colspan="' . (int) $colspan . '"';
+                                        }
+
+                                        if ($rowspan > 1) {
+                                            $attrs .= ' rowspan="' . (int) $rowspan . '"';
+                                        }
+                                        ?>
+                                        <td<?php echo $attrs; ?>>&nbsp;</td>
                                     <?php endforeach; ?>
                                 </tr>
                             <?php endforeach; ?>
@@ -492,11 +505,11 @@ function signatur_render_add_signature_page()
 
             var rowAddButton = document.getElementById('signatur_row_add');
 
-            function getCellSpan(cell) {
+            function getCellColSpan(cell) {
                 return parseInt(cell.getAttribute('colspan'), 10) || 1;
             }
 
-            function setCellSpan(cell, span) {
+            function setCellColSpan(cell, span) {
                 if (span > 1) {
                     cell.setAttribute('colspan', span);
                 } else {
@@ -504,22 +517,103 @@ function signatur_render_add_signature_page()
                 }
             }
 
-            function getCellStartIndex(row, targetCell) {
-                var pos = 0;
-                var start = 0;
+            function getCellRowSpan(cell) {
+                return parseInt(cell.getAttribute('rowspan'), 10) || 1;
+            }
 
-                Array.prototype.some.call(row.children, function (cell) {
-                    if (cell === targetCell) {
-                        start = pos;
-                        return true;
+            function setCellRowSpan(cell, span) {
+                if (span > 1) {
+                    cell.setAttribute('rowspan', span);
+                } else {
+                    cell.removeAttribute('rowspan');
+                }
+            }
+
+            /**
+             * Build the full occupancy grid of the table: grid[row][col] tells
+             * which <td> owns that slot, and whether this row is where that
+             * cell actually lives in the DOM (`owner`) or merely a slot it
+             * covers via rowspan from an earlier row (pass-through).
+             */
+            function buildGrid() {
+                var rows = Array.prototype.slice.call(fieldTbody.children);
+                var pending = {};
+                var grid = [];
+
+                rows.forEach(function (row) {
+                    var cells = Array.prototype.slice.call(row.children);
+                    var col = 0;
+                    var cellPos = 0;
+                    var rowSlots = [];
+
+                    for (;;) {
+                        while (pending[col] && pending[col].remaining > 0) {
+                            var p = pending[col];
+
+                            rowSlots[col] = { cell: p.cell, start: p.start, end: p.end, owner: false };
+                            p.remaining--;
+
+                            if (0 === p.remaining) {
+                                delete pending[col];
+                            }
+
+                            col++;
+                        }
+
+                        if (cellPos >= cells.length) {
+                            break;
+                        }
+
+                        var cell = cells[cellPos];
+                        var colspan = getCellColSpan(cell);
+                        var rowspan = getCellRowSpan(cell);
+                        var start = col;
+                        var end = col + colspan;
+
+                        for (var c = start; c < end; c++) {
+                            rowSlots[c] = { cell: cell, start: start, end: end, owner: c === start };
+                        }
+
+                        if (rowspan > 1) {
+                            for (var c2 = start; c2 < end; c2++) {
+                                pending[c2] = { cell: cell, start: start, end: end, remaining: rowspan - 1 };
+                            }
+                        }
+
+                        col = end;
+                        cellPos++;
                     }
 
-                    pos += getCellSpan(cell);
-
-                    return false;
+                    grid.push(rowSlots);
                 });
 
-                return start;
+                return grid;
+            }
+
+            function findCellPosition(grid, targetCell) {
+                for (var r = 0; r < grid.length; r++) {
+                    for (var c = 0; c < grid[r].length; c++) {
+                        if (grid[r][c] && grid[r][c].cell === targetCell) {
+                            return { row: r, col: c };
+                        }
+                    }
+                }
+
+                return null;
+            }
+
+            function getCellStartIndex(row, targetCell) {
+                var grid = buildGrid();
+                var rowIndex = Array.prototype.indexOf.call(fieldTbody.children, row);
+                var rowSlots = grid[rowIndex] || [];
+
+                for (var col = 0; col < rowSlots.length; col++) {
+                    if (rowSlots[col] && rowSlots[col].cell === targetCell && rowSlots[col].owner) {
+                        return col;
+                    }
+                }
+
+                return 0;
             }
 
             function renderColgroup() {
@@ -558,39 +652,48 @@ function signatur_render_add_signature_page()
 
             /**
              * Insert a new grid column at `index` (0..columnWidths.length) across
-             * every row. If the insertion point falls inside a merged cell, that
-             * cell's span simply grows by one instead of creating a new <td>.
+             * every row. A cell (real or a rowspan covering that boundary from
+             * an earlier row) that already reaches across the insertion point
+             * simply grows by one column; otherwise a plain new <td> is added
+             * at that row's matching position.
              */
             function insertColumnAt(index, width) {
+                var grid = buildGrid();
+
                 columnWidths.splice(index, 0, width);
 
-                Array.prototype.forEach.call(fieldTbody.children, function (row) {
-                    var cells = Array.prototype.slice.call(row.children);
-                    var pos = 0;
+                var grown = [];
 
-                    for (var i = 0; i < cells.length; i++) {
-                        var cell = cells[i];
-                        var span = getCellSpan(cell);
-                        var end = pos + span;
+                Array.prototype.forEach.call(fieldTbody.children, function (row, r) {
+                    var rowSlots = grid[r] || [];
+                    var slot = rowSlots[index];
 
-                        if (index > pos && index < end) {
-                            setCellSpan(cell, span + 1);
-                            return;
+                    if (slot && index > slot.start && index < slot.end) {
+                        if (grown.indexOf(slot.cell) === -1) {
+                            setCellColSpan(slot.cell, getCellColSpan(slot.cell) + 1);
+                            grown.push(slot.cell);
                         }
 
-                        if (index === end) {
-                            var newCell = document.createElement('td');
-                            newCell.innerHTML = '&nbsp;';
-                            row.insertBefore(newCell, cell.nextElementSibling);
-                            return;
-                        }
-
-                        pos = end;
+                        return;
                     }
 
-                    var firstCell = document.createElement('td');
-                    firstCell.innerHTML = '&nbsp;';
-                    row.insertBefore(firstCell, row.firstElementChild);
+                    var referenceCell = null;
+
+                    for (var col = index; col < rowSlots.length; col++) {
+                        if (rowSlots[col] && rowSlots[col].owner) {
+                            referenceCell = rowSlots[col].cell;
+                            break;
+                        }
+                    }
+
+                    var newCell = document.createElement('td');
+                    newCell.innerHTML = '&nbsp;';
+
+                    if (referenceCell) {
+                        row.insertBefore(newCell, referenceCell);
+                    } else {
+                        row.appendChild(newCell);
+                    }
                 });
 
                 renderColgroup();
@@ -598,39 +701,38 @@ function signatur_render_add_signature_page()
             }
 
             /**
-             * Remove grid column `index` from every row. A cell that only covers
-             * that one column is removed outright; a merged cell covering it
-             * simply shrinks by one.
+             * Remove grid column `index` from every row. A cell that only
+             * covers that one column is removed outright; a cell (real or
+             * covering that column via rowspan) that spans more than one
+             * column simply shrinks by one.
              */
             function removeColumnAt(index) {
                 if (columnWidths.length <= 1) {
                     return;
                 }
 
+                var grid = buildGrid();
                 var removedWidth = columnWidths.splice(index, 1)[0];
                 var neighborIndex = index < columnWidths.length ? index : index - 1;
                 columnWidths[neighborIndex] += removedWidth;
 
-                Array.prototype.forEach.call(fieldTbody.children, function (row) {
-                    var cells = Array.prototype.slice.call(row.children);
-                    var pos = 0;
+                var shrunk = [];
 
-                    for (var i = 0; i < cells.length; i++) {
-                        var cell = cells[i];
-                        var span = getCellSpan(cell);
-                        var end = pos + span;
+                grid.forEach(function (rowSlots) {
+                    var slot = rowSlots[index];
 
-                        if (index >= pos && index < end) {
-                            if (span > 1) {
-                                setCellSpan(cell, span - 1);
-                            } else {
-                                row.removeChild(cell);
-                            }
+                    if (! slot || shrunk.indexOf(slot.cell) !== -1) {
+                        return;
+                    }
 
-                            return;
-                        }
+                    shrunk.push(slot.cell);
 
-                        pos = end;
+                    var span = getCellColSpan(slot.cell);
+
+                    if (span > 1) {
+                        setCellColSpan(slot.cell, span - 1);
+                    } else if (slot.cell.parentNode) {
+                        slot.cell.parentNode.removeChild(slot.cell);
                     }
                 });
 
@@ -730,19 +832,32 @@ function signatur_render_add_signature_page()
                 });
             }
 
-            function selectRange(row, fromCell, toCell) {
-                var cells = Array.prototype.slice.call(row.children);
-                var fromIndex = cells.indexOf(fromCell);
-                var toIndex = cells.indexOf(toCell);
+            function selectRectangle(fromCell, toCell) {
+                var grid = buildGrid();
+                var fromPos = findCellPosition(grid, fromCell);
+                var toPos = findCellPosition(grid, toCell);
 
-                if (-1 === fromIndex || -1 === toIndex) {
+                if (! fromPos || ! toPos) {
                     return [];
                 }
 
-                var start = Math.min(fromIndex, toIndex);
-                var end = Math.max(fromIndex, toIndex);
+                var minRow = Math.min(fromPos.row, toPos.row);
+                var maxRow = Math.max(fromPos.row, toPos.row);
+                var minCol = Math.min(fromPos.col, toPos.col);
+                var maxCol = Math.max(fromPos.col, toPos.col);
+                var cells = [];
 
-                return cells.slice(start, end + 1);
+                for (var r = minRow; r <= maxRow; r++) {
+                    for (var c = minCol; c <= maxCol; c++) {
+                        var slot = grid[r] && grid[r][c];
+
+                        if (slot && cells.indexOf(slot.cell) === -1) {
+                            cells.push(slot.cell);
+                        }
+                    }
+                }
+
+                return cells;
             }
 
             function positionColumnButtons(cell) {
@@ -767,15 +882,24 @@ function signatur_render_add_signature_page()
                 }
             }
 
-            function positionColumnCombineButton(fromCell, toCell) {
+            function positionColumnCombineButton(cells) {
                 var buttonSize = 32;
-                var fromRect = fromCell.getBoundingClientRect();
-                var toRect = toCell.getBoundingClientRect();
-                var top = Math.min(fromRect.top, toRect.top) + (fromRect.height - buttonSize) / 2;
-                var left = (fromRect.left + toRect.right) / 2 - buttonSize / 2;
+                var top = Infinity;
+                var left = Infinity;
+                var bottom = -Infinity;
+                var right = -Infinity;
 
-                columnCombineButton.style.top = top + 'px';
-                columnCombineButton.style.left = left + 'px';
+                cells.forEach(function (cell) {
+                    var rect = cell.getBoundingClientRect();
+
+                    top = Math.min(top, rect.top);
+                    left = Math.min(left, rect.left);
+                    bottom = Math.max(bottom, rect.bottom);
+                    right = Math.max(right, rect.right);
+                });
+
+                columnCombineButton.style.top = (top + (bottom - top - buttonSize) / 2) + 'px';
+                columnCombineButton.style.left = (left + (right - left - buttonSize) / 2) + 'px';
                 columnCombineButton.style.display = 'inline-flex';
             }
 
@@ -825,11 +949,11 @@ function signatur_render_add_signature_page()
 
                 var cell = e.target.closest('td');
 
-                if (! cell || cell.parentNode !== selectionAnchor.parentNode) {
+                if (! cell) {
                     return;
                 }
 
-                highlightSelection(selectRange(cell.parentNode, selectionAnchor, cell));
+                highlightSelection(selectRectangle(selectionAnchor, cell));
             });
 
             columnRemoveButton.addEventListener('click', function () {
@@ -840,7 +964,7 @@ function signatur_render_add_signature_page()
 
                 var row = activeColumnCell.parentNode;
                 var start = getCellStartIndex(row, activeColumnCell);
-                var span = getCellSpan(activeColumnCell);
+                var span = getCellColSpan(activeColumnCell);
 
                 removeColumnAt(start + span - 1);
                 hideColumnButtons();
@@ -857,7 +981,7 @@ function signatur_render_add_signature_page()
                     activeColumnCell = selectedCells[0];
                     positionColumnButtons(activeColumnCell);
                 } else if (selectedCells.length >= 2) {
-                    positionColumnCombineButton(selectedCells[0], selectedCells[selectedCells.length - 1]);
+                    positionColumnCombineButton(selectedCells);
                 } else {
                     clearSelection();
                 }
@@ -874,7 +998,7 @@ function signatur_render_add_signature_page()
 
                 var row = activeColumnCell.parentNode;
                 var start = getCellStartIndex(row, activeColumnCell);
-                var span = getCellSpan(activeColumnCell);
+                var span = getCellColSpan(activeColumnCell);
                 var insertIndex = start + span;
                 var neighborWidth = columnWidths[start];
                 var newWidth = Math.max(minColumnWidth, Math.floor(neighborWidth / 2));
@@ -890,16 +1014,45 @@ function signatur_render_add_signature_page()
                     return;
                 }
 
-                var totalSpan = selectedCells.reduce(function (sum, cell) {
-                    return sum + getCellSpan(cell);
-                }, 0);
+                var grid = buildGrid();
+                var positions = selectedCells.map(function (cell) {
+                    return findCellPosition(grid, cell);
+                }).filter(function (pos) {
+                    return null !== pos;
+                });
 
-                var firstCell = selectedCells[0];
-                setCellSpan(firstCell, totalSpan);
-                firstCell.classList.remove('signatur-cell-selected');
+                if (positions.length < 2) {
+                    return;
+                }
 
-                selectedCells.slice(1).forEach(function (cell) {
-                    cell.parentNode.removeChild(cell);
+                var minRow = Math.min.apply(null, positions.map(function (pos) { return pos.row; }));
+                var maxRow = Math.max.apply(null, positions.map(function (pos) { return pos.row; }));
+                var minCol = Math.min.apply(null, positions.map(function (pos) { return pos.col; }));
+                var maxCol = Math.max.apply(null, positions.map(function (pos) { return pos.col; }));
+
+                var rectCells = [];
+
+                for (var r = minRow; r <= maxRow; r++) {
+                    for (var c = minCol; c <= maxCol; c++) {
+                        var slot = grid[r] && grid[r][c];
+
+                        if (slot && rectCells.indexOf(slot.cell) === -1) {
+                            rectCells.push(slot.cell);
+                        }
+                    }
+                }
+
+                var topLeftSlot = grid[minRow][minCol];
+                var topLeftCell = topLeftSlot.cell;
+
+                setCellColSpan(topLeftCell, maxCol - minCol + 1);
+                setCellRowSpan(topLeftCell, maxRow - minRow + 1);
+                topLeftCell.classList.remove('signatur-cell-selected');
+
+                rectCells.forEach(function (cell) {
+                    if (cell !== topLeftCell && cell.parentNode) {
+                        cell.parentNode.removeChild(cell);
+                    }
                 });
 
                 selectedCells = [];
@@ -980,7 +1133,7 @@ function signatur_render_add_signature_page()
 
                 var rows = Array.prototype.map.call(fieldTbody.children, function (row) {
                     return Array.prototype.map.call(row.children, function (cell) {
-                        return getCellSpan(cell);
+                        return [getCellColSpan(cell), getCellRowSpan(cell)];
                     });
                 });
 
