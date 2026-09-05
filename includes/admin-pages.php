@@ -117,6 +117,24 @@ function signatur_render_all_signatures_page()
 }
 
 /**
+ * Convert a zero-based column index into an Excel-style letter label:
+ * 0 => A, 1 => B, ... 25 => Z, 26 => AA, 27 => AB, ...
+ */
+function signatur_column_letter($index)
+{
+    $letter = '';
+    $index++;
+
+    while ($index > 0) {
+        $remainder = ($index - 1) % 26;
+        $letter    = chr(65 + $remainder) . $letter;
+        $index     = (int) (($index - 1) / 26);
+    }
+
+    return $letter;
+}
+
+/**
  * Render the edit/delete-row buttons shown beside a table row.
  */
 function signatur_render_row_actions_buttons()
@@ -136,31 +154,33 @@ function signatur_render_row_actions_buttons()
  */
 function signatur_render_add_signature_page()
 {
-    $id       = isset($_GET['id']) ? absint($_GET['id']) : 0;
-    $title    = '';
-    $link     = '';
-    $settings = signatur_get_default_settings();
+    $id         = isset($_GET['id']) ? absint($_GET['id']) : 0;
+    $title      = '';
+    $link       = '';
+    $show_title = true;
+    $settings   = signatur_get_default_settings();
 
     if ($id) {
         global $wpdb;
 
         $signature = $wpdb->get_row(
             $wpdb->prepare(
-                'SELECT title, link, settings FROM ' . signatur_get_table_name() . ' WHERE id = %d',
+                'SELECT title, link, show_title, settings FROM ' . signatur_get_table_name() . ' WHERE id = %d',
                 $id
             )
         );
 
         if ($signature) {
-            $title    = $signature->title;
-            $link     = $signature->link;
-            $settings = json_decode(signatur_sanitize_settings($signature->settings), true);
+            $title      = $signature->title;
+            $link       = $signature->link;
+            $show_title = (bool) $signature->show_title;
+            $settings   = json_decode(signatur_sanitize_settings($signature->settings), true);
         } else {
             $id = 0;
         }
     }
 
-    $group_width = $settings['width'] + 160;
+    $group_width = $settings['width'] + 200;
 
     $page_title = $id ? __('Edit signature', 'signatur') : __('Add signature', 'signatur');
 ?>
@@ -265,6 +285,24 @@ function signatur_render_add_signature_page()
             color: #1d2327;
         }
 
+        .signatur-row-number {
+            box-sizing: border-box;
+            width: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #646970;
+            background: #f0f0f1;
+            border-top: 1px solid #dcdcde;
+            border-left: 1px solid #dcdcde;
+            user-select: none;
+        }
+
+        #signatur_row_numbers .signatur-row-number:last-child {
+            border-bottom: 1px solid #dcdcde;
+        }
+
         #signatur_column_add,
         #signatur_column_combine,
         #signatur_column_remove,
@@ -286,6 +324,24 @@ function signatur_render_add_signature_page()
         .signatur-col-resize-handle:hover {
             background: #2271b1;
             opacity: 0.5;
+        }
+
+        #signatur_row_add_indicator {
+            display: none;
+            position: fixed;
+            height: 3px;
+            background: #2271b1;
+            pointer-events: none;
+            z-index: 100000;
+        }
+
+        #signatur_row_hover_indicator {
+            display: none;
+            position: fixed;
+            box-sizing: border-box;
+            border: 3px solid #2271b1;
+            pointer-events: none;
+            z-index: 100000;
         }
     </style>
     <div class="wrap">
@@ -311,6 +367,10 @@ function signatur_render_add_signature_page()
                                 <span id="signatur_link_field" style="<?php echo $link ? '' : 'display:none;'; ?>">
                                     <input type="url" id="signatur_link" name="signatur_link" class="regular-text" value="<?php echo esc_attr($link); ?>" placeholder="https://example.com">
                                 </span>
+                                <label for="signatur_show_title" style="display:flex; align-items:center; gap:6px; font-weight:400;">
+                                    <input type="checkbox" id="signatur_show_title" name="signatur_show_title" value="1" <?php checked($show_title); ?>>
+                                    <?php esc_html_e('Show on site', 'signatur'); ?>
+                                </label>
                             </div>
                         </td>
                     </tr>
@@ -320,28 +380,44 @@ function signatur_render_add_signature_page()
             <input type="hidden" name="signatur_settings" id="signatur_settings_input" value="<?php echo esc_attr(wp_json_encode($settings)); ?>">
 
             <div id="signatur_row_group" style="width:<?php echo esc_attr($group_width); ?>px; margin:16px auto 0;">
-                <div id="signatur_row_top_wrap" style="width:<?php echo esc_attr($settings['width']); ?>px; display:flex; justify-content:center;">
-                    <button type="button" class="signatur-icon-button" data-modal-title="<?php echo esc_attr__('Edit signature', 'signatur'); ?>" data-modal-type="width" title="<?php esc_attr_e('Edit signature', 'signatur'); ?>" aria-label="<?php esc_attr_e('Edit signature', 'signatur'); ?>">
+                <div id="signatur_row_top_wrap" class="signatur-editor-only" style="width:<?php echo esc_attr($settings['width']); ?>px; display:flex; justify-content:center;">
+                    <button type="button" id="signatur_edit_signature_button" class="signatur-icon-button" data-modal-title="<?php echo esc_attr__('Edit signature', 'signatur'); ?>" data-modal-type="width" title="<?php esc_attr_e('Edit signature', 'signatur'); ?>" aria-label="<?php esc_attr_e('Edit signature', 'signatur'); ?>">
                         <img src="<?php echo esc_url(plugins_url('assets/icon-edit.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
                     </button>
                 </div>
 
-                <div style="display:flex; align-items:flex-start; gap:8px; margin-top:8px;">
-                    <div id="signatur_row_add_wrap" style="display:flex; flex-direction:column; justify-content:flex-end; align-self:stretch;">
+                <div style="display:flex; align-items:flex-start; margin-top:8px;">
+                    <div id="signatur_row_add_wrap" class="signatur-editor-only" style="display:flex; flex-direction:column; justify-content:flex-end; align-self:stretch; margin-right:8px;">
                         <button type="button" id="signatur_row_add" class="signatur-icon-button" title="<?php esc_attr_e('Add row', 'signatur'); ?>" aria-label="<?php esc_attr_e('Add row', 'signatur'); ?>">
                             <img src="<?php echo esc_url(plugins_url('assets/icon-plus.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
                         </button>
                     </div>
-                    <table id="signatur_field_table" class="widefat striped" style="width:<?php echo esc_attr($settings['width']); ?>px; padding-top:<?php echo esc_attr($settings['padding']['top']); ?>px; padding-right:<?php echo esc_attr($settings['padding']['right']); ?>px; padding-bottom:<?php echo esc_attr($settings['padding']['bottom']); ?>px; padding-left:<?php echo esc_attr($settings['padding']['left']); ?>px;">
+                    <div id="signatur_row_numbers" class="signatur-editor-only" style="display:flex; flex-direction:column;">
+                        <div class="signatur-row-number" style="height:22px;" aria-hidden="true"></div>
+                        <?php foreach ($settings['rows'] as $row_index => $row_cells) : ?>
+                            <div class="signatur-row-number" style="height:38px;"><?php echo esc_html($row_index + 1); ?></div>
+                        <?php endforeach; ?>
+                    </div>
+                    <table id="signatur_field_table" class="widefat striped" style="width:<?php echo esc_attr($settings['width']); ?>px; padding-top:<?php echo esc_attr($settings['padding']['top']); ?>px; padding-right:<?php echo esc_attr($settings['padding']['right']); ?>px; padding-bottom:<?php echo esc_attr($settings['padding']['bottom']); ?>px; padding-left:<?php echo esc_attr($settings['padding']['left']); ?>px; margin-right:8px;">
                         <colgroup id="signatur_field_colgroup">
                             <?php foreach ($settings['columns'] as $column_width) : ?>
                                 <col style="width:<?php echo esc_attr($column_width); ?>px;">
                             <?php endforeach; ?>
                         </colgroup>
-                        <thead>
+                        <?php
+                        /*
+                         * Editor-only chrome: the A/B/C... column labels exist purely to
+                         * help build the grid and must never end up in the actual
+                         * signature. This <thead> is not part of the signature content -
+                         * whatever eventually copies/exports this table for use in an
+                         * email client (e.g. pasting into Outlook) must take only
+                         * #signatur_field_tbody's rows, never this thead.
+                         */
+                        ?>
+                        <thead class="signatur-editor-only">
                             <tr id="signatur_field_header_row">
                                 <?php foreach ($settings['columns'] as $column_index => $column_width) : ?>
-                                    <th class="signatur-column-header" data-index="<?php echo esc_attr($column_index); ?>"><?php echo esc_html($column_index + 1); ?></th>
+                                    <th class="signatur-column-header" data-index="<?php echo esc_attr($column_index); ?>"><?php echo esc_html(signatur_column_letter($column_index)); ?></th>
                                 <?php endforeach; ?>
                             </tr>
                         </thead>
@@ -368,7 +444,7 @@ function signatur_render_add_signature_page()
                             <?php endforeach; ?>
                         </tbody>
                     </table>
-                    <div id="signatur_rows_actions" style="display:flex; flex-direction:column;">
+                    <div id="signatur_rows_actions" class="signatur-editor-only" style="display:flex; flex-direction:column;">
                         <div class="signatur-row-actions" style="height:22px;" aria-hidden="true"></div>
                         <?php foreach ($settings['rows'] as $row_spans) : ?>
                             <div class="signatur-row-actions" style="height:38px; display:flex; align-items:center; gap:8px;">
@@ -399,6 +475,10 @@ function signatur_render_add_signature_page()
         </button>
 
         <div id="signatur_col_resize_handles"></div>
+
+        <div id="signatur_row_add_indicator"></div>
+
+        <div id="signatur_row_hover_indicator"></div>
 
         <div id="signatur_modal_overlay">
             <div id="signatur_modal">
@@ -460,6 +540,7 @@ function signatur_render_add_signature_page()
             var fieldTbody = document.getElementById('signatur_field_tbody');
             var rowsActions = document.getElementById('signatur_rows_actions');
             var rowActionsTemplate = document.getElementById('signatur_row_actions_template');
+            var rowNumbers = document.getElementById('signatur_row_numbers');
             var colgroup = document.getElementById('signatur_field_colgroup');
             var headerRow = document.getElementById('signatur_field_header_row');
             var resizeHandles = document.getElementById('signatur_col_resize_handles');
@@ -534,6 +615,37 @@ function signatur_render_add_signature_page()
             });
 
             var rowAddButton = document.getElementById('signatur_row_add');
+            var rowAddIndicator = document.getElementById('signatur_row_add_indicator');
+
+            rowAddButton.addEventListener('mouseenter', function () {
+                var rect = fieldTable.getBoundingClientRect();
+
+                rowAddIndicator.style.top = (rect.bottom - 1) + 'px';
+                rowAddIndicator.style.left = rect.left + 'px';
+                rowAddIndicator.style.width = rect.width + 'px';
+                rowAddIndicator.style.display = 'block';
+            });
+
+            rowAddButton.addEventListener('mouseleave', function () {
+                rowAddIndicator.style.display = 'none';
+            });
+
+            var rowHoverIndicator = document.getElementById('signatur_row_hover_indicator');
+            var editSignatureButton = document.getElementById('signatur_edit_signature_button');
+
+            editSignatureButton.addEventListener('mouseenter', function () {
+                var tableRect = fieldTable.getBoundingClientRect();
+
+                rowHoverIndicator.style.top = tableRect.top + 'px';
+                rowHoverIndicator.style.left = tableRect.left + 'px';
+                rowHoverIndicator.style.width = tableRect.width + 'px';
+                rowHoverIndicator.style.height = tableRect.height + 'px';
+                rowHoverIndicator.style.display = 'block';
+            });
+
+            editSignatureButton.addEventListener('mouseleave', function () {
+                rowHoverIndicator.style.display = 'none';
+            });
 
             function getCellColSpan(cell) {
                 return parseInt(cell.getAttribute('colspan'), 10) || 1;
@@ -658,6 +770,25 @@ function signatur_render_add_signature_page()
                 renderColumnHeaders();
             }
 
+            /**
+             * Excel-style column label: 0 => A, 1 => B, ... 25 => Z,
+             * 26 => AA, 27 => AB, ...
+             */
+            function columnLetter(index) {
+                var letter = '';
+
+                index += 1;
+
+                while (index > 0) {
+                    var remainder = (index - 1) % 26;
+
+                    letter = String.fromCharCode(65 + remainder) + letter;
+                    index = Math.floor((index - 1) / 26);
+                }
+
+                return letter;
+            }
+
             function renderColumnHeaders() {
                 headerRow.innerHTML = '';
 
@@ -666,7 +797,7 @@ function signatur_render_add_signature_page()
 
                     header.className = 'signatur-column-header';
                     header.setAttribute('data-index', index);
-                    header.textContent = index + 1;
+                    header.textContent = columnLetter(index);
                     headerRow.appendChild(header);
                 });
             }
@@ -840,6 +971,7 @@ function signatur_render_add_signature_page()
                 }
 
                 syncRowActions();
+                renderRowNumbers();
             }
 
             /**
@@ -871,6 +1003,53 @@ function signatur_render_add_signature_page()
                 });
             }
 
+            /**
+             * Excel-style row numbers down the left side, renumbered 1..N
+             * for whichever rows currently have real cells of their own -
+             * a row fully swallowed by a vertical merge is skipped, same as
+             * in syncRowActions().
+             */
+            function renderRowNumbers() {
+                var spacer = rowNumbers.firstElementChild;
+
+                rowNumbers.innerHTML = '';
+                rowNumbers.appendChild(spacer);
+                spacer.style.height = headerRow.getBoundingClientRect().height + 'px';
+
+                var visibleIndex = 0;
+
+                Array.prototype.forEach.call(fieldTbody.children, function (row) {
+                    if (0 === row.children.length) {
+                        return;
+                    }
+
+                    visibleIndex++;
+
+                    var label = document.createElement('div');
+
+                    label.className = 'signatur-row-number';
+                    label.style.height = row.getBoundingClientRect().height + 'px';
+                    label.textContent = visibleIndex;
+
+                    label.addEventListener('mouseenter', function () {
+                        var rowRect = row.getBoundingClientRect();
+                        var tableRect = fieldTable.getBoundingClientRect();
+
+                        rowHoverIndicator.style.top = rowRect.top + 'px';
+                        rowHoverIndicator.style.left = tableRect.left + 'px';
+                        rowHoverIndicator.style.width = tableRect.width + 'px';
+                        rowHoverIndicator.style.height = rowRect.height + 'px';
+                        rowHoverIndicator.style.display = 'block';
+                    });
+
+                    label.addEventListener('mouseleave', function () {
+                        rowHoverIndicator.style.display = 'none';
+                    });
+
+                    rowNumbers.appendChild(label);
+                });
+            }
+
             rowAddButton.addEventListener('click', function () {
                 var row = document.createElement('tr');
 
@@ -882,10 +1061,12 @@ function signatur_render_add_signature_page()
 
                 fieldTbody.appendChild(row);
                 rowsActions.appendChild(rowActionsTemplate.content.cloneNode(true));
+                renderRowNumbers();
                 renderResizeHandles();
             });
 
             renderColumnHeaders();
+            renderRowNumbers();
             renderResizeHandles();
 
             var resizing = null;
@@ -1369,6 +1550,7 @@ function signatur_render_add_signature_page()
                 });
 
                 syncRowActions();
+                renderRowNumbers();
 
                 selectedCells = [];
                 clearSelection();
@@ -1383,6 +1565,8 @@ function signatur_render_add_signature_page()
             window.addEventListener('scroll', function () {
                 hideColumnButtons();
                 hideColumnCombineButton();
+                rowAddIndicator.style.display = 'none';
+                rowHoverIndicator.style.display = 'none';
             }, true);
 
             modalCancel.addEventListener('click', closeModal);
@@ -1393,7 +1577,7 @@ function signatur_render_add_signature_page()
                     var width = clampWidth(widthInput.value);
 
                     rowTopWrap.style.width = width + 'px';
-                    rowGroup.style.width = (width + 160) + 'px';
+                    rowGroup.style.width = (width + 200) + 'px';
                     fieldTable.style.width = width + 'px';
 
                     var oldWidth = columnWidths.reduce(function (sum, w) {

@@ -23,6 +23,8 @@ function signatur_handle_save_signature()
         ? esc_url_raw(wp_unslash($_POST['signatur_link']))
         : '';
 
+    $show_title = isset($_POST['signatur_show_title']) ? 1 : 0;
+
     $settings = signatur_sanitize_settings(
         isset($_POST['signatur_settings']) ? wp_unslash($_POST['signatur_settings']) : ''
     );
@@ -38,11 +40,12 @@ function signatur_handle_save_signature()
                 array(
                     'title'      => $title,
                     'link'       => $link,
+                    'show_title' => $show_title,
                     'settings'   => $settings,
                     'updated_at' => current_time('mysql'),
                 ),
                 array('id' => $id),
-                array('%s', '%s', '%s', '%s'),
+                array('%s', '%s', '%d', '%s', '%s'),
                 array('%d')
             );
         } else {
@@ -51,11 +54,12 @@ function signatur_handle_save_signature()
                 array(
                     'title'      => $title,
                     'link'       => $link,
+                    'show_title' => $show_title,
                     'settings'   => $settings,
                     'created_at' => current_time('mysql'),
                     'updated_at' => current_time('mysql'),
                 ),
-                array('%s', '%s', '%s', '%s', '%s')
+                array('%s', '%s', '%d', '%s', '%s', '%s')
             );
         }
     }

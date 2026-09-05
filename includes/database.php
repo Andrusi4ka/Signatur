@@ -41,6 +41,7 @@ function signatur_create_table()
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
         title VARCHAR(255) NOT NULL,
         link VARCHAR(255) NOT NULL DEFAULT '',
+        show_title TINYINT(1) NOT NULL DEFAULT 1,
         settings LONGTEXT NULL,
         created_at DATETIME NOT NULL,
         updated_at DATETIME NOT NULL,

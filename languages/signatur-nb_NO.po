@@ -80,6 +80,10 @@ msgid "Add link"
 msgstr "Legg til lenke"
 
 #: signatur.php
+msgid "Show on site"
+msgstr "Vis på nettstedet"
+
+#: signatur.php
 msgid "Edit row"
 msgstr "Rediger rad"
 

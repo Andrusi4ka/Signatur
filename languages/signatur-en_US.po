@@ -80,6 +80,10 @@ msgid "Add link"
 msgstr "Add link"
 
 #: signatur.php
+msgid "Show on site"
+msgstr "Show on site"
+
+#: signatur.php
 msgid "Edit row"
 msgstr "Edit row"
 
