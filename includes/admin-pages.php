@@ -941,6 +941,11 @@ function signatur_render_add_signature_page()
              * straight across a row, or straight down a column, never both at
              * once. When the drag moves diagonally, whichever axis moved
              * further wins and the other is locked back to the anchor.
+             *
+             * Growing down a column also stops at the first row whose cell in
+             * that column has a different colspan than the anchor's - cells
+             * of different widths are never selected (or mergeable) together
+             * vertically.
              */
             function selectRectangle(fromCell, toCell) {
                 var grid = buildGrid();
@@ -956,9 +961,24 @@ function signatur_render_add_signature_page()
                 var minRow, maxRow, minCol, maxCol;
 
                 if (rowDelta >= colDelta) {
-                    minRow = Math.min(fromPos.row, toPos.row);
-                    maxRow = Math.max(fromPos.row, toPos.row);
                     minCol = maxCol = fromPos.col;
+
+                    var anchorColspan = getCellColSpan(fromCell);
+                    var step = toPos.row >= fromPos.row ? 1 : -1;
+                    var boundaryRow = fromPos.row;
+
+                    for (var r = fromPos.row + step; r !== toPos.row + step; r += step) {
+                        var slot = grid[r] && grid[r][minCol];
+
+                        if (! slot || getCellColSpan(slot.cell) !== anchorColspan) {
+                            break;
+                        }
+
+                        boundaryRow = r;
+                    }
+
+                    minRow = Math.min(fromPos.row, boundaryRow);
+                    maxRow = Math.max(fromPos.row, boundaryRow);
                 } else {
                     minCol = Math.min(fromPos.col, toPos.col);
                     maxCol = Math.max(fromPos.col, toPos.col);
@@ -978,6 +998,39 @@ function signatur_render_add_signature_page()
                 }
 
                 return cells;
+            }
+
+            /**
+             * Cells spread across more than one row are never mergeable when
+             * their colspans differ from each other - this mirrors the same
+             * rule selectRectangle() already enforces while dragging, kept
+             * here too as a guard against the merge being triggered any other
+             * way. A same-row (horizontal) merge has no such constraint.
+             */
+            function hasVerticalColspanMismatch(cells) {
+                var grid = buildGrid();
+                var positions = cells.map(function (cell) {
+                    return findCellPosition(grid, cell);
+                }).filter(function (pos) {
+                    return null !== pos;
+                });
+
+                if (positions.length < 2) {
+                    return false;
+                }
+
+                var minRow = Math.min.apply(null, positions.map(function (pos) { return pos.row; }));
+                var maxRow = Math.max.apply(null, positions.map(function (pos) { return pos.row; }));
+
+                if (minRow === maxRow) {
+                    return false;
+                }
+
+                var colspan = getCellColSpan(cells[0]);
+
+                return cells.some(function (cell) {
+                    return getCellColSpan(cell) !== colspan;
+                });
             }
 
             function positionColumnButtons(cell) {
@@ -1127,7 +1180,9 @@ function signatur_render_add_signature_page()
                     activeColumnCell = selectedCells[0];
                     positionColumnButtons(activeColumnCell);
                 } else if (selectedCells.length >= 2) {
-                    positionColumnCombineButton(selectedCells);
+                    if (! hasVerticalColspanMismatch(selectedCells)) {
+                        positionColumnCombineButton(selectedCells);
+                    }
                 } else {
                     clearSelection();
                 }
@@ -1156,7 +1211,7 @@ function signatur_render_add_signature_page()
             });
 
             columnCombineButton.addEventListener('click', function () {
-                if (selectedCells.length < 2) {
+                if (selectedCells.length < 2 || hasVerticalColspanMismatch(selectedCells)) {
                     return;
                 }
 
