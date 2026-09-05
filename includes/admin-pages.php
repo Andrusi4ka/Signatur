@@ -840,6 +840,37 @@ function signatur_render_add_signature_page()
                         }
                     }
                 }
+
+                syncRowActions();
+            }
+
+            /**
+             * A row fully swallowed by a full-width vertical merge keeps its
+             * (now empty) <tr> in the table - removing it would shift every
+             * rowspan below it, since rowspan counts actual <tr> siblings.
+             * The row-actions sidebar has no such constraint though, so it
+             * is kept in sync separately: one action group per row that
+             * still has real cells of its own, no more. Matched up by index
+             * (not just trimmed off the end) so the group removed/restored
+             * is always the one for the row that actually emptied/refilled -
+             * the sidebar's first child is a fixed spacer that aligns it
+             * with the column headers above the table and is never touched.
+             */
+            function syncRowActions() {
+                var rows = Array.prototype.slice.call(fieldTbody.children);
+                var groups = Array.prototype.slice.call(rowsActions.children).slice(1);
+
+                rows.forEach(function (row, index) {
+                    var group = groups[index];
+
+                    if (0 === row.children.length) {
+                        if (group && group.parentNode) {
+                            group.parentNode.removeChild(group);
+                        }
+                    } else if (! group) {
+                        rowsActions.appendChild(rowActionsTemplate.content.cloneNode(true));
+                    }
+                });
             }
 
             rowAddButton.addEventListener('click', function () {
@@ -1338,6 +1369,8 @@ function signatur_render_add_signature_page()
                         cell.parentNode.removeChild(cell);
                     }
                 });
+
+                syncRowActions();
 
                 selectedCells = [];
                 clearSelection();
