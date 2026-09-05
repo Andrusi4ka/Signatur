@@ -160,7 +160,7 @@ function signatur_render_add_signature_page()
         }
     }
 
-    $group_width = $settings['width'] + 80;
+    $group_width = $settings['width'] + 160;
 
     $page_title = $id ? __('Edit signature', 'signatur') : __('Add signature', 'signatur');
 ?>
@@ -327,6 +327,11 @@ function signatur_render_add_signature_page()
                 </div>
 
                 <div style="display:flex; align-items:flex-start; gap:8px; margin-top:8px;">
+                    <div id="signatur_row_add_wrap" style="display:flex; flex-direction:column; justify-content:flex-end; align-self:stretch;">
+                        <button type="button" id="signatur_row_add" class="signatur-icon-button" title="<?php esc_attr_e('Add row', 'signatur'); ?>" aria-label="<?php esc_attr_e('Add row', 'signatur'); ?>">
+                            <img src="<?php echo esc_url(plugins_url('assets/icon-plus.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
+                        </button>
+                    </div>
                     <table id="signatur_field_table" class="widefat striped" style="width:<?php echo esc_attr($settings['width']); ?>px; padding-top:<?php echo esc_attr($settings['padding']['top']); ?>px; padding-right:<?php echo esc_attr($settings['padding']['right']); ?>px; padding-bottom:<?php echo esc_attr($settings['padding']['bottom']); ?>px; padding-left:<?php echo esc_attr($settings['padding']['left']); ?>px;">
                         <colgroup id="signatur_field_colgroup">
                             <?php foreach ($settings['columns'] as $column_width) : ?>
@@ -371,12 +376,6 @@ function signatur_render_add_signature_page()
                             </div>
                         <?php endforeach; ?>
                     </div>
-                </div>
-
-                <div id="signatur_row_bottom_wrap" style="width:<?php echo esc_attr($settings['width']); ?>px; display:flex; justify-content:center; margin-top:8px;">
-                    <button type="button" id="signatur_row_add" class="signatur-icon-button" title="<?php esc_attr_e('Add row', 'signatur'); ?>" aria-label="<?php esc_attr_e('Add row', 'signatur'); ?>">
-                        <img src="<?php echo esc_url(plugins_url('assets/icon-plus.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
-                    </button>
                 </div>
             </div>
 
@@ -457,7 +456,6 @@ function signatur_render_add_signature_page()
             var widthTemplate = document.getElementById('signatur_modal_template_width');
             var rowGroup = document.getElementById('signatur_row_group');
             var rowTopWrap = document.getElementById('signatur_row_top_wrap');
-            var rowBottomWrap = document.getElementById('signatur_row_bottom_wrap');
             var fieldTable = document.getElementById('signatur_field_table');
             var fieldTbody = document.getElementById('signatur_field_tbody');
             var rowsActions = document.getElementById('signatur_rows_actions');
@@ -1122,7 +1120,7 @@ function signatur_render_add_signature_page()
                 var buttonSize = 32;
                 var gap = 4;
                 var showSplit = getCellColSpan(cell) > 1 || getCellRowSpan(cell) > 1;
-                var showRemove = columnWidths.length > 1;
+                var showRemove = columnWidths.length > 1 && 1 === getCellColSpan(cell);
                 var buttonCount = 1 + (showSplit ? 1 : 0) + (showRemove ? 1 : 0);
                 var groupWidth = buttonSize * buttonCount + gap * (buttonCount - 1);
                 var rect = cell.getBoundingClientRect();
@@ -1395,8 +1393,7 @@ function signatur_render_add_signature_page()
                     var width = clampWidth(widthInput.value);
 
                     rowTopWrap.style.width = width + 'px';
-                    rowBottomWrap.style.width = width + 'px';
-                    rowGroup.style.width = (width + 80) + 'px';
+                    rowGroup.style.width = (width + 160) + 'px';
                     fieldTable.style.width = width + 'px';
 
                     var oldWidth = columnWidths.reduce(function (sum, w) {
