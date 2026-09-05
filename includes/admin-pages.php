@@ -117,19 +117,13 @@ function signatur_render_all_signatures_page()
 }
 
 /**
- * Render the edit/delete-column/delete-row buttons shown beside a table row.
+ * Render the edit/delete-row buttons shown beside a table row.
  */
 function signatur_render_row_actions_buttons()
 {
 ?>
     <button type="button" class="signatur-icon-button" data-modal-title="<?php echo esc_attr__('Edit row', 'signatur'); ?>" title="<?php esc_attr_e('Edit row', 'signatur'); ?>" aria-label="<?php esc_attr_e('Edit row', 'signatur'); ?>">
         <img src="<?php echo esc_url(plugins_url('assets/icon-edit.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
-    </button>
-    <button type="button" class="signatur-icon-button signatur-column-add" title="<?php esc_attr_e('Add column', 'signatur'); ?>" aria-label="<?php esc_attr_e('Add column', 'signatur'); ?>">
-        <img src="<?php echo esc_url(plugins_url('assets/icon-plus.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
-    </button>
-    <button type="button" class="signatur-icon-button signatur-column-remove" title="<?php esc_attr_e('Remove column', 'signatur'); ?>" aria-label="<?php esc_attr_e('Remove column', 'signatur'); ?>">
-        <img src="<?php echo esc_url(plugins_url('assets/icon-minus.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
     </button>
     <button type="button" class="signatur-icon-button" title="<?php esc_attr_e('Delete row', 'signatur'); ?>" aria-label="<?php esc_attr_e('Delete row', 'signatur'); ?>">
         <img src="<?php echo esc_url(plugins_url('assets/icon-delete.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
@@ -175,7 +169,7 @@ function signatur_render_add_signature_page()
         }
     }
 
-    $group_width = $settings['width'] + 160;
+    $group_width = $settings['width'] + 80;
 
     $page_title = $id ? __('Edit signature', 'signatur') : __('Add signature', 'signatur');
 ?>
@@ -197,16 +191,6 @@ function signatur_render_add_signature_page()
         .signatur-icon-button:focus {
             background: #f0f0f1;
             border-color: #646970;
-        }
-
-        .signatur-icon-button:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
-        .signatur-icon-button:disabled:hover {
-            background: #f6f7f7;
-            border-color: #8c8f94;
         }
 
         #signatur_modal_overlay {
@@ -264,6 +248,19 @@ function signatur_render_add_signature_page()
             height: 38px;
             box-sizing: border-box;
             border: 1px solid #dcdcde;
+            user-select: none;
+        }
+
+        #signatur_field_table td.signatur-cell-selected {
+            background: #d5e5f8;
+        }
+
+        #signatur_column_add,
+        #signatur_column_combine,
+        #signatur_column_remove {
+            display: none;
+            position: fixed;
+            z-index: 100001;
         }
     </style>
     <div class="wrap">
@@ -332,6 +329,18 @@ function signatur_render_add_signature_page()
 
             <?php submit_button(__('Save', 'signatur')); ?>
         </form>
+
+        <button type="button" id="signatur_column_add" class="signatur-icon-button" title="<?php esc_attr_e('Add column', 'signatur'); ?>" aria-label="<?php esc_attr_e('Add column', 'signatur'); ?>">
+            <img src="<?php echo esc_url(plugins_url('assets/icon-plus.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
+        </button>
+
+        <button type="button" id="signatur_column_combine" class="signatur-icon-button" title="<?php esc_attr_e('Combine columns', 'signatur'); ?>" aria-label="<?php esc_attr_e('Combine columns', 'signatur'); ?>">
+            <img src="<?php echo esc_url(plugins_url('assets/icon-combine.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
+        </button>
+
+        <button type="button" id="signatur_column_remove" class="signatur-icon-button" title="<?php esc_attr_e('Remove column', 'signatur'); ?>" aria-label="<?php esc_attr_e('Remove column', 'signatur'); ?>">
+            <img src="<?php echo esc_url(plugins_url('assets/icon-minus.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
+        </button>
 
         <div id="signatur_modal_overlay">
             <div id="signatur_modal">
@@ -469,19 +478,6 @@ function signatur_render_add_signature_page()
 
             var rowAddButton = document.getElementById('signatur_row_add');
 
-            function syncRowActionsState() {
-                var groups = rowsActions.querySelectorAll('.signatur-row-actions');
-
-                groups.forEach(function (group, index) {
-                    var row = fieldTbody.children[index];
-                    var removeButton = group.querySelector('.signatur-column-remove');
-
-                    if (row && removeButton) {
-                        removeButton.disabled = row.children.length <= 1;
-                    }
-                });
-            }
-
             function syncColumnWidths() {
                 var rows = Array.prototype.slice.call(fieldTbody.children);
                 var maxColumns = rows.reduce(function (max, row) {
@@ -504,43 +500,214 @@ function signatur_render_add_signature_page()
             rowAddButton.addEventListener('click', function () {
                 fieldTbody.appendChild(rowTemplate.content.cloneNode(true));
                 rowsActions.appendChild(rowActionsTemplate.content.cloneNode(true));
-                syncRowActionsState();
                 syncColumnWidths();
             });
 
-            rowsActions.addEventListener('click', function (e) {
-                var group = e.target.closest('.signatur-row-actions');
+            syncColumnWidths();
 
-                if (! group) {
+            var columnAddButton = document.getElementById('signatur_column_add');
+            var columnCombineButton = document.getElementById('signatur_column_combine');
+            var columnRemoveButton = document.getElementById('signatur_column_remove');
+            var activeColumnCell = null;
+            var selectedCells = [];
+            var isSelecting = false;
+            var selectionAnchor = null;
+
+            function highlightSelection(cells) {
+                selectedCells.forEach(function (cell) {
+                    cell.classList.remove('signatur-cell-selected');
+                });
+
+                selectedCells = cells;
+
+                selectedCells.forEach(function (cell) {
+                    cell.classList.add('signatur-cell-selected');
+                });
+            }
+
+            function selectRange(row, fromCell, toCell) {
+                var cells = Array.prototype.slice.call(row.children);
+                var fromIndex = cells.indexOf(fromCell);
+                var toIndex = cells.indexOf(toCell);
+
+                if (-1 === fromIndex || -1 === toIndex) {
+                    return [];
+                }
+
+                var start = Math.min(fromIndex, toIndex);
+                var end = Math.max(fromIndex, toIndex);
+
+                return cells.slice(start, end + 1);
+            }
+
+            function positionColumnButtons(cell) {
+                var buttonSize = 32;
+                var gap = 4;
+                var showRemove = cell.parentNode.children.length > 1;
+                var groupWidth = showRemove ? (buttonSize * 2 + gap) : buttonSize;
+                var rect = cell.getBoundingClientRect();
+                var top = rect.top + (rect.height - buttonSize) / 2;
+                var groupLeft = rect.left + (rect.width - groupWidth) / 2;
+
+                columnAddButton.style.top = top + 'px';
+                columnAddButton.style.left = groupLeft + 'px';
+                columnAddButton.style.display = 'inline-flex';
+
+                if (showRemove) {
+                    columnRemoveButton.style.top = top + 'px';
+                    columnRemoveButton.style.left = (groupLeft + buttonSize + gap) + 'px';
+                    columnRemoveButton.style.display = 'inline-flex';
+                } else {
+                    columnRemoveButton.style.display = 'none';
+                }
+            }
+
+            function positionColumnCombineButton(fromCell, toCell) {
+                var buttonSize = 32;
+                var fromRect = fromCell.getBoundingClientRect();
+                var toRect = toCell.getBoundingClientRect();
+                var top = Math.min(fromRect.top, toRect.top) + (fromRect.height - buttonSize) / 2;
+                var left = (fromRect.left + toRect.right) / 2 - buttonSize / 2;
+
+                columnCombineButton.style.top = top + 'px';
+                columnCombineButton.style.left = left + 'px';
+                columnCombineButton.style.display = 'inline-flex';
+            }
+
+            function hideColumnAddButton() {
+                columnAddButton.style.display = 'none';
+            }
+
+            function hideColumnCombineButton() {
+                columnCombineButton.style.display = 'none';
+            }
+
+            function hideColumnRemoveButton() {
+                columnRemoveButton.style.display = 'none';
+            }
+
+            function hideColumnButtons() {
+                activeColumnCell = null;
+                hideColumnAddButton();
+                hideColumnRemoveButton();
+            }
+
+            function clearSelection() {
+                highlightSelection([]);
+                hideColumnCombineButton();
+                hideColumnButtons();
+            }
+
+            fieldTbody.addEventListener('mousedown', function (e) {
+                var cell = e.target.closest('td');
+
+                if (! cell) {
                     return;
                 }
 
-                var index = Array.prototype.indexOf.call(rowsActions.children, group);
-                var row = fieldTbody.children[index];
+                e.preventDefault();
+                isSelecting = true;
+                selectionAnchor = cell;
+                hideColumnButtons();
+                hideColumnCombineButton();
+                highlightSelection([cell]);
+            });
 
-                if (! row) {
+            fieldTbody.addEventListener('mouseover', function (e) {
+                if (! isSelecting) {
                     return;
                 }
 
-                if (e.target.closest('.signatur-column-add')) {
-                    var cell = document.createElement('td');
-                    cell.innerHTML = '&nbsp;';
-                    row.appendChild(cell);
-                    syncRowActionsState();
-                    syncColumnWidths();
+                var cell = e.target.closest('td');
+
+                if (! cell || cell.parentNode !== selectionAnchor.parentNode) {
+                    return;
                 }
 
-                var removeButton = e.target.closest('.signatur-column-remove');
+                highlightSelection(selectRange(cell.parentNode, selectionAnchor, cell));
+            });
 
-                if (removeButton && ! removeButton.disabled && row.children.length > 1) {
-                    row.removeChild(row.lastElementChild);
-                    syncRowActionsState();
-                    syncColumnWidths();
+            columnRemoveButton.addEventListener('click', function () {
+                if (! activeColumnCell) {
+                    return;
+                }
+
+                var row = activeColumnCell.parentNode;
+
+                if (row.children.length > 1) {
+                    row.removeChild(activeColumnCell);
+                }
+
+                hideColumnButtons();
+                syncColumnWidths();
+            });
+
+            function finishSelection() {
+                if (! isSelecting) {
+                    return;
+                }
+
+                isSelecting = false;
+
+                if (1 === selectedCells.length) {
+                    activeColumnCell = selectedCells[0];
+                    positionColumnButtons(activeColumnCell);
+                } else if (selectedCells.length >= 2) {
+                    positionColumnCombineButton(selectedCells[0], selectedCells[selectedCells.length - 1]);
+                } else {
+                    clearSelection();
+                }
+            }
+
+            document.addEventListener('mouseup', finishSelection);
+
+            document.documentElement.addEventListener('mouseleave', finishSelection);
+
+            columnAddButton.addEventListener('click', function () {
+                if (! activeColumnCell) {
+                    return;
+                }
+
+                var cell = document.createElement('td');
+                cell.innerHTML = '&nbsp;';
+                activeColumnCell.parentNode.insertBefore(cell, activeColumnCell.nextElementSibling);
+
+                hideColumnButtons();
+                syncColumnWidths();
+            });
+
+            columnCombineButton.addEventListener('click', function () {
+                if (selectedCells.length < 2) {
+                    return;
+                }
+
+                var totalSpan = selectedCells.reduce(function (sum, cell) {
+                    return sum + (parseInt(cell.getAttribute('colspan'), 10) || 1);
+                }, 0);
+
+                var firstCell = selectedCells[0];
+                firstCell.setAttribute('colspan', totalSpan);
+                firstCell.classList.remove('signatur-cell-selected');
+
+                selectedCells.slice(1).forEach(function (cell) {
+                    cell.parentNode.removeChild(cell);
+                });
+
+                selectedCells = [];
+                clearSelection();
+                syncColumnWidths();
+            });
+
+            document.addEventListener('click', function (e) {
+                if (! e.target.closest('#signatur_field_table')) {
+                    clearSelection();
                 }
             });
 
-            syncRowActionsState();
-            syncColumnWidths();
+            window.addEventListener('scroll', function () {
+                hideColumnButtons();
+                hideColumnCombineButton();
+            }, true);
 
             modalCancel.addEventListener('click', closeModal);
 
@@ -551,7 +718,7 @@ function signatur_render_add_signature_page()
 
                     rowTopWrap.style.width = width + 'px';
                     rowBottomWrap.style.width = width + 'px';
-                    rowGroup.style.width = (width + 160) + 'px';
+                    rowGroup.style.width = (width + 80) + 'px';
                     fieldTable.style.width = width + 'px';
 
                     paddingSides.forEach(function (side) {

@@ -130,3 +130,7 @@ msgstr "Добавить колонку"
 #: signatur.php
 msgid "Remove column"
 msgstr "Удалить колонку"
+
+#: signatur.php
+msgid "Combine columns"
+msgstr "Объединить колонки"

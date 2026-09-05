@@ -130,3 +130,7 @@ msgstr "Legg til kolonne"
 #: signatur.php
 msgid "Remove column"
 msgstr "Fjern kolonne"
+
+#: signatur.php
+msgid "Combine columns"
+msgstr "Slå sammen kolonner"
