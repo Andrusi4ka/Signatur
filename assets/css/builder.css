@@ -1,0 +1,159 @@
+.signatur-icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #f6f7f7;
+    border: 1px solid #8c8f94;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+}
+
+.signatur-icon-button:hover,
+.signatur-icon-button:focus {
+    background: #f0f0f1;
+    border-color: #646970;
+}
+
+.signatur-icon-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+}
+
+.signatur-icon-button:disabled:hover {
+    background: #f6f7f7;
+    border-color: #8c8f94;
+}
+
+#signatur_modal_overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 100000;
+    align-items: center;
+    justify-content: center;
+}
+
+#signatur_modal {
+    background: #fff;
+    border-radius: 4px;
+    padding: 20px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+}
+
+#signatur_modal_footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.wrap input[type="date"],
+.wrap input[type="datetime-local"],
+.wrap input[type="datetime"],
+.wrap input[type="email"],
+.wrap input[type="month"],
+.wrap input[type="number"],
+.wrap input[type="password"],
+.wrap input[type="search"],
+.wrap input[type="tel"],
+.wrap input[type="text"],
+.wrap input[type="time"],
+.wrap input[type="url"],
+.wrap input[type="week"] {
+    min-height: 30px;
+    height: 30px;
+    line-height: 28px;
+}
+
+#signatur_field_table {
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+#signatur_field_table td {
+    height: 38px;
+    box-sizing: border-box;
+    border: 1px solid #dcdcde;
+    user-select: none;
+}
+
+#signatur_field_table td.signatur-cell-selected {
+    background: #d5e5f8;
+}
+
+#signatur_field_table thead th.signatur-column-header {
+    box-sizing: border-box;
+    height: 22px;
+    padding: 0;
+    font-size: 11px;
+    font-weight: normal;
+    text-align: center;
+    color: #646970;
+    background: #f0f0f1;
+    border: 1px solid #dcdcde;
+    user-select: none;
+}
+
+#signatur_field_table thead th.signatur-column-header:hover {
+    background: #d5e5f8;
+    color: #1d2327;
+}
+
+#signatur_column_add,
+#signatur_column_combine,
+#signatur_column_remove,
+#signatur_column_split {
+    display: none;
+    position: fixed;
+    z-index: 100001;
+}
+
+.signatur-col-resize-handle {
+    position: fixed;
+    width: 7px;
+    margin-left: -3px;
+    cursor: col-resize;
+    z-index: 100000;
+    background: transparent;
+}
+
+.signatur-col-resize-handle:hover {
+    background: #2271b1;
+    opacity: 0.5;
+}
+
+#signatur_row_add_indicator {
+    display: none;
+    position: fixed;
+    height: 3px;
+    background: #2271b1;
+    pointer-events: none;
+    z-index: 100000;
+}
+
+#signatur_column_add_indicator {
+    display: none;
+    position: fixed;
+    width: 3px;
+    background: #2271b1;
+    pointer-events: none;
+    z-index: 100000;
+}
+
+#signatur_row_hover_indicator {
+    display: none;
+    position: fixed;
+    box-sizing: border-box;
+    border: 3px solid #2271b1;
+    pointer-events: none;
+    z-index: 100000;
+}

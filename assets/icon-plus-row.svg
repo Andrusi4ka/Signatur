@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_Шар_1" data-name="Шар_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1000 1000">
+  <!-- Generator: Adobe Illustrator 29.8.10, SVG Export Plug-In . SVG Version: 2.1.1 Build 2)  -->
+  <defs>
+    <style>
+      .st0 {
+        opacity: .97;
+      }
+
+      .st1 {
+        fill: none;
+        stroke: #333;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 66.67px;
+      }
+    </style>
+  </defs>
+  <g id="_Шар_11" data-name="_Шар_1" class="st0">
+    <g>
+      <path id="primary" class="st1" d="M500,516.76V126.98M305.1,321.87h389.78"/>
+      <polyline class="st1" points="833.82 321.87 965 321.87 965 873.02 35 873.02 35 321.87 166.17 321.87"/>
+    </g>
+  </g>
+</svg>
