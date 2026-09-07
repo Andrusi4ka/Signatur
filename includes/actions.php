@@ -100,3 +100,65 @@ function signatur_handle_delete_signature()
     );
     exit;
 }
+
+/**
+ * `upload_dir` filter that redirects uploads into wp-content/uploads/signatur/
+ * (a flat folder, no year/month subfolders) so signature images live in one
+ * predictable place and survive plugin updates.
+ */
+function signatur_upload_dir($dirs)
+{
+    $dirs['subdir'] = '/signatur';
+    $dirs['path']   = $dirs['basedir'] . '/signatur';
+    $dirs['url']    = $dirs['baseurl'] . '/signatur';
+
+    return $dirs;
+}
+
+/**
+ * AJAX handler: upload an image for an image element. Stores the file in
+ * wp-content/uploads/signatur/ and returns its URL. Admin-only.
+ */
+function signatur_handle_upload_image()
+{
+    if (! current_user_can('manage_options')) {
+        wp_send_json_error(array('message' => __('You are not allowed to perform this action.', 'signatur')));
+    }
+
+    check_ajax_referer('signatur_upload_image', 'nonce');
+
+    if (empty($_FILES['file'])) {
+        wp_send_json_error(array('message' => __('Image upload failed.', 'signatur')));
+    }
+
+    $allowed = array(
+        'jpg|jpeg|jpe' => 'image/jpeg',
+        'png'          => 'image/png',
+        'gif'          => 'image/gif',
+        'webp'         => 'image/webp',
+    );
+
+    $file = $_FILES['file'];
+
+    if (! empty($file['size']) && $file['size'] > 5 * 1024 * 1024) {
+        wp_send_json_error(array('message' => __('Image upload failed.', 'signatur')));
+    }
+
+    require_once ABSPATH . 'wp-admin/includes/file.php';
+
+    add_filter('upload_dir', 'signatur_upload_dir');
+    $result = wp_handle_upload(
+        $file,
+        array(
+            'test_form' => false,
+            'mimes'     => $allowed,
+        )
+    );
+    remove_filter('upload_dir', 'signatur_upload_dir');
+
+    if (isset($result['error']) || empty($result['url'])) {
+        wp_send_json_error(array('message' => __('Image upload failed.', 'signatur')));
+    }
+
+    wp_send_json_success(array('url' => $result['url']));
+}

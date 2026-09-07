@@ -231,6 +231,73 @@ function signatur_sanitize_text_element($raw)
 }
 
 /**
+ * Default values for an image element placed inside a grid cell.
+ */
+function signatur_get_default_image_element()
+{
+    return array(
+        'type'  => 'image',
+        'url'   => '',
+        'width' => 200,
+        'align' => 'left',
+        'link'  => '',
+    );
+}
+
+/**
+ * Validate a raw image element. Returns a normalized array, or null when
+ * it is not usable (wrong shape, or no URL).
+ */
+function signatur_sanitize_image_element($raw)
+{
+    if (! is_array($raw) || ! isset($raw['type']) || 'image' !== $raw['type']) {
+        return null;
+    }
+
+    $defaults = signatur_get_default_image_element();
+
+    $url = isset($raw['url']) ? esc_url_raw((string) $raw['url']) : '';
+
+    if ('' === $url) {
+        return null;
+    }
+
+    $width = isset($raw['width']) ? absint($raw['width']) : $defaults['width'];
+    $width = max(1, min(1000, $width));
+
+    $align = isset($raw['align']) && in_array($raw['align'], array('left', 'center', 'right'), true)
+        ? $raw['align']
+        : $defaults['align'];
+
+    $link = isset($raw['link']) ? esc_url_raw((string) $raw['link']) : '';
+
+    return array(
+        'type'  => 'image',
+        'url'   => $url,
+        'width' => $width,
+        'align' => $align,
+        'link'  => $link,
+    );
+}
+
+/**
+ * Validate any cell element - dispatches on its `type`. Returns a
+ * normalized element array, or null when it is not usable.
+ */
+function signatur_sanitize_element($raw)
+{
+    if (! is_array($raw) || ! isset($raw['type'])) {
+        return null;
+    }
+
+    if ('image' === $raw['type']) {
+        return signatur_sanitize_image_element($raw);
+    }
+
+    return signatur_sanitize_text_element($raw);
+}
+
+/**
  * Check that `rows` forms a valid rectangular grid: every row, once cells
  * covered by a rowspan from an earlier row are accounted for, covers
  * exactly `column_count` columns, and no rowspan reaches past the last row.
@@ -351,7 +418,7 @@ function signatur_sanitize_settings($raw_json)
                 );
 
                 if (isset($cell[2])) {
-                    $element = signatur_sanitize_text_element($cell[2]);
+                    $element = signatur_sanitize_element($cell[2]);
 
                     if (null !== $element) {
                         $normalized[] = $element;

@@ -234,3 +234,39 @@ msgstr "Обе"
 #: signatur.php
 msgid "Border"
 msgstr "Рамка"
+
+#: signatur.php
+msgid "Image"
+msgstr "Изображение"
+
+#: signatur.php
+msgid "Add image"
+msgstr "Добавить изображение"
+
+#: signatur.php
+msgid "Edit image"
+msgstr "Редактировать изображение"
+
+#: signatur.php
+msgid "Upload image"
+msgstr "Загрузить изображение"
+
+#: signatur.php
+msgid "Image URL"
+msgstr "URL изображения"
+
+#: signatur.php
+msgid "Width"
+msgstr "Ширина"
+
+#: signatur.php
+msgid "Image upload failed."
+msgstr "Не удалось загрузить изображение."
+
+#: signatur.php
+msgid "https://example.com/logo.png"
+msgstr "https://example.com/logo.png"
+
+#: signatur.php
+msgid "Link"
+msgstr "Ссылка"

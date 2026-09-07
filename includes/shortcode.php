@@ -154,6 +154,43 @@ function signatur_render_text_span($element)
 }
 
 /**
+ * Render a single image element as an inline-styled <img>. Kept as the one
+ * place that turns an image element into markup so the admin editor preview
+ * and the front-end output stay identical. Width is fixed in px, height is
+ * left automatic; `border:0` so a theme cannot add one.
+ *
+ * $max_width, when > 0 and smaller than the element's own width, caps the
+ * rendered width - the image never spills past the cell it sits in. It goes
+ * into both the width="" attribute and the inline width (Outlook ignores
+ * max-width, so the attribute is what actually constrains it there).
+ *
+ * When the element has a `link`, the <img> is wrapped in an <a> that opens
+ * in a new tab (mirrors the text element's link handling).
+ */
+function signatur_render_image_element($element, $max_width = 0)
+{
+    $width = (int) $element['width'];
+
+    if ($max_width > 0 && $width > $max_width) {
+        $width = (int) $max_width;
+    }
+
+    $width = max(1, $width);
+
+    $img = '<img src="' . esc_url($element['url']) . '"'
+        . ' width="' . $width . '"'
+        . ' style="display:inline-block; width:' . $width . 'px; max-width:100%; height:auto; border:0; outline:0; text-decoration:none;"'
+        . ' alt="">';
+
+    if (! empty($element['link'])) {
+        return '<a href="' . esc_url($element['link']) . '" target="_blank" rel="noopener noreferrer"'
+            . ' style="display:inline-block; border:0; text-decoration:none;">' . $img . '</a>';
+    }
+
+    return $img;
+}
+
+/**
  * Shorthand `padding:` declaration from a {top,right,bottom,left} array.
  */
 function signatur_padding_css($padding)
@@ -208,6 +245,15 @@ function signatur_render_signature_table($settings)
 
     $html .= '</colgroup><tbody>';
 
+    // Border eats 1px off each side of a cell's content box when the grid
+    // border is on (border-collapse:collapse, 1px rule).
+    $border_allowance = empty($settings['border']) ? 0 : 2;
+
+    // Column index -> number of further rows a rowspan above still covers,
+    // so we can map each cell to the actual columns it starts on and total
+    // their widths (needed to cap image widths to the real cell width).
+    $occupied = array();
+
     foreach ($settings['rows'] as $row_index => $row_cells) {
         $row_padding = isset($settings['row_padding'][$row_index])
             ? $settings['row_padding'][$row_index]
@@ -216,20 +262,51 @@ function signatur_render_signature_table($settings)
             ? $settings['row_border'][$row_index]
             : signatur_sanitize_row_border(array());
 
+        foreach ($occupied as $col => $rows_left) {
+            $occupied[$col] = $rows_left - 1;
+
+            if ($occupied[$col] <= 0) {
+                unset($occupied[$col]);
+            }
+        }
+
+        $col_cursor = 0;
+
         $html .= '<tr>';
 
         foreach ($row_cells as $cell_span) {
-            $colspan = $cell_span[0];
-            $rowspan = $cell_span[1];
+            $colspan = max(1, (int) $cell_span[0]);
+            $rowspan = max(1, (int) $cell_span[1]);
             $element = isset($cell_span[2]) ? $cell_span[2] : null;
             $attrs   = '';
 
-            if ($colspan > 1) {
-                $attrs .= ' colspan="' . (int) $colspan . '"';
+            while (isset($occupied[$col_cursor])) {
+                $col_cursor++;
+            }
+
+            $start_col   = $col_cursor;
+            $span_width  = 0;
+
+            for ($k = 0; $k < $colspan; $k++) {
+                if (isset($settings['columns'][$start_col + $k])) {
+                    $span_width += (int) $settings['columns'][$start_col + $k];
+                }
             }
 
             if ($rowspan > 1) {
-                $attrs .= ' rowspan="' . (int) $rowspan . '"';
+                for ($k = 0; $k < $colspan; $k++) {
+                    $occupied[$start_col + $k] = $rowspan;
+                }
+            }
+
+            $col_cursor += $colspan;
+
+            if ($colspan > 1) {
+                $attrs .= ' colspan="' . $colspan . '"';
+            }
+
+            if ($rowspan > 1) {
+                $attrs .= ' rowspan="' . $rowspan . '"';
             }
 
             $cell_style  = signatur_padding_css($row_padding) . '; line-height:1.4; overflow-wrap:break-word;' . $grid_border;
@@ -239,6 +316,10 @@ function signatur_render_signature_table($settings)
                 $cell_style .= ' ' . signatur_text_base_style($element) . ';';
                 $cell_style .= ' text-align:' . $element['align'] . '; vertical-align:' . $element['valign'] . ';';
                 $html       .= '<td' . $attrs . ' style="' . esc_attr($cell_style) . '">' . signatur_render_text_span($element) . '</td>';
+            } elseif ($element && 'image' === $element['type']) {
+                $available   = $span_width - (int) $row_padding['left'] - (int) $row_padding['right'] - $border_allowance;
+                $cell_style .= ' text-align:' . $element['align'] . '; vertical-align:top;';
+                $html       .= '<td' . $attrs . ' style="' . esc_attr($cell_style) . '">' . signatur_render_image_element($element, $available) . '</td>';
             } else {
                 $html .= '<td' . $attrs . ' style="' . esc_attr($cell_style) . '">&nbsp;</td>';
             }

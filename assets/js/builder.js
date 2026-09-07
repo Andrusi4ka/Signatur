@@ -8,6 +8,7 @@
     var rowTemplate = document.getElementById('signatur_modal_template_row');
     var elementTemplate = document.getElementById('signatur_modal_template_element');
     var textTemplate = document.getElementById('signatur_modal_template_text');
+    var imageTemplate = document.getElementById('signatur_modal_template_image');
     var modalTargetCell = null;
     var modalTargetRow = null;
     var rowGroup = document.getElementById('signatur_row_group');
@@ -99,8 +100,40 @@
     }
 
     /**
-     * Put a text element into a cell (or clear it when el is null / empty),
-     * keeping the cell's data-element attribute, text-align and visible
+     * Render an image element as an inline-styled <img> - mirror of the PHP
+     * signatur_render_image_element() so the editor preview matches the
+     * saved front-end output. Width is fixed in px, height stays automatic.
+     */
+    function renderImageEl(el) {
+        var img = document.createElement('img');
+        var width = parseInt(el.width, 10) || 1;
+
+        img.setAttribute('src', el.url);
+        img.setAttribute('width', width);
+        img.setAttribute('alt', '');
+        // max-width:100% keeps the preview inside its cell when the set
+        // width is wider than the column; the front-end additionally caps
+        // the width="" attribute for Outlook (see signatur_render_image_element()).
+        img.setAttribute('style', 'display:inline-block; width:' + width + 'px; max-width:100%; height:auto; border:0; outline:0; text-decoration:none;');
+
+        if (el.link) {
+            var anchor = document.createElement('a');
+
+            anchor.setAttribute('href', el.link);
+            anchor.setAttribute('target', '_blank');
+            anchor.setAttribute('rel', 'noopener noreferrer');
+            anchor.setAttribute('style', 'display:inline-block; border:0; text-decoration:none;');
+            anchor.appendChild(img);
+
+            return anchor;
+        }
+
+        return img;
+    }
+
+    /**
+     * Put an element into a cell (or clear it when el is null / empty),
+     * keeping the cell's data-element attribute, alignment and visible
      * content in sync. This is the single place cell content is written.
      */
     function applyElementToCell(cell, el) {
@@ -136,15 +169,29 @@
             } else {
                 cell.appendChild(span);
             }
-        } else {
-            delete cell.dataset.element;
-            cell.style.textAlign = '';
-            cell.style.verticalAlign = '';
+
+            return;
+        }
+
+        if (el && 'image' === el.type && '' !== String(el.url || '').trim()) {
+            cell.dataset.element = JSON.stringify(el);
+            cell.style.textAlign = el.align;
+            cell.style.verticalAlign = 'top';
             cell.style.fontFamily = '';
             cell.style.fontSize = '';
             cell.style.color = '';
-            cell.innerHTML = '&nbsp;';
+            cell.appendChild(renderImageEl(el));
+
+            return;
         }
+
+        delete cell.dataset.element;
+        cell.style.textAlign = '';
+        cell.style.verticalAlign = '';
+        cell.style.fontFamily = '';
+        cell.style.fontSize = '';
+        cell.style.color = '';
+        cell.innerHTML = '&nbsp;';
     }
 
     var ZERO_PADDING = { top: 0, right: 0, bottom: 0, left: 0 };
@@ -319,6 +366,103 @@
             });
         }
 
+        if ('image' === type) {
+            modalBody.appendChild(imageTemplate.content.cloneNode(true));
+
+            var imageStored = null;
+
+            if (modalTargetCell && modalTargetCell.dataset.element) {
+                try {
+                    var parsedImage = JSON.parse(modalTargetCell.dataset.element);
+
+                    if (parsedImage && 'image' === parsedImage.type) {
+                        imageStored = parsedImage;
+                    }
+                } catch (err) {
+                    imageStored = null;
+                }
+            }
+
+            var imageUrlInput = document.getElementById('signatur_image_url');
+            var imageLinkInput = document.getElementById('signatur_image_link');
+            var imageWidthInput = document.getElementById('signatur_image_width');
+            var imageAlignSelect = document.getElementById('signatur_image_align');
+            var imagePreview = document.getElementById('signatur_image_preview');
+            var imageUploadButton = document.getElementById('signatur_image_upload');
+            var imageFileInput = document.getElementById('signatur_image_file');
+
+            imageUrlInput.value = imageStored ? imageStored.url : '';
+            imageLinkInput.value = imageStored && imageStored.link ? imageStored.link : '';
+            imageWidthInput.value = imageStored ? imageStored.width : 200;
+            imageAlignSelect.value = imageStored ? imageStored.align : 'left';
+
+            function updateImagePreview() {
+                var url = imageUrlInput.value.trim();
+
+                if ('' === url) {
+                    imagePreview.style.display = 'none';
+                    imagePreview.removeAttribute('src');
+
+                    return;
+                }
+
+                imagePreview.src = url;
+                imagePreview.style.display = 'block';
+            }
+
+            updateImagePreview();
+
+            imageUrlInput.addEventListener('input', updateImagePreview);
+            imageUrlInput.addEventListener('change', updateImagePreview);
+
+            imageWidthInput.addEventListener('blur', function () {
+                var value = parseInt(imageWidthInput.value, 10);
+
+                if (isNaN(value)) {
+                    value = 200;
+                }
+
+                imageWidthInput.value = Math.max(1, Math.min(1000, value));
+            });
+
+            imageUploadButton.addEventListener('click', function () {
+                imageFileInput.click();
+            });
+
+            imageFileInput.addEventListener('change', function () {
+                if (! imageFileInput.files || ! imageFileInput.files[0]) {
+                    return;
+                }
+
+                var data = new FormData();
+                data.append('action', 'signatur_upload_image');
+                data.append('nonce', signaturBuilder.uploadNonce);
+                data.append('file', imageFileInput.files[0]);
+
+                imageUploadButton.disabled = true;
+
+                fetch(signaturBuilder.ajaxUrl, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    body: data
+                }).then(function (response) {
+                    return response.json();
+                }).then(function (json) {
+                    if (json && json.success && json.data && json.data.url) {
+                        imageUrlInput.value = json.data.url;
+                        updateImagePreview();
+                    } else {
+                        window.alert(signaturBuilder.i18n.uploadFailed);
+                    }
+                }).catch(function () {
+                    window.alert(signaturBuilder.i18n.uploadFailed);
+                }).then(function () {
+                    imageUploadButton.disabled = false;
+                    imageFileInput.value = '';
+                });
+            });
+        }
+
         if ('width' === type) {
             modalBody.appendChild(widthTemplate.content.cloneNode(true));
             var widthInput = document.getElementById('signatur_width_input');
@@ -342,7 +486,7 @@
         var button = e.target.closest('[data-modal-title]');
 
         if (button) {
-            if ('signatur_cell_add_element' === button.id || 'signatur_cell_edit_element' === button.id) {
+            if ('signatur_cell_add_element' === button.id) {
                 modalTargetCell = activeColumnCell;
             }
 
@@ -1440,6 +1584,30 @@
         positionColumnButtons(activeColumnCell);
     });
 
+    cellEditElementButton.addEventListener('click', function () {
+        if (! activeColumnCell || ! activeColumnCell.dataset.element) {
+            return;
+        }
+
+        var stored;
+
+        try {
+            stored = JSON.parse(activeColumnCell.dataset.element);
+        } catch (err) {
+            return;
+        }
+
+        var type = stored && 'image' === stored.type ? 'image' : 'text';
+
+        modalTargetCell = activeColumnCell;
+        openModal(
+            'image' === type
+                ? cellEditElementButton.getAttribute('data-title-image')
+                : cellEditElementButton.getAttribute('data-title-text'),
+            type
+        );
+    });
+
     function finishSelection() {
         if (! isSelecting) {
             return;
@@ -1640,6 +1808,28 @@
 
             pushUndoSnapshot();
             applyElementToCell(modalTargetCell, element);
+            syncRowNumberHeights();
+        }
+
+        if ('image' === activeModalType && modalTargetCell) {
+            var imageWidth = parseInt(document.getElementById('signatur_image_width').value, 10);
+
+            if (isNaN(imageWidth)) {
+                imageWidth = 200;
+            }
+
+            var imageElement = {
+                type: 'image',
+                url: document.getElementById('signatur_image_url').value.trim(),
+                width: Math.max(1, Math.min(1000, imageWidth)),
+                align: document.getElementById('signatur_image_align').value,
+                link: document.getElementById('signatur_image_link').value.trim()
+            };
+
+            // An empty URL clears the cell (handled inside applyElementToCell),
+            // mirroring how clearing a text element's text removes it.
+            pushUndoSnapshot();
+            applyElementToCell(modalTargetCell, imageElement);
             syncRowNumberHeights();
         }
 

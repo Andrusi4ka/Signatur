@@ -81,6 +81,18 @@ function signatur_enqueue_builder_assets($hook_suffix)
         SIGNATUR_VERSION,
         true
     );
+
+    wp_localize_script(
+        'signatur-builder',
+        'signaturBuilder',
+        array(
+            'ajaxUrl'     => admin_url('admin-ajax.php'),
+            'uploadNonce' => wp_create_nonce('signatur_upload_image'),
+            'i18n'        => array(
+                'uploadFailed' => __('Image upload failed.', 'signatur'),
+            ),
+        )
+    );
 }
 
 /**
@@ -333,12 +345,19 @@ function signatur_render_add_signature_page()
                                         if ($element && 'text' === $element['type']) {
                                             $style .= ' text-align:' . $element['align'] . '; vertical-align:' . $element['valign'] . ';';
                                             $attrs .= ' data-element="' . esc_attr(wp_json_encode($element)) . '"';
+                                        } elseif ($element && 'image' === $element['type']) {
+                                            $style .= ' text-align:' . $element['align'] . '; vertical-align:top;';
+                                            $attrs .= ' data-element="' . esc_attr(wp_json_encode($element)) . '"';
                                         }
                                         ?>
                                         <td<?php echo $attrs; ?> style="<?php echo esc_attr($style); ?>"><?php
-                                            echo ($element && 'text' === $element['type'])
-                                                ? signatur_render_text_span($element)
-                                                : '&nbsp;';
+                                            if ($element && 'text' === $element['type']) {
+                                                echo signatur_render_text_span($element);
+                                            } elseif ($element && 'image' === $element['type']) {
+                                                echo signatur_render_image_element($element);
+                                            } else {
+                                                echo '&nbsp;';
+                                            }
                                         ?></td>
                                     <?php endforeach; ?>
                                 </tr>
@@ -357,7 +376,7 @@ function signatur_render_add_signature_page()
             <?php submit_button(__('Save', 'signatur')); ?>
         </form>
 
-        <button type="button" id="signatur_cell_edit_element" class="signatur-icon-button" data-modal-title="<?php echo esc_attr__('Edit text', 'signatur'); ?>" data-modal-type="text" title="<?php esc_attr_e('Edit element', 'signatur'); ?>" aria-label="<?php esc_attr_e('Edit element', 'signatur'); ?>">
+        <button type="button" id="signatur_cell_edit_element" class="signatur-icon-button" data-title-text="<?php echo esc_attr__('Edit text', 'signatur'); ?>" data-title-image="<?php echo esc_attr__('Edit image', 'signatur'); ?>" title="<?php esc_attr_e('Edit element', 'signatur'); ?>" aria-label="<?php esc_attr_e('Edit element', 'signatur'); ?>">
             <img src="<?php echo esc_url(plugins_url('assets/icon-edit-element.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
         </button>
 
@@ -466,6 +485,9 @@ function signatur_render_add_signature_page()
                 <button type="button" id="signatur_add_text_element" class="signatur-icon-button signatur-element-button" data-modal-title="<?php echo esc_attr__('Add text', 'signatur'); ?>" data-modal-type="text" title="<?php esc_attr_e('Text', 'signatur'); ?>" aria-label="<?php esc_attr_e('Text', 'signatur'); ?>">
                     <img src="<?php echo esc_url(plugins_url('assets/icon-add-text.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="24" height="24">
                 </button>
+                <button type="button" id="signatur_add_image_element" class="signatur-icon-button signatur-element-button" data-modal-title="<?php echo esc_attr__('Add image', 'signatur'); ?>" data-modal-type="image" title="<?php esc_attr_e('Image', 'signatur'); ?>" aria-label="<?php esc_attr_e('Image', 'signatur'); ?>">
+                    <img src="<?php echo esc_url(plugins_url('assets/icon-add-image.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="24" height="24">
+                </button>
             </div>
         </template>
 
@@ -499,6 +521,39 @@ function signatur_render_add_signature_page()
 
             <p style="margin:12px 0 0;">
                 <input type="url" id="signatur_text_link" class="regular-text" style="width:100%;" placeholder="<?php echo esc_attr__('https://example.com', 'signatur'); ?>" aria-label="<?php echo esc_attr__('https://example.com', 'signatur'); ?>">
+            </p>
+        </template>
+
+        <template id="signatur_modal_template_image">
+            <p style="margin:0;">
+                <button type="button" id="signatur_image_upload" class="button"><?php esc_html_e('Upload image', 'signatur'); ?></button>
+                <input type="file" id="signatur_image_file" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none;">
+            </p>
+
+            <p style="margin:12px 0 0;">
+                <label for="signatur_image_url" style="display:block; margin-bottom:4px;"><?php esc_html_e('Image URL', 'signatur'); ?></label>
+                <input type="url" id="signatur_image_url" class="regular-text" style="width:100%;" placeholder="<?php echo esc_attr__('https://example.com/logo.png', 'signatur'); ?>">
+            </p>
+
+            <p style="margin:12px 0 0;">
+                <label for="signatur_image_link" style="display:block; margin-bottom:4px;"><?php esc_html_e('Link', 'signatur'); ?></label>
+                <input type="url" id="signatur_image_link" class="regular-text" style="width:100%;" placeholder="<?php echo esc_attr__('https://example.com', 'signatur'); ?>">
+            </p>
+
+            <div class="signatur-text-controls" style="margin-top:12px;">
+                <label for="signatur_image_width"><?php esc_html_e('Width', 'signatur'); ?></label>
+                <input type="number" id="signatur_image_width" class="small-text" min="1" max="1000" step="1" style="width:70px;">
+                <span><?php esc_html_e('px', 'signatur'); ?></span>
+
+                <select id="signatur_image_align" aria-label="<?php esc_attr_e('Horizontal alignment', 'signatur'); ?>">
+                    <option value="left"><?php esc_html_e('Left', 'signatur'); ?></option>
+                    <option value="center"><?php esc_html_e('Center', 'signatur'); ?></option>
+                    <option value="right"><?php esc_html_e('Right', 'signatur'); ?></option>
+                </select>
+            </div>
+
+            <p style="margin:12px 0 0;">
+                <img id="signatur_image_preview" src="" alt="" style="max-width:100%; display:none;">
             </p>
         </template>
     </div>
