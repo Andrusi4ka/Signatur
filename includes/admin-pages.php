@@ -279,7 +279,7 @@ function signatur_render_add_signature_page()
                             <div class="signatur-row-number"><?php echo (int) $i; ?></div>
                         <?php endfor; ?>
                     </div>
-                    <table id="signatur_field_table" class="widefat striped" style="width:<?php echo esc_attr($settings['width']); ?>px; margin-right:8px;">
+                    <table id="signatur_field_table" class="widefat striped" data-border="<?php echo empty($settings['border']) ? '0' : '1'; ?>" style="width:<?php echo esc_attr($settings['width']); ?>px; margin-right:8px;">
                         <colgroup id="signatur_field_colgroup">
                             <?php foreach ($settings['columns'] as $column_width) : ?>
                                 <col style="width:<?php echo esc_attr($column_width); ?>px;">
@@ -424,6 +424,13 @@ function signatur_render_add_signature_page()
                 <input type="number" id="signatur_width_input" class="small-text" min="200" step="1" style="width:70px;">
                 <span><?php esc_html_e('px', 'signatur'); ?></span>
                 <span style="font-size:11px; color:#646970;"><?php esc_html_e('min. 200px', 'signatur'); ?></span>
+            </p>
+
+            <p style="margin:12px 0 0;">
+                <label for="signatur_border_toggle" style="display:flex; align-items:center; gap:6px;">
+                    <input type="checkbox" id="signatur_border_toggle">
+                    <?php esc_html_e('Border', 'signatur'); ?>
+                </label>
             </p>
         </template>
 

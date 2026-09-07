@@ -96,6 +96,7 @@ function signatur_get_default_settings()
 {
     return array(
         'width'       => 300,
+        'border'      => false,
         'columns'     => array(300),
         'rows'        => array(array(array(1, 1))),
         'row_padding' => array(signatur_sanitize_padding(array())),
@@ -310,6 +311,8 @@ function signatur_sanitize_settings($raw_json)
         $width = 200;
     }
 
+    $border = ! empty($decoded['border']);
+
     $columns = array();
 
     if (isset($decoded['columns']) && is_array($decoded['columns'])) {
@@ -396,6 +399,7 @@ function signatur_sanitize_settings($raw_json)
     return wp_json_encode(
         array(
             'width'       => $width,
+            'border'      => $border,
             'columns'     => $columns,
             'rows'        => $rows,
             'row_padding' => $row_padding,

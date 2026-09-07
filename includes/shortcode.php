@@ -193,10 +193,13 @@ function signatur_row_border_css($border)
  */
 function signatur_render_signature_table($settings)
 {
-    // TEMP: visible grid border while testing Outlook rendering. Remove the
-    // "border:1px solid #cccccc;" here and the per-cell border below to go
-    // back to a borderless signature.
-    $html  = '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse; table-layout:fixed; border:1px solid #cccccc; width:' . (int) $settings['width'] . 'px;">';
+    // Optional plain grid border (toggled from the "Signature width" modal),
+    // just to make the cell structure visible. When off we still emit
+    // "border:0" so a theme's own "table td { border-bottom: ... }" rule
+    // (e.g. Woodmart) doesn't leak a border into the signature.
+    $grid_border = empty($settings['border']) ? ' border:0;' : ' border:1px solid #cccccc;';
+
+    $html  = '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse; table-layout:fixed;' . $grid_border . ' width:' . (int) $settings['width'] . 'px;">';
     $html .= '<colgroup>';
 
     foreach ($settings['columns'] as $column_width) {
@@ -229,8 +232,7 @@ function signatur_render_signature_table($settings)
                 $attrs .= ' rowspan="' . (int) $rowspan . '"';
             }
 
-            // TEMP: per-cell border, see the note at the top of this function.
-            $cell_style = signatur_padding_css($row_padding) . '; line-height:1.4; overflow-wrap:break-word; border:1px solid #cccccc;';
+            $cell_style  = signatur_padding_css($row_padding) . '; line-height:1.4; overflow-wrap:break-word;' . $grid_border;
             $cell_style .= signatur_row_border_css($row_border);
 
             if ($element && 'text' === $element['type']) {

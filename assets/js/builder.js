@@ -14,6 +14,7 @@
     var rowTopWrap = document.getElementById('signatur_row_top_wrap');
     var rowAddWrap = document.getElementById('signatur_row_add_wrap');
     var fieldTable = document.getElementById('signatur_field_table');
+    var signatureBorder = '1' === fieldTable.getAttribute('data-border');
     var fieldTbody = document.getElementById('signatur_field_tbody');
     var rowsNumbers = document.getElementById('signatur_rows_numbers');
     var rowActionsGroup = document.getElementById('signatur_row_actions');
@@ -326,6 +327,8 @@
             widthInput.addEventListener('blur', function () {
                 widthInput.value = clampWidth(widthInput.value);
             });
+
+            document.getElementById('signatur_border_toggle').checked = signatureBorder;
         }
 
         modalOverlay.style.display = 'flex';
@@ -1665,6 +1668,8 @@
         if ('width' === activeModalType) {
             pushUndoSnapshot();
 
+            signatureBorder = document.getElementById('signatur_border_toggle').checked;
+
             var widthInput = document.getElementById('signatur_width_input');
             var width = clampWidth(widthInput.value);
 
@@ -1732,6 +1737,7 @@
 
         return {
             width: parseInt(fieldTable.style.width, 10) || minWidth,
+            border: signatureBorder,
             columns: columnWidths.slice(),
             rows: rows,
             row_padding: rowPadding,
@@ -1747,6 +1753,7 @@
     function applySettings(settings) {
         var width = settings.width;
 
+        signatureBorder = !! settings.border;
         fieldTable.style.width = width + 'px';
         rowTopWrap.style.width = width + 'px';
         rowAddWrap.style.width = width + 'px';

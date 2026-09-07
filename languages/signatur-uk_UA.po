@@ -230,3 +230,7 @@ msgstr "Немає"
 #: signatur.php
 msgid "Both"
 msgstr "Обидві"
+
+#: signatur.php
+msgid "Border"
+msgstr "Рамка"

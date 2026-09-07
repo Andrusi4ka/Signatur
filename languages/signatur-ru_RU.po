@@ -230,3 +230,7 @@ msgstr "Нет"
 #: signatur.php
 msgid "Both"
 msgstr "Обе"
+
+#: signatur.php
+msgid "Border"
+msgstr "Рамка"

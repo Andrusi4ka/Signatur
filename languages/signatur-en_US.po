@@ -230,3 +230,7 @@ msgstr "None"
 #: signatur.php
 msgid "Both"
 msgstr "Both"
+
+#: signatur.php
+msgid "Border"
+msgstr "Border"

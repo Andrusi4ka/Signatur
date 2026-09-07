@@ -230,3 +230,7 @@ msgstr "Ingen"
 #: signatur.php
 msgid "Both"
 msgstr "Begge"
+
+#: signatur.php
+msgid "Border"
+msgstr "Ramme"
