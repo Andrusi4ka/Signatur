@@ -150,3 +150,15 @@ msgstr "Combine columns"
 #: signatur.php
 msgid "Split cell"
 msgstr "Split cell"
+
+#: signatur.php
+msgid "Add element"
+msgstr "Add element"
+
+#: signatur.php
+msgid "Text"
+msgstr "Text"
+
+#: signatur.php
+msgid "Add text"
+msgstr "Add text"

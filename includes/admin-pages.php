@@ -347,6 +347,10 @@ function signatur_render_add_signature_page()
             <?php submit_button(__('Save', 'signatur')); ?>
         </form>
 
+        <button type="button" id="signatur_cell_add_element" class="signatur-icon-button" data-modal-title="<?php echo esc_attr__('Add element', 'signatur'); ?>" data-modal-type="element" title="<?php esc_attr_e('Add element', 'signatur'); ?>" aria-label="<?php esc_attr_e('Add element', 'signatur'); ?>">
+            <img src="<?php echo esc_url(plugins_url('assets/icon-plus.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
+        </button>
+
         <button type="button" id="signatur_column_split" class="signatur-icon-button" title="<?php esc_attr_e('Split cell', 'signatur'); ?>" aria-label="<?php esc_attr_e('Split cell', 'signatur'); ?>">
             <img src="<?php echo esc_url(plugins_url('assets/icon-shift.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
         </button>
@@ -399,6 +403,14 @@ function signatur_render_add_signature_page()
                 <input type="number" id="signatur_padding_bottom" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Bottom', 'signatur'); ?>" style="width:50px;">
                 <input type="number" id="signatur_padding_right" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Right', 'signatur'); ?>" style="width:50px;">
             </p>
+        </template>
+
+        <template id="signatur_modal_template_element">
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button type="button" id="signatur_add_text_element" class="signatur-icon-button signatur-element-button" data-modal-title="<?php echo esc_attr__('Add text', 'signatur'); ?>" data-modal-type="text" title="<?php esc_attr_e('Text', 'signatur'); ?>" aria-label="<?php esc_attr_e('Text', 'signatur'); ?>">
+                    <img src="<?php echo esc_url(plugins_url('assets/icon-add-text.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="24" height="24">
+                </button>
+            </div>
         </template>
 
         <template id="signatur_row_actions_template">

@@ -150,3 +150,15 @@ msgstr "Slå sammen kolonner"
 #: signatur.php
 msgid "Split cell"
 msgstr "Del opp celle"
+
+#: signatur.php
+msgid "Add element"
+msgstr "Legg til element"
+
+#: signatur.php
+msgid "Text"
+msgstr "Tekst"
+
+#: signatur.php
+msgid "Add text"
+msgstr "Legg til tekst"

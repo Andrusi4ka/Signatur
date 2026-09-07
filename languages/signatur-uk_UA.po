@@ -150,3 +150,15 @@ msgstr "Об'єднати колонки"
 #: signatur.php
 msgid "Split cell"
 msgstr "Розділити клітинку"
+
+#: signatur.php
+msgid "Add element"
+msgstr "Додати елемент"
+
+#: signatur.php
+msgid "Text"
+msgstr "Текст"
+
+#: signatur.php
+msgid "Add text"
+msgstr "Додати текст"

@@ -14,6 +14,7 @@
     var modalCancel = document.getElementById('signatur_modal_cancel');
     var modalSave = document.getElementById('signatur_modal_save');
     var widthTemplate = document.getElementById('signatur_modal_template_width');
+    var elementTemplate = document.getElementById('signatur_modal_template_element');
     var rowGroup = document.getElementById('signatur_row_group');
     var rowTopWrap = document.getElementById('signatur_row_top_wrap');
     var rowAddWrap = document.getElementById('signatur_row_add_wrap');
@@ -56,6 +57,10 @@
         modalTitle.textContent = title;
         modalBody.innerHTML = '';
         activeModalType = type || null;
+
+        if ('element' === type) {
+            modalBody.appendChild(elementTemplate.content.cloneNode(true));
+        }
 
         if ('width' === type) {
             modalBody.appendChild(widthTemplate.content.cloneNode(true));
@@ -730,6 +735,7 @@
     window.addEventListener('scroll', renderResizeHandles, true);
     window.addEventListener('resize', renderResizeHandles);
 
+    var cellAddElementButton = document.getElementById('signatur_cell_add_element');
     var columnAddButton = document.getElementById('signatur_column_add');
     var columnCombineButton = document.getElementById('signatur_column_combine');
     var columnRemoveButton = document.getElementById('signatur_column_remove');
@@ -907,11 +913,16 @@
         var gap = 4;
         var showSplit = getCellColSpan(cell) > 1 || getCellRowSpan(cell) > 1;
         var showRemove = columnWidths.length > 1 && 1 === getCellColSpan(cell);
-        var buttonCount = 1 + (showSplit ? 1 : 0) + (showRemove ? 1 : 0);
+        var buttonCount = 2 + (showSplit ? 1 : 0) + (showRemove ? 1 : 0);
         var groupWidth = buttonSize * buttonCount + gap * (buttonCount - 1);
         var rect = cell.getBoundingClientRect();
         var top = rect.top + (rect.height - buttonSize) / 2;
         var left = rect.left + (rect.width - groupWidth) / 2;
+
+        cellAddElementButton.style.top = top + 'px';
+        cellAddElementButton.style.left = left + 'px';
+        cellAddElementButton.style.display = 'inline-flex';
+        left += buttonSize + gap;
 
         if (showSplit) {
             columnSplitButton.style.top = top + 'px';
@@ -957,6 +968,10 @@
         columnCombineButton.style.display = 'inline-flex';
     }
 
+    function hideCellAddElementButton() {
+        cellAddElementButton.style.display = 'none';
+    }
+
     function hideColumnAddButton() {
         columnAddButton.style.display = 'none';
     }
@@ -975,6 +990,7 @@
 
     function hideColumnButtons() {
         activeColumnCell = null;
+        hideCellAddElementButton();
         hideColumnAddButton();
         hideColumnRemoveButton();
         hideColumnSplitButton();
