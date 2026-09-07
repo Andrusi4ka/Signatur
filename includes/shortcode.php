@@ -160,26 +160,32 @@ function signatur_render_text_span($element)
  * left automatic; `border:0` so a theme cannot add one.
  *
  * $max_width, when > 0 and smaller than the element's own width, caps the
- * rendered width - the image never spills past the cell it sits in. It goes
- * into both the width="" attribute and the inline width (Outlook ignores
- * max-width, so the attribute is what actually constrains it there).
+ * rendered width - the image never spills past the cell it sits in, once
+ * its own left/right padding is accounted for too. It goes into both the
+ * width="" attribute and the inline width (Outlook ignores max-width, so
+ * the attribute is what actually constrains it there).
  *
  * When the element has a `link`, the <img> is wrapped in an <a> that opens
  * in a new tab (mirrors the text element's link handling).
  */
 function signatur_render_image_element($element, $max_width = 0)
 {
-    $width = (int) $element['width'];
+    $padding = isset($element['padding']) ? $element['padding'] : signatur_sanitize_padding(array());
+    $width   = (int) $element['width'];
 
-    if ($max_width > 0 && $width > $max_width) {
-        $width = (int) $max_width;
+    if ($max_width > 0) {
+        $available = $max_width - (int) $padding['left'] - (int) $padding['right'];
+
+        if ($width > $available) {
+            $width = (int) $available;
+        }
     }
 
     $width = max(1, $width);
 
     $img = '<img src="' . esc_url($element['url']) . '"'
         . ' width="' . $width . '"'
-        . ' style="display:inline-block; width:' . $width . 'px; max-width:100%; height:auto; border:0; outline:0; text-decoration:none;"'
+        . ' style="display:inline-block; width:' . $width . 'px; max-width:100%; height:auto; border:0; outline:0; text-decoration:none; ' . signatur_padding_css($padding) . ';"'
         . ' alt="">';
 
     if (! empty($element['link'])) {
@@ -188,6 +194,36 @@ function signatur_render_image_element($element, $max_width = 0)
     }
 
     return $img;
+}
+
+/**
+ * Render a single Social element as a clickable icon <img> wrapped in an
+ * <a> - always wrapped, since a Social element's link is required. The icon
+ * falls back to its network's built-in icon (signatur_get_social_networks())
+ * when no custom icon was uploaded. Sized by `height` (not width, unlike the
+ * plain image element) so it lines up with surrounding text regardless of
+ * the source image's own aspect ratio.
+ */
+function signatur_render_social_element($element)
+{
+    $height = max(1, (int) $element['height']);
+
+    $networks = signatur_get_social_networks();
+    $network  = isset($networks[$element['network']]) ? $element['network'] : 'facebook';
+
+    $icon_url = ! empty($element['icon'])
+        ? $element['icon']
+        : plugins_url('assets/' . $networks[$network]['icon'], SIGNATUR_PLUGIN_FILE);
+
+    $img = '<img src="' . esc_url($icon_url) . '"'
+        . ' height="' . $height . '"'
+        . ' style="display:inline-block; height:' . $height . 'px; width:auto; max-width:100%; border:0; outline:0; text-decoration:none;"'
+        . ' alt="">';
+
+    $padding = isset($element['padding']) ? $element['padding'] : signatur_sanitize_padding(array());
+
+    return '<a href="' . esc_url($element['link']) . '" target="_blank" rel="noopener noreferrer"'
+        . ' style="display:inline-block; border:0; text-decoration:none; ' . signatur_padding_css($padding) . ';">' . $img . '</a>';
 }
 
 /**
@@ -320,6 +356,9 @@ function signatur_render_signature_table($settings)
                 $available   = $span_width - (int) $row_padding['left'] - (int) $row_padding['right'] - $border_allowance;
                 $cell_style .= ' text-align:' . $element['align'] . '; vertical-align:top;';
                 $html       .= '<td' . $attrs . ' style="' . esc_attr($cell_style) . '">' . signatur_render_image_element($element, $available) . '</td>';
+            } elseif ($element && 'social' === $element['type']) {
+                $cell_style .= ' text-align:' . $element['align'] . '; vertical-align:' . $element['valign'] . ';';
+                $html       .= '<td' . $attrs . ' style="' . esc_attr($cell_style) . '">' . signatur_render_social_element($element) . '</td>';
             } else {
                 $html .= '<td' . $attrs . ' style="' . esc_attr($cell_style) . '">&nbsp;</td>';
             }

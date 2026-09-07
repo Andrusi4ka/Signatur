@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_Шар_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1000 1000">
+  <!-- Generator: Adobe Illustrator 29.8.10, SVG Export Plug-In . SVG Version: 2.1.1 Build 2)  -->
+  <defs>
+    <style>
+      .st0 {
+        fill: none;
+        stroke: #333;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 66.67px;
+      }
+    </style>
+  </defs>
+  <circle class="st0" cx="843.15" cy="155.65" r="120.97"/>
+  <circle class="st0" cx="155.65" cy="844.35" r="120.97"/>
+  <circle class="st0" cx="500" cy="500" r="120.97"/>
+  <line class="st0" x1="414.62" y1="585.69" x2="241.18" y2="758.82"/>
+  <line class="st0" x1="757.76" y1="241.33" x2="585.39" y2="414.31"/>
+  <circle class="st0" cx="194.92" cy="271.53" r="81.69"/>
+  <circle class="st0" cx="805.08" cy="728.47" r="81.69"/>
+  <line class="st0" x1="402.09" y1="428.96" x2="257.49" y2="324.05"/>
+  <line class="st0" x1="742.51" y1="675.95" x2="597.91" y2="571.04"/>
+</svg>

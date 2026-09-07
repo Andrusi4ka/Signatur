@@ -262,3 +262,39 @@ msgstr "Image upload failed."
 #: signatur.php
 msgid "Link"
 msgstr "Link"
+
+#: signatur.php
+msgid "Facebook"
+msgstr "Facebook"
+
+#: signatur.php
+msgid "Instagram"
+msgstr "Instagram"
+
+#: signatur.php
+msgid "LinkedIn"
+msgstr "LinkedIn"
+
+#: signatur.php
+msgid "Telegram"
+msgstr "Telegram"
+
+#: signatur.php
+msgid "Social"
+msgstr "Social"
+
+#: signatur.php
+msgid "Add social"
+msgstr "Add social"
+
+#: signatur.php
+msgid "Edit social"
+msgstr "Edit social"
+
+#: signatur.php
+msgid "Upload icon"
+msgstr "Upload icon"
+
+#: signatur.php
+msgid "Height"
+msgstr "Height"

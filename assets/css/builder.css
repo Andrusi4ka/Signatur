@@ -27,6 +27,22 @@
     border-color: #8c8f94;
 }
 
+.signatur-icon-button.is-active {
+    background: #2271b1;
+    border-color: #2271b1;
+}
+
+.signatur-social-network-button {
+    background: transparent;
+    border-color: transparent;
+}
+
+.signatur-social-network-button:hover,
+.signatur-social-network-button:focus {
+    background: #f0f0f1;
+    border-color: transparent;
+}
+
 .signatur-element-button img {
     width: 24px;
     height: 24px;
@@ -133,6 +149,23 @@
     background: #d5e5f8;
 }
 
+/* Border on a <tr> itself is not rendered by browsers in a collapsed-border
+   table, so the "active row" outline is applied to its <td> cells instead -
+   top/bottom on every cell, left/right only on the first/last so it reads
+   as one rectangle around the row rather than a grid of individual cells. */
+#signatur_field_table tr.signatur-row-active > td {
+    border-top: 2px solid #2271b1;
+    border-bottom: 2px solid #2271b1;
+}
+
+#signatur_field_table tr.signatur-row-active > td:first-child {
+    border-left: 2px solid #2271b1;
+}
+
+#signatur_field_table tr.signatur-row-active > td:last-child {
+    border-right: 2px solid #2271b1;
+}
+
 #signatur_field_table thead th.signatur-column-header {
     box-sizing: border-box;
     height: 22px;
@@ -171,6 +204,13 @@
     min-height: 0;
     background: transparent;
     border: 0;
+}
+
+/* Same highlight colour as the column header's :hover state, kept in sync
+   with the active row's border via showRowActionsForRow()/hideRowActions(). */
+.signatur-row-number.is-active {
+    background: #d5e5f8;
+    color: #1d2327;
 }
 
 #signatur_row_actions,

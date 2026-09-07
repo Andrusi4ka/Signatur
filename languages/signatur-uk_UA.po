@@ -262,3 +262,39 @@ msgstr "Не вдалося завантажити зображення."
 #: signatur.php
 msgid "Link"
 msgstr "Посилання"
+
+#: signatur.php
+msgid "Facebook"
+msgstr "Facebook"
+
+#: signatur.php
+msgid "Instagram"
+msgstr "Instagram"
+
+#: signatur.php
+msgid "LinkedIn"
+msgstr "LinkedIn"
+
+#: signatur.php
+msgid "Telegram"
+msgstr "Telegram"
+
+#: signatur.php
+msgid "Social"
+msgstr "Соцмережа"
+
+#: signatur.php
+msgid "Add social"
+msgstr "Додати соцмережу"
+
+#: signatur.php
+msgid "Edit social"
+msgstr "Редагувати соцмережу"
+
+#: signatur.php
+msgid "Upload icon"
+msgstr "Завантажити іконку"
+
+#: signatur.php
+msgid "Height"
+msgstr "Висота"

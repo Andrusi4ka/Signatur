@@ -236,11 +236,12 @@ function signatur_sanitize_text_element($raw)
 function signatur_get_default_image_element()
 {
     return array(
-        'type'  => 'image',
-        'url'   => '',
-        'width' => 200,
-        'align' => 'left',
-        'link'  => '',
+        'type'    => 'image',
+        'url'     => '',
+        'width'   => 200,
+        'align'   => 'left',
+        'link'    => '',
+        'padding' => signatur_sanitize_padding(array()),
     );
 }
 
@@ -271,12 +272,116 @@ function signatur_sanitize_image_element($raw)
 
     $link = isset($raw['link']) ? esc_url_raw((string) $raw['link']) : '';
 
+    $padding = signatur_sanitize_padding(isset($raw['padding']) ? $raw['padding'] : array());
+
     return array(
-        'type'  => 'image',
-        'url'   => $url,
-        'width' => $width,
-        'align' => $align,
-        'link'  => $link,
+        'type'    => 'image',
+        'url'     => $url,
+        'width'   => $width,
+        'align'   => $align,
+        'link'    => $link,
+        'padding' => $padding,
+    );
+}
+
+/**
+ * The plugin's built-in social-network choices for the Social element -
+ * each maps to its own default icon shipped in assets/. `label` is
+ * translated so it can be used as a picker button's title/aria-label.
+ */
+function signatur_get_social_networks()
+{
+    return array(
+        'facebook'  => array(
+            'label' => __('Facebook', 'signatur'),
+            'icon'  => 'icon-facebook.svg',
+        ),
+        'instagram' => array(
+            'label' => __('Instagram', 'signatur'),
+            'icon'  => 'icon-instagram.svg',
+        ),
+        'linkedin'  => array(
+            'label' => __('LinkedIn', 'signatur'),
+            'icon'  => 'icon-linkedin.svg',
+        ),
+        'telegram'  => array(
+            'label' => __('Telegram', 'signatur'),
+            'icon'  => 'icon-telegram.svg',
+        ),
+    );
+}
+
+/**
+ * Default values for a Social element placed inside a grid cell. `network`
+ * picks one of signatur_get_social_networks()'s built-in icons; `icon` is an
+ * optional custom-uploaded image URL overriding it (see
+ * signatur_render_social_element()). Unlike the plain image element, `link`
+ * is required - a Social element with no link is not a usable element.
+ */
+function signatur_get_default_social_element()
+{
+    return array(
+        'type'    => 'social',
+        'network' => 'facebook',
+        'icon'    => '',
+        'link'    => '',
+        'height'  => 32,
+        'align'   => 'left',
+        'valign'  => 'top',
+        'padding' => signatur_sanitize_padding(array()),
+    );
+}
+
+/**
+ * Validate a raw Social element. Returns a normalized array, or null when
+ * it is not usable (wrong shape, or no link - the element is always
+ * rendered as a clickable icon so a link is mandatory). Also accepts the
+ * legacy `type: 'facebook'` shape from before this element covered more
+ * than one network, defaulting `network` to 'facebook'.
+ */
+function signatur_sanitize_social_element($raw)
+{
+    if (! is_array($raw) || ! isset($raw['type']) || ! in_array($raw['type'], array('social', 'facebook'), true)) {
+        return null;
+    }
+
+    $defaults = signatur_get_default_social_element();
+
+    $link = isset($raw['link']) ? esc_url_raw((string) $raw['link']) : '';
+
+    if ('' === $link) {
+        return null;
+    }
+
+    $networks = array_keys(signatur_get_social_networks());
+    $network  = isset($raw['network']) && in_array($raw['network'], $networks, true)
+        ? $raw['network']
+        : $defaults['network'];
+
+    $icon = isset($raw['icon']) ? esc_url_raw((string) $raw['icon']) : '';
+
+    $height = isset($raw['height']) ? absint($raw['height']) : $defaults['height'];
+    $height = max(8, min(200, $height));
+
+    $align = isset($raw['align']) && in_array($raw['align'], array('left', 'center', 'right'), true)
+        ? $raw['align']
+        : $defaults['align'];
+
+    $valign = isset($raw['valign']) && in_array($raw['valign'], array('top', 'middle', 'bottom'), true)
+        ? $raw['valign']
+        : $defaults['valign'];
+
+    $padding = signatur_sanitize_padding(isset($raw['padding']) ? $raw['padding'] : array());
+
+    return array(
+        'type'    => 'social',
+        'network' => $network,
+        'icon'    => $icon,
+        'link'    => $link,
+        'height'  => $height,
+        'align'   => $align,
+        'valign'  => $valign,
+        'padding' => $padding,
     );
 }
 
@@ -292,6 +397,10 @@ function signatur_sanitize_element($raw)
 
     if ('image' === $raw['type']) {
         return signatur_sanitize_image_element($raw);
+    }
+
+    if (in_array($raw['type'], array('social', 'facebook'), true)) {
+        return signatur_sanitize_social_element($raw);
     }
 
     return signatur_sanitize_text_element($raw);

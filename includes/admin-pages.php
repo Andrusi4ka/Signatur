@@ -88,6 +88,15 @@ function signatur_enqueue_builder_assets($hook_suffix)
         array(
             'ajaxUrl'     => admin_url('admin-ajax.php'),
             'uploadNonce' => wp_create_nonce('signatur_upload_image'),
+            'socialIcons' => array_combine(
+                array_keys(signatur_get_social_networks()),
+                array_map(
+                    function ($network) {
+                        return plugins_url('assets/' . $network['icon'], SIGNATUR_PLUGIN_FILE);
+                    },
+                    signatur_get_social_networks()
+                )
+            ),
             'i18n'        => array(
                 'uploadFailed' => __('Image upload failed.', 'signatur'),
             ),
@@ -348,6 +357,9 @@ function signatur_render_add_signature_page()
                                         } elseif ($element && 'image' === $element['type']) {
                                             $style .= ' text-align:' . $element['align'] . '; vertical-align:top;';
                                             $attrs .= ' data-element="' . esc_attr(wp_json_encode($element)) . '"';
+                                        } elseif ($element && 'social' === $element['type']) {
+                                            $style .= ' text-align:' . $element['align'] . '; vertical-align:' . $element['valign'] . ';';
+                                            $attrs .= ' data-element="' . esc_attr(wp_json_encode($element)) . '"';
                                         }
                                         ?>
                                         <td<?php echo $attrs; ?> style="<?php echo esc_attr($style); ?>"><?php
@@ -355,6 +367,8 @@ function signatur_render_add_signature_page()
                                                 echo signatur_render_text_span($element);
                                             } elseif ($element && 'image' === $element['type']) {
                                                 echo signatur_render_image_element($element);
+                                            } elseif ($element && 'social' === $element['type']) {
+                                                echo signatur_render_social_element($element);
                                             } else {
                                                 echo '&nbsp;';
                                             }
@@ -376,7 +390,7 @@ function signatur_render_add_signature_page()
             <?php submit_button(__('Save', 'signatur')); ?>
         </form>
 
-        <button type="button" id="signatur_cell_edit_element" class="signatur-icon-button" data-title-text="<?php echo esc_attr__('Edit text', 'signatur'); ?>" data-title-image="<?php echo esc_attr__('Edit image', 'signatur'); ?>" title="<?php esc_attr_e('Edit element', 'signatur'); ?>" aria-label="<?php esc_attr_e('Edit element', 'signatur'); ?>">
+        <button type="button" id="signatur_cell_edit_element" class="signatur-icon-button" data-title-text="<?php echo esc_attr__('Edit text', 'signatur'); ?>" data-title-image="<?php echo esc_attr__('Edit image', 'signatur'); ?>" data-title-social="<?php echo esc_attr__('Edit social', 'signatur'); ?>" title="<?php esc_attr_e('Edit element', 'signatur'); ?>" aria-label="<?php esc_attr_e('Edit element', 'signatur'); ?>">
             <img src="<?php echo esc_url(plugins_url('assets/icon-edit-element.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
         </button>
 
@@ -488,6 +502,9 @@ function signatur_render_add_signature_page()
                 <button type="button" id="signatur_add_image_element" class="signatur-icon-button signatur-element-button" data-modal-title="<?php echo esc_attr__('Add image', 'signatur'); ?>" data-modal-type="image" title="<?php esc_attr_e('Image', 'signatur'); ?>" aria-label="<?php esc_attr_e('Image', 'signatur'); ?>">
                     <img src="<?php echo esc_url(plugins_url('assets/icon-add-image.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="24" height="24">
                 </button>
+                <button type="button" id="signatur_add_social_element" class="signatur-icon-button signatur-element-button" data-modal-title="<?php echo esc_attr__('Add social', 'signatur'); ?>" data-modal-type="social" title="<?php esc_attr_e('Social', 'signatur'); ?>" aria-label="<?php esc_attr_e('Social', 'signatur'); ?>">
+                    <img src="<?php echo esc_url(plugins_url('assets/icon-add-social.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="24" height="24">
+                </button>
             </div>
         </template>
 
@@ -548,8 +565,69 @@ function signatur_render_add_signature_page()
                 </select>
             </div>
 
+            <p style="display:flex; align-items:center; gap:6px; margin:12px 0 0;">
+                <span style="font-weight:600;">Padding</span>
+                <input type="number" id="signatur_image_padding_top" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Top', 'signatur'); ?>" style="width:50px;">
+                <input type="number" id="signatur_image_padding_left" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Left', 'signatur'); ?>" style="width:50px;">
+                <input type="number" id="signatur_image_padding_bottom" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Bottom', 'signatur'); ?>" style="width:50px;">
+                <input type="number" id="signatur_image_padding_right" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Right', 'signatur'); ?>" style="width:50px;">
+            </p>
+
             <p style="margin:12px 0 0;">
                 <img id="signatur_image_preview" src="" alt="" style="max-width:100%; display:none;">
+            </p>
+        </template>
+
+        <template id="signatur_modal_template_social">
+            <p style="margin:0; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <?php foreach (signatur_get_social_networks() as $network_key => $network) : ?>
+                    <button type="button" class="signatur-icon-button signatur-social-network-button" data-network="<?php echo esc_attr($network_key); ?>" title="<?php echo esc_attr($network['label']); ?>" aria-label="<?php echo esc_attr($network['label']); ?>">
+                        <img src="<?php echo esc_url(plugins_url('assets/' . $network['icon'], SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="20" height="20">
+                    </button>
+                <?php endforeach; ?>
+            </p>
+
+            <p style="margin:12px 0 0; display:flex; align-items:center; gap:10px;">
+                <span id="signatur_social_preview_wrap" style="display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:4px; overflow:hidden; background:#f6f7f7; flex-shrink:0;">
+                    <img id="signatur_social_preview" src="" alt="" style="max-width:100%; max-height:100%; display:none;">
+                </span>
+                <span>
+                    <button type="button" id="signatur_social_upload" class="button"><?php esc_html_e('Upload icon', 'signatur'); ?></button>
+                    <input type="file" id="signatur_social_file" accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml" style="display:none;">
+                    <input type="hidden" id="signatur_social_icon_url">
+                    <input type="hidden" id="signatur_social_network" value="facebook">
+                </span>
+            </p>
+
+            <p style="margin:12px 0 0;">
+                <label for="signatur_social_link" style="display:block; margin-bottom:4px;"><?php esc_html_e('Link', 'signatur'); ?></label>
+                <input type="url" id="signatur_social_link" class="regular-text" style="width:100%;" placeholder="<?php echo esc_attr__('https://example.com', 'signatur'); ?>" required>
+            </p>
+
+            <div class="signatur-text-controls" style="margin-top:12px;">
+                <label for="signatur_social_height"><?php esc_html_e('Height', 'signatur'); ?></label>
+                <input type="number" id="signatur_social_height" class="small-text" min="8" max="200" step="1" style="width:70px;">
+                <span><?php esc_html_e('px', 'signatur'); ?></span>
+
+                <select id="signatur_social_align" aria-label="<?php esc_attr_e('Horizontal alignment', 'signatur'); ?>">
+                    <option value="left"><?php esc_html_e('Left', 'signatur'); ?></option>
+                    <option value="center"><?php esc_html_e('Center', 'signatur'); ?></option>
+                    <option value="right"><?php esc_html_e('Right', 'signatur'); ?></option>
+                </select>
+
+                <select id="signatur_social_valign" aria-label="<?php esc_attr_e('Vertical alignment', 'signatur'); ?>">
+                    <option value="top"><?php esc_html_e('Top', 'signatur'); ?></option>
+                    <option value="middle"><?php esc_html_e('Middle', 'signatur'); ?></option>
+                    <option value="bottom"><?php esc_html_e('Bottom', 'signatur'); ?></option>
+                </select>
+            </div>
+
+            <p style="display:flex; align-items:center; gap:6px; margin:12px 0 0;">
+                <span style="font-weight:600;">Padding</span>
+                <input type="number" id="signatur_social_padding_top" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Top', 'signatur'); ?>" style="width:50px;">
+                <input type="number" id="signatur_social_padding_left" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Left', 'signatur'); ?>" style="width:50px;">
+                <input type="number" id="signatur_social_padding_bottom" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Bottom', 'signatur'); ?>" style="width:50px;">
+                <input type="number" id="signatur_social_padding_right" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Right', 'signatur'); ?>" style="width:50px;">
             </p>
         </template>
     </div>

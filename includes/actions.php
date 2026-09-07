@@ -136,6 +136,7 @@ function signatur_handle_upload_image()
         'png'          => 'image/png',
         'gif'          => 'image/gif',
         'webp'         => 'image/webp',
+        'svg'          => 'image/svg+xml',
     );
 
     $file = $_FILES['file'];
@@ -146,6 +147,12 @@ function signatur_handle_upload_image()
 
     require_once ABSPATH . 'wp-admin/includes/file.php';
 
+    // WordPress's real-MIME sniff (finfo) does not reliably recognize SVG -
+    // an XML format, not a binary one - and would otherwise reject a
+    // legitimate upload even though its extension is allowed above. Trust
+    // the .svg extension instead; the upload is already admin-only and
+    // nonce-checked.
+    add_filter('wp_check_filetype_and_ext', 'signatur_allow_svg_filetype', 10, 4);
     add_filter('upload_dir', 'signatur_upload_dir');
     $result = wp_handle_upload(
         $file,
@@ -155,10 +162,60 @@ function signatur_handle_upload_image()
         )
     );
     remove_filter('upload_dir', 'signatur_upload_dir');
+    remove_filter('wp_check_filetype_and_ext', 'signatur_allow_svg_filetype');
 
     if (isset($result['error']) || empty($result['url'])) {
         wp_send_json_error(array('message' => __('Image upload failed.', 'signatur')));
     }
 
+    // An SVG is served straight back as an <img src="...">, but it is still
+    // a same-origin file that could carry active content (<script>, event
+    // handler attributes, javascript: URIs) if opened directly - strip that
+    // out before it is kept.
+    if (! empty($result['type']) && 'image/svg+xml' === $result['type'] && ! empty($result['file'])) {
+        signatur_sanitize_svg_file($result['file']);
+    }
+
     wp_send_json_success(array('url' => $result['url']));
+}
+
+/**
+ * `wp_check_filetype_and_ext` filter: trust the .svg extension instead of
+ * WordPress's finfo-based real-MIME sniff, which does not reliably detect
+ * SVG. See signatur_handle_upload_image().
+ */
+function signatur_allow_svg_filetype($data, $file, $filename, $mimes)
+{
+    if (empty($data['ext']) || empty($data['type'])) {
+        $filetype = wp_check_filetype($filename, $mimes);
+
+        if ('svg' === $filetype['ext']) {
+            $data['ext']             = 'svg';
+            $data['type']            = 'image/svg+xml';
+            $data['proper_filename'] = $filename;
+        }
+    }
+
+    return $data;
+}
+
+/**
+ * Strip <script> tags, on*="" event-handler attributes and javascript:
+ * URIs from an uploaded SVG file, in place. A minimal defusal against the
+ * common script-injection vectors, not a full XML sanitizer.
+ */
+function signatur_sanitize_svg_file($path)
+{
+    $contents = file_get_contents($path);
+
+    if (false === $contents) {
+        return;
+    }
+
+    $contents = preg_replace('#<script\b[^>]*>.*?</script>#is', '', $contents);
+    $contents = preg_replace('/\son\w+\s*=\s*"[^"]*"/i', '', $contents);
+    $contents = preg_replace("/\son\w+\s*=\s*'[^']*'/i", '', $contents);
+    $contents = preg_replace('#((?:xlink:)?href)\s*=\s*("|\')\s*javascript:[^"\']*("|\')#i', '', $contents);
+
+    file_put_contents($path, $contents);
 }

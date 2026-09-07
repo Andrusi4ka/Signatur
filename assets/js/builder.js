@@ -9,6 +9,7 @@
     var elementTemplate = document.getElementById('signatur_modal_template_element');
     var textTemplate = document.getElementById('signatur_modal_template_text');
     var imageTemplate = document.getElementById('signatur_modal_template_image');
+    var socialTemplate = document.getElementById('signatur_modal_template_social');
     var modalTargetCell = null;
     var modalTargetRow = null;
     var rowGroup = document.getElementById('signatur_row_group');
@@ -107,6 +108,11 @@
     function renderImageEl(el) {
         var img = document.createElement('img');
         var width = parseInt(el.width, 10) || 1;
+        var padding = el.padding || ZERO_PADDING;
+        var paddingCss = 'padding:' + (parseInt(padding.top, 10) || 0) + 'px '
+            + (parseInt(padding.right, 10) || 0) + 'px '
+            + (parseInt(padding.bottom, 10) || 0) + 'px '
+            + (parseInt(padding.left, 10) || 0) + 'px;';
 
         img.setAttribute('src', el.url);
         img.setAttribute('width', width);
@@ -114,7 +120,7 @@
         // max-width:100% keeps the preview inside its cell when the set
         // width is wider than the column; the front-end additionally caps
         // the width="" attribute for Outlook (see signatur_render_image_element()).
-        img.setAttribute('style', 'display:inline-block; width:' + width + 'px; max-width:100%; height:auto; border:0; outline:0; text-decoration:none;');
+        img.setAttribute('style', 'display:inline-block; width:' + width + 'px; max-width:100%; height:auto; border:0; outline:0; text-decoration:none; ' + paddingCss);
 
         if (el.link) {
             var anchor = document.createElement('a');
@@ -129,6 +135,39 @@
         }
 
         return img;
+    }
+
+    /**
+     * Render a Social element as a clickable icon <img> wrapped in an <a> -
+     * mirror of the PHP signatur_render_social_element(). Sized by
+     * `height`; falls back to its network's built-in icon
+     * (signaturBuilder.socialIcons) when no custom icon was uploaded.
+     */
+    function renderSocialEl(el) {
+        var img = document.createElement('img');
+        var height = parseInt(el.height, 10) || 1;
+        var networkIcon = (signaturBuilder.socialIcons && signaturBuilder.socialIcons[el.network])
+            || signaturBuilder.socialIcons.facebook;
+
+        img.setAttribute('src', el.icon || networkIcon);
+        img.setAttribute('height', height);
+        img.setAttribute('alt', '');
+        img.setAttribute('style', 'display:inline-block; height:' + height + 'px; width:auto; max-width:100%; border:0; outline:0; text-decoration:none;');
+
+        var anchor = document.createElement('a');
+        var padding = el.padding || ZERO_PADDING;
+        var paddingCss = 'padding:' + (parseInt(padding.top, 10) || 0) + 'px '
+            + (parseInt(padding.right, 10) || 0) + 'px '
+            + (parseInt(padding.bottom, 10) || 0) + 'px '
+            + (parseInt(padding.left, 10) || 0) + 'px;';
+
+        anchor.setAttribute('href', el.link);
+        anchor.setAttribute('target', '_blank');
+        anchor.setAttribute('rel', 'noopener noreferrer');
+        anchor.setAttribute('style', 'display:inline-block; border:0; text-decoration:none; ' + paddingCss);
+        anchor.appendChild(img);
+
+        return anchor;
     }
 
     /**
@@ -181,6 +220,18 @@
             cell.style.fontSize = '';
             cell.style.color = '';
             cell.appendChild(renderImageEl(el));
+
+            return;
+        }
+
+        if (el && 'social' === el.type && '' !== String(el.link || '').trim()) {
+            cell.dataset.element = JSON.stringify(el);
+            cell.style.textAlign = el.align;
+            cell.style.verticalAlign = el.valign || 'top';
+            cell.style.fontFamily = '';
+            cell.style.fontSize = '';
+            cell.style.color = '';
+            cell.appendChild(renderSocialEl(el));
 
             return;
         }
@@ -396,6 +447,19 @@
             imageWidthInput.value = imageStored ? imageStored.width : 200;
             imageAlignSelect.value = imageStored ? imageStored.align : 'left';
 
+            var imagePadding = imageStored && imageStored.padding ? imageStored.padding : ZERO_PADDING;
+
+            paddingSides.forEach(function (side) {
+                var imagePaddingInput = document.getElementById('signatur_image_padding_' + side);
+                imagePaddingInput.value = imagePadding[side] || '';
+
+                imagePaddingInput.addEventListener('blur', function () {
+                    if ('' !== imagePaddingInput.value) {
+                        imagePaddingInput.value = clampPadding(imagePaddingInput.value);
+                    }
+                });
+            });
+
             function updateImagePreview() {
                 var url = imageUrlInput.value.trim();
 
@@ -456,6 +520,144 @@
                 }).then(function () {
                     imageUploadButton.disabled = false;
                     imageFileInput.value = '';
+                });
+            });
+        }
+
+        if ('social' === type) {
+            modalBody.appendChild(socialTemplate.content.cloneNode(true));
+
+            var socialStored = null;
+
+            if (modalTargetCell && modalTargetCell.dataset.element) {
+                try {
+                    var parsedSocial = JSON.parse(modalTargetCell.dataset.element);
+
+                    if (parsedSocial && 'social' === parsedSocial.type) {
+                        socialStored = parsedSocial;
+                    }
+                } catch (err) {
+                    socialStored = null;
+                }
+            }
+
+            var socialNetworkInput = document.getElementById('signatur_social_network');
+            var socialNetworkButtons = Array.prototype.slice.call(
+                modalBody.querySelectorAll('.signatur-social-network-button')
+            );
+            var socialIconUrlInput = document.getElementById('signatur_social_icon_url');
+            var socialLinkInput = document.getElementById('signatur_social_link');
+            var socialHeightInput = document.getElementById('signatur_social_height');
+            var socialAlignSelect = document.getElementById('signatur_social_align');
+            var socialValignSelect = document.getElementById('signatur_social_valign');
+            var socialPreview = document.getElementById('signatur_social_preview');
+            var socialUploadButton = document.getElementById('signatur_social_upload');
+            var socialFileInput = document.getElementById('signatur_social_file');
+
+            var initialNetwork = socialStored && socialStored.network ? socialStored.network : 'facebook';
+
+            /**
+             * Highlight the currently chosen network's button among the
+             * picker row - mirrors the Bold/Italic/Underline is-active
+             * pattern used for the text element.
+             */
+            function setActiveNetworkButton(network) {
+                socialNetworkButtons.forEach(function (btn) {
+                    btn.classList.toggle('is-active', btn.getAttribute('data-network') === network);
+                });
+            }
+
+            socialNetworkInput.value = initialNetwork;
+            setActiveNetworkButton(initialNetwork);
+
+            socialNetworkButtons.forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    socialNetworkInput.value = btn.getAttribute('data-network');
+                    setActiveNetworkButton(btn.getAttribute('data-network'));
+                    updateSocialPreview();
+                });
+            });
+
+            socialIconUrlInput.value = socialStored && socialStored.icon ? socialStored.icon : '';
+            socialLinkInput.value = socialStored ? socialStored.link : '';
+            socialHeightInput.value = socialStored ? socialStored.height : 32;
+            socialAlignSelect.value = socialStored ? socialStored.align : 'left';
+            socialValignSelect.value = socialStored && socialStored.valign ? socialStored.valign : 'top';
+
+            var socialPadding = socialStored && socialStored.padding ? socialStored.padding : ZERO_PADDING;
+
+            paddingSides.forEach(function (side) {
+                var socialPaddingInput = document.getElementById('signatur_social_padding_' + side);
+                socialPaddingInput.value = socialPadding[side] || '';
+
+                socialPaddingInput.addEventListener('blur', function () {
+                    if ('' !== socialPaddingInput.value) {
+                        socialPaddingInput.value = clampPadding(socialPaddingInput.value);
+                    }
+                });
+            });
+
+            /**
+             * The icon that will actually be used - the uploaded custom
+             * icon when one was set, otherwise the selected network's own
+             * built-in icon. Kept live as the network picker buttons and
+             * the upload field change.
+             */
+            function updateSocialPreview() {
+                var url = socialIconUrlInput.value.trim();
+                var networkIcon = (signaturBuilder.socialIcons && signaturBuilder.socialIcons[socialNetworkInput.value])
+                    || signaturBuilder.socialIcons.facebook;
+
+                socialPreview.src = url || networkIcon;
+                socialPreview.style.display = 'block';
+            }
+
+            updateSocialPreview();
+
+            socialHeightInput.addEventListener('blur', function () {
+                var value = parseInt(socialHeightInput.value, 10);
+
+                if (isNaN(value)) {
+                    value = 32;
+                }
+
+                socialHeightInput.value = Math.max(8, Math.min(200, value));
+            });
+
+            socialUploadButton.addEventListener('click', function () {
+                socialFileInput.click();
+            });
+
+            socialFileInput.addEventListener('change', function () {
+                if (! socialFileInput.files || ! socialFileInput.files[0]) {
+                    return;
+                }
+
+                var data = new FormData();
+                data.append('action', 'signatur_upload_image');
+                data.append('nonce', signaturBuilder.uploadNonce);
+                data.append('file', socialFileInput.files[0]);
+
+                socialUploadButton.disabled = true;
+
+                fetch(signaturBuilder.ajaxUrl, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    body: data
+                }).then(function (response) {
+                    return response.json();
+                }).then(function (json) {
+                    if (json && json.success && json.data && json.data.url) {
+                        socialIconUrlInput.value = json.data.url;
+                        updateSocialPreview();
+                    } else {
+                        window.alert(signaturBuilder.i18n.uploadFailed);
+                    }
+                }).catch(function () {
+                    window.alert(signaturBuilder.i18n.uploadFailed);
+                }).then(function () {
+                    socialUploadButton.disabled = false;
+                    socialFileInput.value = '';
                 });
             });
         }
@@ -908,11 +1110,40 @@
     }
 
     /**
+     * The reverse of rowForNumberBox() - the left-side row-number box that
+     * belongs to a given <tr>.
+     */
+    function numberBoxForRow(row) {
+        var index = nonEmptyRows().indexOf(row);
+        var boxes = Array.prototype.slice.call(rowsNumbers.children, 1);
+
+        return -1 === index ? null : (boxes[index] || null);
+    }
+
+    /**
      * Show the edit/delete row buttons to the left of the row numbers, so
      * they don't cover them. Toggled by clicking the row number.
      */
     function showRowActionsForRow(row) {
+        if (activeRow) {
+            activeRow.classList.remove('signatur-row-active');
+
+            var previousBox = numberBoxForRow(activeRow);
+
+            if (previousBox) {
+                previousBox.classList.remove('is-active');
+            }
+        }
+
         activeRow = row;
+        activeRow.classList.add('signatur-row-active');
+
+        var activeBox = numberBoxForRow(activeRow);
+
+        if (activeBox) {
+            activeBox.classList.add('is-active');
+        }
+
         updateRowDeleteButtons();
 
         var rect = row.getBoundingClientRect();
@@ -926,6 +1157,16 @@
     }
 
     function hideRowActions() {
+        if (activeRow) {
+            activeRow.classList.remove('signatur-row-active');
+
+            var box = numberBoxForRow(activeRow);
+
+            if (box) {
+                box.classList.remove('is-active');
+            }
+        }
+
         activeRow = null;
         rowActionsGroup.style.display = 'none';
     }
@@ -1594,15 +1835,11 @@
             return;
         }
 
-        var type = stored && 'image' === stored.type ? 'image' : 'text';
+        var type = stored && ('image' === stored.type || 'social' === stored.type) ? stored.type : 'text';
+        var titleAttr = 'text' === type ? 'data-title-text' : 'data-title-' + type;
 
         modalTargetCell = activeColumnCell;
-        openModal(
-            'image' === type
-                ? cellEditElementButton.getAttribute('data-title-image')
-                : cellEditElementButton.getAttribute('data-title-text'),
-            type
-        );
+        openModal(cellEditElementButton.getAttribute(titleAttr), type);
     });
 
     function finishSelection() {
@@ -1820,13 +2057,49 @@
                 url: document.getElementById('signatur_image_url').value.trim(),
                 width: Math.max(1, Math.min(1000, imageWidth)),
                 align: document.getElementById('signatur_image_align').value,
-                link: document.getElementById('signatur_image_link').value.trim()
+                link: document.getElementById('signatur_image_link').value.trim(),
+                padding: {}
             };
+
+            paddingSides.forEach(function (side) {
+                var imagePaddingInput = document.getElementById('signatur_image_padding_' + side);
+                imageElement.padding[side] = clampPadding(imagePaddingInput.value);
+            });
 
             // An empty URL clears the cell (handled inside applyElementToCell),
             // mirroring how clearing a text element's text removes it.
             pushUndoSnapshot();
             applyElementToCell(modalTargetCell, imageElement);
+            syncRowNumberHeights();
+        }
+
+        if ('social' === activeModalType && modalTargetCell) {
+            var socialHeight = parseInt(document.getElementById('signatur_social_height').value, 10);
+
+            if (isNaN(socialHeight)) {
+                socialHeight = 32;
+            }
+
+            var socialElement = {
+                type: 'social',
+                network: document.getElementById('signatur_social_network').value,
+                icon: document.getElementById('signatur_social_icon_url').value.trim(),
+                link: document.getElementById('signatur_social_link').value.trim(),
+                height: Math.max(8, Math.min(200, socialHeight)),
+                align: document.getElementById('signatur_social_align').value,
+                valign: document.getElementById('signatur_social_valign').value,
+                padding: {}
+            };
+
+            paddingSides.forEach(function (side) {
+                var socialPaddingInput = document.getElementById('signatur_social_padding_' + side);
+                socialElement.padding[side] = clampPadding(socialPaddingInput.value);
+            });
+
+            // An empty link clears the cell (handled inside applyElementToCell) -
+            // the link is required, mirroring how an empty URL clears an image.
+            pushUndoSnapshot();
+            applyElementToCell(modalTargetCell, socialElement);
             syncRowNumberHeights();
         }
 
