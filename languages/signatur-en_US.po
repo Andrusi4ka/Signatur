@@ -162,3 +162,47 @@ msgstr "Text"
 #: signatur.php
 msgid "Add text"
 msgstr "Add text"
+
+#: signatur.php
+msgid "Bold"
+msgstr "Bold"
+
+#: signatur.php
+msgid "Italic"
+msgstr "Italic"
+
+#: signatur.php
+msgid "Underline"
+msgstr "Underline"
+
+#: signatur.php
+msgid "Center"
+msgstr "Center"
+
+#: signatur.php
+msgid "Edit element"
+msgstr "Edit element"
+
+#: signatur.php
+msgid "Edit text"
+msgstr "Edit text"
+
+#: signatur.php
+msgid "Copy signature"
+msgstr "Copy signature"
+
+#: signatur.php
+msgid "Copied"
+msgstr "Copied"
+
+#: signatur.php
+msgid "Middle"
+msgstr "Middle"
+
+#: signatur.php
+msgid "Horizontal alignment"
+msgstr "Horizontal alignment"
+
+#: signatur.php
+msgid "Vertical alignment"
+msgstr "Vertical alignment"

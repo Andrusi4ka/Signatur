@@ -311,6 +311,7 @@ function signatur_render_add_signature_page()
                                         <?php
                                         $colspan = $cell_span[0];
                                         $rowspan = $cell_span[1];
+                                        $element = isset($cell_span[2]) ? $cell_span[2] : null;
                                         $attrs   = '';
 
                                         if ($colspan > 1) {
@@ -320,8 +321,17 @@ function signatur_render_add_signature_page()
                                         if ($rowspan > 1) {
                                             $attrs .= ' rowspan="' . (int) $rowspan . '"';
                                         }
+
+                                        if ($element && 'text' === $element['type']) {
+                                            $attrs .= ' style="text-align:' . esc_attr($element['align']) . '; vertical-align:' . esc_attr($element['valign']) . ';"';
+                                            $attrs .= ' data-element="' . esc_attr(wp_json_encode($element)) . '"';
+                                        }
                                         ?>
-                                        <td<?php echo $attrs; ?>>&nbsp;</td>
+                                        <td<?php echo $attrs; ?>><?php
+                                        echo ($element && 'text' === $element['type'])
+                                            ? signatur_render_text_span($element)
+                                            : '&nbsp;';
+                                        ?></td>
                                     <?php endforeach; ?>
                                 </tr>
                             <?php endforeach; ?>
@@ -330,7 +340,7 @@ function signatur_render_add_signature_page()
                     <div id="signatur_rows_actions" class="signatur-editor-only" style="display:flex; flex-direction:column;">
                         <div class="signatur-row-actions" style="height:22px;" aria-hidden="true"></div>
                         <?php foreach ($settings['rows'] as $row_spans) : ?>
-                            <div class="signatur-row-actions" style="height:38px; display:flex; align-items:center; gap:8px;">
+                            <div class="signatur-row-actions" style="height:25px; display:flex; align-items:center; gap:8px;">
                                 <?php signatur_render_row_actions_buttons(); ?>
                             </div>
                         <?php endforeach; ?>
@@ -346,6 +356,10 @@ function signatur_render_add_signature_page()
 
             <?php submit_button(__('Save', 'signatur')); ?>
         </form>
+
+        <button type="button" id="signatur_cell_edit_element" class="signatur-icon-button" data-modal-title="<?php echo esc_attr__('Edit text', 'signatur'); ?>" data-modal-type="text" title="<?php esc_attr_e('Edit element', 'signatur'); ?>" aria-label="<?php esc_attr_e('Edit element', 'signatur'); ?>">
+            <img src="<?php echo esc_url(plugins_url('assets/icon-edit-element.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
+        </button>
 
         <button type="button" id="signatur_cell_add_element" class="signatur-icon-button" data-modal-title="<?php echo esc_attr__('Add element', 'signatur'); ?>" data-modal-type="element" title="<?php esc_attr_e('Add element', 'signatur'); ?>" aria-label="<?php esc_attr_e('Add element', 'signatur'); ?>">
             <img src="<?php echo esc_url(plugins_url('assets/icon-plus.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
@@ -413,8 +427,51 @@ function signatur_render_add_signature_page()
             </div>
         </template>
 
+        <template id="signatur_modal_template_text">
+            <p style="margin:0;">
+                <textarea id="signatur_text_input" rows="3" class="large-text" style="width:100%;"></textarea>
+            </p>
+
+            <div class="signatur-text-controls">
+                <select id="signatur_text_font">
+                    <?php foreach (signatur_get_font_choices() as $font_stack => $font_label) : ?>
+                        <option value="<?php echo esc_attr($font_stack); ?>"><?php echo esc_html($font_label); ?></option>
+                    <?php endforeach; ?>
+                </select>
+
+                <input type="number" id="signatur_text_size" class="small-text" min="8" max="72" step="1" style="width:56px;">
+                <span><?php esc_html_e('pt', 'signatur'); ?></span>
+
+                <input type="color" id="signatur_text_color" value="#000000">
+
+                <button type="button" id="signatur_text_bold" class="button signatur-text-toggle" title="<?php esc_attr_e('Bold', 'signatur'); ?>" aria-label="<?php esc_attr_e('Bold', 'signatur'); ?>" style="font-weight:700;">B</button>
+                <button type="button" id="signatur_text_italic" class="button signatur-text-toggle" title="<?php esc_attr_e('Italic', 'signatur'); ?>" aria-label="<?php esc_attr_e('Italic', 'signatur'); ?>" style="font-style:italic;">I</button>
+                <button type="button" id="signatur_text_underline" class="button signatur-text-toggle" title="<?php esc_attr_e('Underline', 'signatur'); ?>" aria-label="<?php esc_attr_e('Underline', 'signatur'); ?>" style="text-decoration:underline;">U</button>
+
+                <select id="signatur_text_align" aria-label="<?php esc_attr_e('Horizontal alignment', 'signatur'); ?>">
+                    <option value="left"><?php esc_html_e('Left', 'signatur'); ?></option>
+                    <option value="center"><?php esc_html_e('Center', 'signatur'); ?></option>
+                    <option value="right"><?php esc_html_e('Right', 'signatur'); ?></option>
+                </select>
+
+                <select id="signatur_text_valign" aria-label="<?php esc_attr_e('Vertical alignment', 'signatur'); ?>">
+                    <option value="top"><?php esc_html_e('Top', 'signatur'); ?></option>
+                    <option value="middle"><?php esc_html_e('Middle', 'signatur'); ?></option>
+                    <option value="bottom"><?php esc_html_e('Bottom', 'signatur'); ?></option>
+                </select>
+
+                <button type="button" id="signatur_text_link_toggle" class="signatur-icon-button" title="<?php esc_attr_e('Add link', 'signatur'); ?>" aria-label="<?php esc_attr_e('Add link', 'signatur'); ?>">
+                    <img src="<?php echo esc_url(plugins_url('assets/icon-link.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
+                </button>
+            </div>
+
+            <p id="signatur_text_link_field" style="display:none; margin:12px 0 0;">
+                <input type="url" id="signatur_text_link" class="regular-text" style="width:100%;" placeholder="https://example.com">
+            </p>
+        </template>
+
         <template id="signatur_row_actions_template">
-            <div class="signatur-row-actions" style="height:38px; display:flex; align-items:center; gap:8px;">
+            <div class="signatur-row-actions" style="height:25px; display:flex; align-items:center; gap:8px;">
                 <?php signatur_render_row_actions_buttons(); ?>
             </div>
         </template>

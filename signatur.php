@@ -15,7 +15,7 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-define('SIGNATUR_VERSION', '1.3.0');
+define('SIGNATUR_VERSION', '1.4.8');
 define('SIGNATUR_DB_VERSION', '1.3.0');
 define('SIGNATUR_PLUGIN_FILE', __FILE__);
 define('SIGNATUR_PLUGIN_DIR', plugin_dir_path(__FILE__));
@@ -31,6 +31,7 @@ add_action('plugins_loaded', 'signatur_load_textdomain');
 add_action('plugins_loaded', 'signatur_maybe_upgrade_database');
 add_action('admin_menu', 'signatur_register_admin_pages');
 add_action('admin_enqueue_scripts', 'signatur_enqueue_builder_assets');
+add_action('wp_enqueue_scripts', 'signatur_register_frontend_assets');
 add_action('admin_post_signatur_save_signature', 'signatur_handle_save_signature');
 add_action('admin_post_signatur_delete_signature', 'signatur_handle_delete_signature');
 add_action('init', 'signatur_register_shortcode');

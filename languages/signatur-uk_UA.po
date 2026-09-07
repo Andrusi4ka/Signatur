@@ -162,3 +162,47 @@ msgstr "Текст"
 #: signatur.php
 msgid "Add text"
 msgstr "Додати текст"
+
+#: signatur.php
+msgid "Bold"
+msgstr "Жирний"
+
+#: signatur.php
+msgid "Italic"
+msgstr "Курсив"
+
+#: signatur.php
+msgid "Underline"
+msgstr "Підкреслений"
+
+#: signatur.php
+msgid "Center"
+msgstr "По центру"
+
+#: signatur.php
+msgid "Edit element"
+msgstr "Редагувати елемент"
+
+#: signatur.php
+msgid "Edit text"
+msgstr "Редагувати текст"
+
+#: signatur.php
+msgid "Copy signature"
+msgstr "Копіювати підпис"
+
+#: signatur.php
+msgid "Copied"
+msgstr "Скопійовано"
+
+#: signatur.php
+msgid "Middle"
+msgstr "По центру"
+
+#: signatur.php
+msgid "Horizontal alignment"
+msgstr "Горизонтальне вирівнювання"
+
+#: signatur.php
+msgid "Vertical alignment"
+msgstr "Вертикальне вирівнювання"

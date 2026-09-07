@@ -50,7 +50,7 @@
     border-radius: 4px;
     padding: 20px;
     width: 100%;
-    max-width: 400px;
+    max-width: 460px;
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
 }
 
@@ -59,6 +59,38 @@
     justify-content: flex-end;
     gap: 8px;
     margin-top: 20px;
+}
+
+#signatur_text_input {
+    min-height: 72px;
+}
+
+.signatur-text-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+.signatur-text-toggle {
+    min-width: 32px;
+    text-align: center;
+}
+
+.signatur-text-toggle.is-active {
+    background: #2271b1;
+    border-color: #2271b1;
+    color: #fff;
+}
+
+#signatur_text_color {
+    width: 40px;
+    height: 30px;
+    padding: 0;
+    border: 1px solid #8c8f94;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
 .wrap input[type="date"],
@@ -85,7 +117,9 @@
 }
 
 #signatur_field_table td {
-    height: 38px;
+    padding: 0;
+    line-height: 1.4;
+    overflow-wrap: break-word;
     box-sizing: border-box;
     border: 1px solid #dcdcde;
     user-select: none;
@@ -113,6 +147,7 @@
     color: #1d2327;
 }
 
+#signatur_cell_edit_element,
 #signatur_cell_add_element,
 #signatur_column_add,
 #signatur_column_combine,

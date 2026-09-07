@@ -67,10 +67,12 @@ function signatur_get_table_name()
  *
  * `columns` holds the pixel width of every grid column, shared by all rows.
  * `rows` holds one array per row, listing [colspan, rowspan] for each of its
- * cells left to right. A cell's rowspan makes it also occupy that same
- * column range in the rows below it, which therefore carry no cell of their
- * own there (standard HTML table semantics) - see
- * signatur_validate_grid_rows() for the full occupancy check.
+ * cells left to right - optionally [colspan, rowspan, element] when the cell
+ * holds content (see signatur_sanitize_text_element()). A cell's rowspan
+ * makes it also occupy that same column range in the rows below it, which
+ * therefore carry no cell of their own there (standard HTML table
+ * semantics) - see signatur_validate_grid_rows() for the full occupancy
+ * check.
  */
 function signatur_get_default_settings()
 {
@@ -84,6 +86,101 @@ function signatur_get_default_settings()
         ),
         'columns' => array(300),
         'rows'    => array(array(array(1, 1))),
+    );
+}
+
+/**
+ * Font stacks offered for text elements. Keys are the CSS `font-family`
+ * value stored and rendered; values are the labels shown in the editor.
+ * Restricted to families that render reliably in Outlook (no web fonts).
+ */
+function signatur_get_font_choices()
+{
+    return array(
+        'Arial, Helvetica, sans-serif'          => 'Arial',
+        'Helvetica, Arial, sans-serif'          => 'Helvetica',
+        '"Times New Roman", Times, serif'       => 'Times New Roman',
+        'Georgia, Times, serif'                 => 'Georgia',
+        'Verdana, Geneva, sans-serif'           => 'Verdana',
+        'Tahoma, Geneva, sans-serif'            => 'Tahoma',
+        '"Trebuchet MS", Helvetica, sans-serif' => 'Trebuchet MS',
+        '"Courier New", Courier, monospace'     => 'Courier New',
+    );
+}
+
+/**
+ * Default values for a text element placed inside a grid cell.
+ */
+function signatur_get_default_text_element()
+{
+    $fonts = signatur_get_font_choices();
+
+    return array(
+        'type'      => 'text',
+        'text'      => '',
+        'font'      => key($fonts),
+        'size'      => 11,
+        'color'     => '#000000',
+        'bold'      => false,
+        'italic'    => false,
+        'underline' => false,
+        'align'     => 'left',
+        'valign'    => 'top',
+        'link'      => '',
+    );
+}
+
+/**
+ * Validate a raw text element from the submitted settings. Returns a
+ * normalized element array, or null when it is not a usable text element
+ * (wrong shape, or empty text after sanitizing).
+ */
+function signatur_sanitize_text_element($raw)
+{
+    if (! is_array($raw) || ! isset($raw['type']) || 'text' !== $raw['type']) {
+        return null;
+    }
+
+    $defaults = signatur_get_default_text_element();
+    $fonts    = signatur_get_font_choices();
+
+    $text = isset($raw['text']) ? sanitize_textarea_field((string) $raw['text']) : '';
+
+    if ('' === $text) {
+        return null;
+    }
+
+    $font = isset($raw['font']) && isset($fonts[$raw['font']]) ? $raw['font'] : $defaults['font'];
+
+    $size = isset($raw['size']) ? absint($raw['size']) : $defaults['size'];
+    $size = max(8, min(72, $size));
+
+    $color = isset($raw['color']) && preg_match('/^#[0-9a-f]{6}$/i', $raw['color'])
+        ? strtolower($raw['color'])
+        : $defaults['color'];
+
+    $align = isset($raw['align']) && in_array($raw['align'], array('left', 'center', 'right'), true)
+        ? $raw['align']
+        : $defaults['align'];
+
+    $valign = isset($raw['valign']) && in_array($raw['valign'], array('top', 'middle', 'bottom'), true)
+        ? $raw['valign']
+        : $defaults['valign'];
+
+    $link = isset($raw['link']) ? esc_url_raw((string) $raw['link']) : '';
+
+    return array(
+        'type'      => 'text',
+        'text'      => $text,
+        'font'      => $font,
+        'size'      => $size,
+        'color'     => $color,
+        'bold'      => ! empty($raw['bold']),
+        'italic'    => ! empty($raw['italic']),
+        'underline' => ! empty($raw['underline']),
+        'align'     => $align,
+        'valign'    => $valign,
+        'link'      => $link,
     );
 }
 
@@ -207,10 +304,20 @@ function signatur_sanitize_settings($raw_json)
                     continue;
                 }
 
-                $cells[] = array(
+                $normalized = array(
                     max(1, absint($cell[0])),
                     max(1, absint($cell[1])),
                 );
+
+                if (isset($cell[2])) {
+                    $element = signatur_sanitize_text_element($cell[2]);
+
+                    if (null !== $element) {
+                        $normalized[] = $element;
+                    }
+                }
+
+                $cells[] = $normalized;
 
                 if (count($cells) >= 50) {
                     break;

@@ -15,6 +15,8 @@
     var modalSave = document.getElementById('signatur_modal_save');
     var widthTemplate = document.getElementById('signatur_modal_template_width');
     var elementTemplate = document.getElementById('signatur_modal_template_element');
+    var textTemplate = document.getElementById('signatur_modal_template_text');
+    var modalTargetCell = null;
     var rowGroup = document.getElementById('signatur_row_group');
     var rowTopWrap = document.getElementById('signatur_row_top_wrap');
     var rowAddWrap = document.getElementById('signatur_row_add_wrap');
@@ -53,6 +55,90 @@
         return padding;
     }
 
+    /**
+     * The inline style string for a text element - mirror of the PHP
+     * signatur_render_text_span() so the editor preview and the saved
+     * front-end output match exactly. Limited to Outlook-safe properties.
+     */
+    function textElementStyle(el) {
+        var styles = [
+            'font-family:' + el.font,
+            'font-size:' + el.size + 'pt',
+            'color:' + el.color
+        ];
+
+        if (el.bold) {
+            styles.push('font-weight:bold');
+        }
+
+        if (el.italic) {
+            styles.push('font-style:italic');
+        }
+
+        if (el.underline) {
+            styles.push('text-decoration:underline');
+        }
+
+        return styles.join('; ');
+    }
+
+    function renderTextSpan(el) {
+        var span = document.createElement('span');
+        var parts = String(el.text).split('\n');
+
+        span.setAttribute('style', textElementStyle(el));
+
+        parts.forEach(function (part, i) {
+            span.appendChild(document.createTextNode(part));
+
+            if (i < parts.length - 1) {
+                span.appendChild(document.createElement('br'));
+            }
+        });
+
+        return span;
+    }
+
+    /**
+     * Put a text element into a cell (or clear it when el is null / empty),
+     * keeping the cell's data-element attribute, text-align and visible
+     * content in sync. This is the single place cell content is written.
+     */
+    function applyElementToCell(cell, el) {
+        cell.innerHTML = '';
+
+        if (el && 'text' === el.type && '' !== String(el.text).trim()) {
+            cell.dataset.element = JSON.stringify(el);
+            cell.style.textAlign = el.align;
+            cell.style.verticalAlign = el.valign || 'top';
+
+            var span = renderTextSpan(el);
+
+            if (el.link) {
+                var anchor = document.createElement('a');
+
+                anchor.setAttribute('href', el.link);
+                anchor.setAttribute('target', '_blank');
+                anchor.setAttribute('rel', 'noopener noreferrer');
+                // Linked text is always underlined and keeps the element's
+                // colour (so the underline matches the text). !important so
+                // the theme cannot override either. Mirrors PHP
+                // signatur_render_text_span().
+                anchor.style.setProperty('color', el.color, 'important');
+                anchor.style.setProperty('text-decoration', 'underline', 'important');
+                anchor.appendChild(span);
+                cell.appendChild(anchor);
+            } else {
+                cell.appendChild(span);
+            }
+        } else {
+            delete cell.dataset.element;
+            cell.style.textAlign = '';
+            cell.style.verticalAlign = '';
+            cell.innerHTML = '&nbsp;';
+        }
+    }
+
     function openModal(title, type) {
         modalTitle.textContent = title;
         modalBody.innerHTML = '';
@@ -60,6 +146,101 @@
 
         if ('element' === type) {
             modalBody.appendChild(elementTemplate.content.cloneNode(true));
+        }
+
+        if ('text' === type) {
+            modalBody.appendChild(textTemplate.content.cloneNode(true));
+
+            var stored = null;
+
+            if (modalTargetCell && modalTargetCell.dataset.element) {
+                try {
+                    stored = JSON.parse(modalTargetCell.dataset.element);
+                } catch (err) {
+                    stored = null;
+                }
+            }
+
+            var textInput = document.getElementById('signatur_text_input');
+            var fontSelect = document.getElementById('signatur_text_font');
+            var sizeInput = document.getElementById('signatur_text_size');
+            var colorInput = document.getElementById('signatur_text_color');
+            var alignSelect = document.getElementById('signatur_text_align');
+            var valignSelect = document.getElementById('signatur_text_valign');
+            var linkToggle = document.getElementById('signatur_text_link_toggle');
+            var linkField = document.getElementById('signatur_text_link_field');
+            var linkInput = document.getElementById('signatur_text_link');
+            var toggles = ['bold', 'italic', 'underline'].map(function (name) {
+                return document.getElementById('signatur_text_' + name);
+            });
+
+            textInput.value = stored ? stored.text : '';
+
+            if (stored && stored.font) {
+                fontSelect.value = stored.font;
+            }
+
+            sizeInput.value = stored ? stored.size : 11;
+            colorInput.value = stored ? stored.color : '#000000';
+            alignSelect.value = stored ? stored.align : 'left';
+            valignSelect.value = stored && stored.valign ? stored.valign : 'top';
+            linkInput.value = stored && stored.link ? stored.link : '';
+
+            if (stored && stored.link) {
+                linkField.style.display = '';
+            }
+
+            toggles[0].classList.toggle('is-active', !!(stored && stored.bold));
+            toggles[1].classList.toggle('is-active', !!(stored && stored.italic));
+            toggles[2].classList.toggle('is-active', !!(stored && stored.underline));
+
+            /**
+             * Reflect the current controls straight onto the textarea, so
+             * what you type shows the way it will actually render.
+             */
+            function updateTextareaStyle() {
+                // Linked text is always underlined, so the preview shows an
+                // underline whenever the U toggle is on OR a link is set.
+                var underlined = toggles[2].classList.contains('is-active') || '' !== linkInput.value.trim();
+
+                textInput.style.fontFamily = fontSelect.value;
+                textInput.style.fontSize = (parseInt(sizeInput.value, 10) || 11) + 'pt';
+                textInput.style.color = colorInput.value;
+                textInput.style.fontWeight = toggles[0].classList.contains('is-active') ? 'bold' : 'normal';
+                textInput.style.fontStyle = toggles[1].classList.contains('is-active') ? 'italic' : 'normal';
+                textInput.style.textDecoration = underlined ? 'underline' : 'none';
+                textInput.style.textAlign = alignSelect.value;
+            }
+
+            updateTextareaStyle();
+
+            [textInput, fontSelect, sizeInput, colorInput, alignSelect, linkInput].forEach(function (control) {
+                control.addEventListener('input', updateTextareaStyle);
+                control.addEventListener('change', updateTextareaStyle);
+            });
+
+            toggles.forEach(function (toggle) {
+                toggle.addEventListener('click', function () {
+                    toggle.classList.toggle('is-active');
+                    updateTextareaStyle();
+                });
+            });
+
+            linkToggle.addEventListener('click', function () {
+                linkField.style.display = '';
+                linkInput.focus();
+            });
+
+            sizeInput.addEventListener('blur', function () {
+                var value = parseInt(sizeInput.value, 10);
+
+                if (isNaN(value)) {
+                    value = 11;
+                }
+
+                sizeInput.value = Math.max(8, Math.min(72, value));
+                updateTextareaStyle();
+            });
         }
 
         if ('width' === type) {
@@ -95,6 +276,10 @@
         var button = e.target.closest('[data-modal-title]');
 
         if (button) {
+            if ('signatur_cell_add_element' === button.id || 'signatur_cell_edit_element' === button.id) {
+                modalTargetCell = activeColumnCell;
+            }
+
             openModal(button.getAttribute('data-modal-title'), button.getAttribute('data-modal-type'));
         }
     });
@@ -735,6 +920,7 @@
     window.addEventListener('scroll', renderResizeHandles, true);
     window.addEventListener('resize', renderResizeHandles);
 
+    var cellEditElementButton = document.getElementById('signatur_cell_edit_element');
     var cellAddElementButton = document.getElementById('signatur_cell_add_element');
     var columnAddButton = document.getElementById('signatur_column_add');
     var columnCombineButton = document.getElementById('signatur_column_combine');
@@ -913,11 +1099,21 @@
         var gap = 4;
         var showSplit = getCellColSpan(cell) > 1 || getCellRowSpan(cell) > 1;
         var showRemove = columnWidths.length > 1 && 1 === getCellColSpan(cell);
-        var buttonCount = 2 + (showSplit ? 1 : 0) + (showRemove ? 1 : 0);
+        var showEdit = !! cell.dataset.element;
+        var buttonCount = 2 + (showEdit ? 1 : 0) + (showSplit ? 1 : 0) + (showRemove ? 1 : 0);
         var groupWidth = buttonSize * buttonCount + gap * (buttonCount - 1);
         var rect = cell.getBoundingClientRect();
         var top = rect.top + (rect.height - buttonSize) / 2;
         var left = rect.left + (rect.width - groupWidth) / 2;
+
+        if (showEdit) {
+            cellEditElementButton.style.top = top + 'px';
+            cellEditElementButton.style.left = left + 'px';
+            cellEditElementButton.style.display = 'inline-flex';
+            left += buttonSize + gap;
+        } else {
+            cellEditElementButton.style.display = 'none';
+        }
 
         cellAddElementButton.style.top = top + 'px';
         cellAddElementButton.style.left = left + 'px';
@@ -968,7 +1164,8 @@
         columnCombineButton.style.display = 'inline-flex';
     }
 
-    function hideCellAddElementButton() {
+    function hideCellElementButtons() {
+        cellEditElementButton.style.display = 'none';
         cellAddElementButton.style.display = 'none';
     }
 
@@ -990,7 +1187,7 @@
 
     function hideColumnButtons() {
         activeColumnCell = null;
-        hideCellAddElementButton();
+        hideCellElementButtons();
         hideColumnAddButton();
         hideColumnRemoveButton();
         hideColumnSplitButton();
@@ -1015,6 +1212,14 @@
         hideColumnButtons();
         hideColumnCombineButton();
         highlightSelection([cell]);
+    });
+
+    // A text element's link is live markup in the grid - don't follow it
+    // while building the signature.
+    fieldTbody.addEventListener('click', function (e) {
+        if (e.target.closest('a')) {
+            e.preventDefault();
+        }
     });
 
     fieldTbody.addEventListener('mouseover', function (e) {
@@ -1198,6 +1403,37 @@
     modalCancel.addEventListener('click', closeModal);
 
     modalSave.addEventListener('click', function () {
+        if ('text' === activeModalType && modalTargetCell) {
+            var textInput = document.getElementById('signatur_text_input');
+            var fontSelect = document.getElementById('signatur_text_font');
+            var sizeInput = document.getElementById('signatur_text_size');
+            var colorInput = document.getElementById('signatur_text_color');
+            var alignSelect = document.getElementById('signatur_text_align');
+            var valignSelect = document.getElementById('signatur_text_valign');
+            var size = parseInt(sizeInput.value, 10);
+
+            if (isNaN(size)) {
+                size = 11;
+            }
+
+            var element = {
+                type: 'text',
+                text: textInput.value.replace(/\r\n/g, '\n'),
+                font: fontSelect.value,
+                size: Math.max(8, Math.min(72, size)),
+                color: colorInput.value,
+                bold: document.getElementById('signatur_text_bold').classList.contains('is-active'),
+                italic: document.getElementById('signatur_text_italic').classList.contains('is-active'),
+                underline: document.getElementById('signatur_text_underline').classList.contains('is-active'),
+                align: alignSelect.value,
+                valign: valignSelect.value,
+                link: document.getElementById('signatur_text_link').value.trim()
+            };
+
+            pushUndoSnapshot();
+            applyElementToCell(modalTargetCell, element);
+        }
+
         if ('width' === activeModalType) {
             pushUndoSnapshot();
 
@@ -1264,7 +1500,17 @@
 
         var rows = Array.prototype.map.call(fieldTbody.children, function (row) {
             return Array.prototype.map.call(row.children, function (cell) {
-                return [getCellColSpan(cell), getCellRowSpan(cell)];
+                var span = [getCellColSpan(cell), getCellRowSpan(cell)];
+
+                if (cell.dataset.element) {
+                    try {
+                        span.push(JSON.parse(cell.dataset.element));
+                    } catch (err) {
+                        // Ignore a corrupt data-element and treat the cell as empty.
+                    }
+                }
+
+                return span;
             });
         });
 
@@ -1305,9 +1551,9 @@
             rowCells.forEach(function (cellSpan) {
                 var cell = document.createElement('td');
 
-                cell.innerHTML = '&nbsp;';
                 setCellColSpan(cell, cellSpan[0]);
                 setCellRowSpan(cell, cellSpan[1]);
+                applyElementToCell(cell, cellSpan[2] || null);
                 row.appendChild(cell);
             });
 
