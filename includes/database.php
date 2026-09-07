@@ -40,7 +40,6 @@ function signatur_create_table()
     $sql = "CREATE TABLE {$table_name} (
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
         title VARCHAR(255) NOT NULL,
-        link VARCHAR(255) NOT NULL DEFAULT '',
         show_title TINYINT(1) NOT NULL DEFAULT 1,
         settings LONGTEXT NULL,
         created_at DATETIME NOT NULL,
@@ -50,6 +49,20 @@ function signatur_create_table()
 
     require_once ABSPATH . 'wp-admin/includes/upgrade.php';
     dbDelta($sql);
+
+    // The per-signature title link was removed; drop its legacy column if
+    // an earlier version created it. dbDelta never drops columns.
+    $has_link = $wpdb->get_var(
+        $wpdb->prepare(
+            "SELECT COUNT(*) FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s AND COLUMN_NAME = 'link'",
+            $table_name
+        )
+    );
+
+    if ($has_link) {
+        $wpdb->query("ALTER TABLE {$table_name} DROP COLUMN link");
+    }
 }
 
 /**
@@ -90,22 +103,13 @@ function signatur_get_default_settings()
 }
 
 /**
- * Font stacks offered for text elements. Keys are the CSS `font-family`
- * value stored and rendered; values are the labels shown in the editor.
- * Restricted to families that render reliably in Outlook (no web fonts).
+ * The single font stack used for every text element. Restricted to
+ * families that render reliably in Outlook (no web fonts). Must match
+ * DEFAULT_FONT in assets/js/builder.js.
  */
-function signatur_get_font_choices()
+function signatur_get_default_font()
 {
-    return array(
-        'Arial, Helvetica, sans-serif'          => 'Arial',
-        'Helvetica, Arial, sans-serif'          => 'Helvetica',
-        '"Times New Roman", Times, serif'       => 'Times New Roman',
-        'Georgia, Times, serif'                 => 'Georgia',
-        'Verdana, Geneva, sans-serif'           => 'Verdana',
-        'Tahoma, Geneva, sans-serif'            => 'Tahoma',
-        '"Trebuchet MS", Helvetica, sans-serif' => 'Trebuchet MS',
-        '"Courier New", Courier, monospace'     => 'Courier New',
-    );
+    return 'Arial, Helvetica, sans-serif';
 }
 
 /**
@@ -113,12 +117,9 @@ function signatur_get_font_choices()
  */
 function signatur_get_default_text_element()
 {
-    $fonts = signatur_get_font_choices();
-
     return array(
         'type'      => 'text',
         'text'      => '',
-        'font'      => key($fonts),
         'size'      => 11,
         'color'     => '#000000',
         'bold'      => false,
@@ -142,15 +143,12 @@ function signatur_sanitize_text_element($raw)
     }
 
     $defaults = signatur_get_default_text_element();
-    $fonts    = signatur_get_font_choices();
 
     $text = isset($raw['text']) ? sanitize_textarea_field((string) $raw['text']) : '';
 
     if ('' === $text) {
         return null;
     }
-
-    $font = isset($raw['font']) && isset($fonts[$raw['font']]) ? $raw['font'] : $defaults['font'];
 
     $size = isset($raw['size']) ? absint($raw['size']) : $defaults['size'];
     $size = max(8, min(72, $size));
@@ -172,7 +170,6 @@ function signatur_sanitize_text_element($raw)
     return array(
         'type'      => 'text',
         'text'      => $text,
-        'font'      => $font,
         'size'      => $size,
         'color'     => $color,
         'bold'      => ! empty($raw['bold']),

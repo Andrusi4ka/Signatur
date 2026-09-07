@@ -3,7 +3,7 @@
 /**
  * Plugin Name: Signatures
  * Description: Creates and manages email signature templates.
- * Version: 1.3.0
+ * Version: 1.5.0
  * Author: Relevant AS (Andrii Boiko)
  * Plugin URI: https://relevant.no/
  * Author URI: https://relevant.no/
@@ -15,8 +15,8 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-define('SIGNATUR_VERSION', '1.4.8');
-define('SIGNATUR_DB_VERSION', '1.3.0');
+define('SIGNATUR_VERSION', '1.5.3');
+define('SIGNATUR_DB_VERSION', '1.5.0');
 define('SIGNATUR_PLUGIN_FILE', __FILE__);
 define('SIGNATUR_PLUGIN_DIR', plugin_dir_path(__FILE__));
 

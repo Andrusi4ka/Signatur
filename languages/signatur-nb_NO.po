@@ -76,8 +76,8 @@ msgid "Signature updated."
 msgstr "Signatur oppdatert."
 
 #: signatur.php
-msgid "Add link"
-msgstr "Legg til lenke"
+msgid "https://example.com"
+msgstr "Lenke (valgfritt), f.eks. https://example.com"
 
 #: signatur.php
 msgid "Show on site"
@@ -206,3 +206,7 @@ msgstr "Horisontal justering"
 #: signatur.php
 msgid "Vertical alignment"
 msgstr "Vertikal justering"
+
+#: signatur.php
+msgid "pt"
+msgstr "pt"

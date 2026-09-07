@@ -32,6 +32,17 @@
     height: 24px;
 }
 
+.signatur-row-actions {
+    height: 25px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.signatur-row-actions-spacer {
+    height: 22px;
+}
+
 #signatur_modal_overlay {
     display: none;
     position: fixed;

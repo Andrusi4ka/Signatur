@@ -1,13 +1,4 @@
 (function () {
-    var toggle = document.getElementById('signatur_link_toggle');
-    var field = document.getElementById('signatur_link_field');
-    var input = document.getElementById('signatur_link');
-
-    toggle.addEventListener('click', function () {
-        field.style.display = '';
-        input.focus();
-    });
-
     var modalOverlay = document.getElementById('signatur_modal_overlay');
     var modalTitle = document.getElementById('signatur_modal_title');
     var modalBody = document.getElementById('signatur_modal_body');
@@ -29,6 +20,9 @@
     var resizeHandles = document.getElementById('signatur_col_resize_handles');
     var minWidth = 200;
     var minColumnWidth = 20;
+    // Single font stack for every text element - must match
+    // signatur_get_default_font() in includes/database.php.
+    var DEFAULT_FONT = 'Arial, Helvetica, sans-serif';
     var paddingSides = ['top', 'right', 'bottom', 'left'];
     var activeModalType = null;
     var columnWidths = Array.prototype.map.call(colgroup.children, function (col) {
@@ -62,7 +56,7 @@
      */
     function textElementStyle(el) {
         var styles = [
-            'font-family:' + el.font,
+            'font-family:' + DEFAULT_FONT,
             'font-size:' + el.size + 'pt',
             'color:' + el.color
         ];
@@ -111,6 +105,11 @@
             cell.dataset.element = JSON.stringify(el);
             cell.style.textAlign = el.align;
             cell.style.verticalAlign = el.valign || 'top';
+            // Repeat font/size/colour on the cell too - Word does not
+            // inherit fonts reliably. Mirrors PHP signatur_text_base_style().
+            cell.style.fontFamily = DEFAULT_FONT;
+            cell.style.fontSize = el.size + 'pt';
+            cell.style.color = el.color;
 
             var span = renderTextSpan(el);
 
@@ -120,10 +119,11 @@
                 anchor.setAttribute('href', el.link);
                 anchor.setAttribute('target', '_blank');
                 anchor.setAttribute('rel', 'noopener noreferrer');
-                // Linked text is always underlined and keeps the element's
-                // colour (so the underline matches the text). !important so
-                // the theme cannot override either. Mirrors PHP
+                // Linked text keeps the element's font and colour and is
+                // always underlined. !important on colour / decoration so
+                // the theme cannot override them. Mirrors PHP
                 // signatur_render_text_span().
+                anchor.style.fontFamily = DEFAULT_FONT;
                 anchor.style.setProperty('color', el.color, 'important');
                 anchor.style.setProperty('text-decoration', 'underline', 'important');
                 anchor.appendChild(span);
@@ -135,6 +135,9 @@
             delete cell.dataset.element;
             cell.style.textAlign = '';
             cell.style.verticalAlign = '';
+            cell.style.fontFamily = '';
+            cell.style.fontSize = '';
+            cell.style.color = '';
             cell.innerHTML = '&nbsp;';
         }
     }
@@ -162,33 +165,21 @@
             }
 
             var textInput = document.getElementById('signatur_text_input');
-            var fontSelect = document.getElementById('signatur_text_font');
             var sizeInput = document.getElementById('signatur_text_size');
             var colorInput = document.getElementById('signatur_text_color');
             var alignSelect = document.getElementById('signatur_text_align');
             var valignSelect = document.getElementById('signatur_text_valign');
-            var linkToggle = document.getElementById('signatur_text_link_toggle');
-            var linkField = document.getElementById('signatur_text_link_field');
             var linkInput = document.getElementById('signatur_text_link');
             var toggles = ['bold', 'italic', 'underline'].map(function (name) {
                 return document.getElementById('signatur_text_' + name);
             });
 
             textInput.value = stored ? stored.text : '';
-
-            if (stored && stored.font) {
-                fontSelect.value = stored.font;
-            }
-
             sizeInput.value = stored ? stored.size : 11;
             colorInput.value = stored ? stored.color : '#000000';
             alignSelect.value = stored ? stored.align : 'left';
             valignSelect.value = stored && stored.valign ? stored.valign : 'top';
             linkInput.value = stored && stored.link ? stored.link : '';
-
-            if (stored && stored.link) {
-                linkField.style.display = '';
-            }
 
             toggles[0].classList.toggle('is-active', !!(stored && stored.bold));
             toggles[1].classList.toggle('is-active', !!(stored && stored.italic));
@@ -203,7 +194,7 @@
                 // underline whenever the U toggle is on OR a link is set.
                 var underlined = toggles[2].classList.contains('is-active') || '' !== linkInput.value.trim();
 
-                textInput.style.fontFamily = fontSelect.value;
+                textInput.style.fontFamily = DEFAULT_FONT;
                 textInput.style.fontSize = (parseInt(sizeInput.value, 10) || 11) + 'pt';
                 textInput.style.color = colorInput.value;
                 textInput.style.fontWeight = toggles[0].classList.contains('is-active') ? 'bold' : 'normal';
@@ -214,7 +205,7 @@
 
             updateTextareaStyle();
 
-            [textInput, fontSelect, sizeInput, colorInput, alignSelect, linkInput].forEach(function (control) {
+            [textInput, sizeInput, colorInput, alignSelect, linkInput].forEach(function (control) {
                 control.addEventListener('input', updateTextareaStyle);
                 control.addEventListener('change', updateTextareaStyle);
             });
@@ -224,11 +215,6 @@
                     toggle.classList.toggle('is-active');
                     updateTextareaStyle();
                 });
-            });
-
-            linkToggle.addEventListener('click', function () {
-                linkField.style.display = '';
-                linkInput.focus();
             });
 
             sizeInput.addEventListener('blur', function () {
@@ -1243,17 +1229,18 @@
     });
 
     columnRemoveButton.addEventListener('click', function () {
-        if (! activeColumnCell || columnWidths.length <= 1) {
+        var pos = activeColumnCell && findCellPosition(buildGrid(), activeColumnCell);
+
+        if (! pos || columnWidths.length <= 1) {
             hideColumnButtons();
             return;
         }
 
         pushUndoSnapshot();
 
-        var start = findCellPosition(buildGrid(), activeColumnCell).col;
         var span = getCellColSpan(activeColumnCell);
 
-        removeColumnAt(start + span - 1);
+        removeColumnAt(pos.col + span - 1);
         hideColumnButtons();
     });
 
@@ -1293,13 +1280,16 @@
     document.documentElement.addEventListener('mouseleave', finishSelection);
 
     columnAddButton.addEventListener('click', function () {
-        if (! activeColumnCell) {
+        var pos = activeColumnCell && findCellPosition(buildGrid(), activeColumnCell);
+
+        if (! pos) {
+            hideColumnButtons();
             return;
         }
 
         pushUndoSnapshot();
 
-        var start = findCellPosition(buildGrid(), activeColumnCell).col;
+        var start = pos.col;
         var span = getCellColSpan(activeColumnCell);
         var insertIndex = start + span;
         var neighborWidth = columnWidths[start];
@@ -1405,7 +1395,6 @@
     modalSave.addEventListener('click', function () {
         if ('text' === activeModalType && modalTargetCell) {
             var textInput = document.getElementById('signatur_text_input');
-            var fontSelect = document.getElementById('signatur_text_font');
             var sizeInput = document.getElementById('signatur_text_size');
             var colorInput = document.getElementById('signatur_text_color');
             var alignSelect = document.getElementById('signatur_text_align');
@@ -1419,7 +1408,6 @@
             var element = {
                 type: 'text',
                 text: textInput.value.replace(/\r\n/g, '\n'),
-                font: fontSelect.value,
                 size: Math.max(8, Math.min(72, size)),
                 color: colorInput.value,
                 bold: document.getElementById('signatur_text_bold').classList.contains('is-active'),

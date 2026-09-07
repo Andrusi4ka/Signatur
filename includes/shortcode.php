@@ -59,7 +59,7 @@ function signatur_render_shortcode($atts)
 
     $signature = $wpdb->get_row(
         $wpdb->prepare(
-            'SELECT title, link, show_title, settings FROM ' . signatur_get_table_name() . ' WHERE id = %d',
+            'SELECT title, show_title, settings FROM ' . signatur_get_table_name() . ' WHERE id = %d',
             $id
         )
     );
@@ -71,13 +71,7 @@ function signatur_render_shortcode($atts)
     $output = '';
 
     if ($signature->show_title) {
-        $title = esc_html($signature->title);
-
-        if (! empty($signature->link)) {
-            $title = '<a href="' . esc_url($signature->link) . '" target="_blank" rel="noopener noreferrer">' . $title . '</a>';
-        }
-
-        $output .= '<div class="signatur-signature-title">' . $title . '</div>';
+        $output .= '<div class="signatur-signature-title">' . esc_html($signature->title) . '</div>';
     }
 
     $settings = json_decode(signatur_sanitize_settings($signature->settings), true);
@@ -105,6 +99,18 @@ function signatur_render_shortcode($atts)
 }
 
 /**
+ * The font-family / font-size / colour triplet for a text element. Repeated
+ * on the <td>, <span> and <a> because Outlook (Word engine) does not
+ * inherit fonts reliably and falls back to Times New Roman without it.
+ */
+function signatur_text_base_style($element)
+{
+    return 'font-family:' . signatur_get_default_font()
+        . '; font-size:' . (int) $element['size'] . 'pt'
+        . '; color:' . $element['color'];
+}
+
+/**
  * Render a single text element as an inline-styled <span>. Kept as the one
  * place that turns a text element into markup, so the admin editor preview
  * and the front-end output stay identical. Styles are limited to what
@@ -112,11 +118,7 @@ function signatur_render_shortcode($atts)
  */
 function signatur_render_text_span($element)
 {
-    $styles = array(
-        'font-family:' . $element['font'],
-        'font-size:' . (int) $element['size'] . 'pt',
-        'color:' . $element['color'],
-    );
+    $styles = array(signatur_text_base_style($element));
 
     if (! empty($element['bold'])) {
         $styles[] = 'font-weight:bold';
@@ -135,11 +137,13 @@ function signatur_render_text_span($element)
         . '</span>';
 
     if (! empty($element['link'])) {
-        // Linked text is always underlined and keeps the element's own
-        // colour (so the underline matches the text instead of picking up
-        // the theme's / Outlook's default link blue). !important so the
-        // site theme cannot override either.
-        $link_style = 'color:' . $element['color'] . ' !important; text-decoration:underline !important;';
+        // Linked text keeps the element's colour and is always underlined.
+        // font-family so Word does not drop to Times New Roman inside the
+        // <a>; color / text-decoration !important so the site theme cannot
+        // override them.
+        $link_style = 'font-family:' . signatur_get_default_font()
+            . '; color:' . $element['color'] . ' !important'
+            . '; text-decoration:underline !important;';
 
         return '<a href="' . esc_url($element['link']) . '" target="_blank" rel="noopener noreferrer" style="' . esc_attr($link_style) . '">'
             . $span
@@ -189,6 +193,7 @@ function signatur_render_signature_table($settings)
             $cell_style = 'padding:0; line-height:1.4; overflow-wrap:break-word; border:1px solid #cccccc;';
 
             if ($element && 'text' === $element['type']) {
+                $cell_style .= ' ' . signatur_text_base_style($element) . ';';
                 $cell_style .= ' text-align:' . $element['align'] . '; vertical-align:' . $element['valign'] . ';';
                 $html       .= '<td' . $attrs . ' style="' . esc_attr($cell_style) . '">' . signatur_render_text_span($element) . '</td>';
             } else {

@@ -76,8 +76,8 @@ msgid "Signature updated."
 msgstr "Signature updated."
 
 #: signatur.php
-msgid "Add link"
-msgstr "Add link"
+msgid "https://example.com"
+msgstr "https://example.com"
 
 #: signatur.php
 msgid "Show on site"
@@ -206,3 +206,7 @@ msgstr "Horizontal alignment"
 #: signatur.php
 msgid "Vertical alignment"
 msgstr "Vertical alignment"
+
+#: signatur.php
+msgid "pt"
+msgstr "pt"
