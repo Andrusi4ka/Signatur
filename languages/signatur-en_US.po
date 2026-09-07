@@ -252,20 +252,12 @@ msgid "Upload image"
 msgstr "Upload image"
 
 #: signatur.php
-msgid "Image URL"
-msgstr "Image URL"
-
-#: signatur.php
 msgid "Width"
 msgstr "Width"
 
 #: signatur.php
 msgid "Image upload failed."
 msgstr "Image upload failed."
-
-#: signatur.php
-msgid "https://example.com/logo.png"
-msgstr "https://example.com/logo.png"
 
 #: signatur.php
 msgid "Link"

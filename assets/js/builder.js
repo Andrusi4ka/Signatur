@@ -412,9 +412,6 @@
 
             updateImagePreview();
 
-            imageUrlInput.addEventListener('input', updateImagePreview);
-            imageUrlInput.addEventListener('change', updateImagePreview);
-
             imageWidthInput.addEventListener('blur', function () {
                 var value = parseInt(imageWidthInput.value, 10);
 

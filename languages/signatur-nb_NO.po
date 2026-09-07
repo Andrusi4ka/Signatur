@@ -252,20 +252,12 @@ msgid "Upload image"
 msgstr "Last opp bilde"
 
 #: signatur.php
-msgid "Image URL"
-msgstr "Bilde-URL"
-
-#: signatur.php
 msgid "Width"
 msgstr "Bredde"
 
 #: signatur.php
 msgid "Image upload failed."
 msgstr "Opplasting av bilde mislyktes."
-
-#: signatur.php
-msgid "https://example.com/logo.png"
-msgstr "https://example.com/logo.png"
 
 #: signatur.php
 msgid "Link"

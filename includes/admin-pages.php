@@ -528,11 +528,7 @@ function signatur_render_add_signature_page()
             <p style="margin:0;">
                 <button type="button" id="signatur_image_upload" class="button"><?php esc_html_e('Upload image', 'signatur'); ?></button>
                 <input type="file" id="signatur_image_file" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none;">
-            </p>
-
-            <p style="margin:12px 0 0;">
-                <label for="signatur_image_url" style="display:block; margin-bottom:4px;"><?php esc_html_e('Image URL', 'signatur'); ?></label>
-                <input type="url" id="signatur_image_url" class="regular-text" style="width:100%;" placeholder="<?php echo esc_attr__('https://example.com/logo.png', 'signatur'); ?>">
+                <input type="hidden" id="signatur_image_url">
             </p>
 
             <p style="margin:12px 0 0;">
