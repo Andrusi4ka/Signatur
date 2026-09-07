@@ -185,7 +185,7 @@ function signatur_column_letter($index)
 function signatur_render_row_actions_buttons()
 {
 ?>
-    <button type="button" class="signatur-icon-button" data-modal-title="<?php echo esc_attr__('Edit row', 'signatur'); ?>" title="<?php esc_attr_e('Edit row', 'signatur'); ?>" aria-label="<?php esc_attr_e('Edit row', 'signatur'); ?>">
+    <button type="button" class="signatur-icon-button" data-modal-title="<?php echo esc_attr__('Edit row', 'signatur'); ?>" data-modal-type="row" title="<?php esc_attr_e('Edit row', 'signatur'); ?>" aria-label="<?php esc_attr_e('Edit row', 'signatur'); ?>">
         <img src="<?php echo esc_url(plugins_url('assets/icon-edit.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
     </button>
     <button type="button" class="signatur-icon-button signatur-row-delete-button" title="<?php esc_attr_e('Delete row', 'signatur'); ?>" aria-label="<?php esc_attr_e('Delete row', 'signatur'); ?>">
@@ -273,7 +273,7 @@ function signatur_render_add_signature_page()
                 </div>
 
                 <div style="display:flex; align-items:flex-start; margin-top:8px;">
-                    <table id="signatur_field_table" class="widefat striped" style="width:<?php echo esc_attr($settings['width']); ?>px; padding-top:<?php echo esc_attr($settings['padding']['top']); ?>px; padding-right:<?php echo esc_attr($settings['padding']['right']); ?>px; padding-bottom:<?php echo esc_attr($settings['padding']['bottom']); ?>px; padding-left:<?php echo esc_attr($settings['padding']['left']); ?>px; margin-right:8px;">
+                    <table id="signatur_field_table" class="widefat striped" style="width:<?php echo esc_attr($settings['width']); ?>px; margin-right:8px;">
                         <colgroup id="signatur_field_colgroup">
                             <?php foreach ($settings['columns'] as $column_width) : ?>
                                 <col style="width:<?php echo esc_attr($column_width); ?>px;">
@@ -292,18 +292,25 @@ function signatur_render_add_signature_page()
                         <thead class="signatur-editor-only">
                             <tr id="signatur_field_header_row">
                                 <?php foreach (array_keys($settings['columns']) as $column_index) : ?>
-                                    <th class="signatur-column-header"><?php echo esc_html(signatur_column_letter($column_index)); ?></th>
+                                    <th class="signatur-column-header" data-index="<?php echo esc_attr($column_index); ?>"><?php echo esc_html(signatur_column_letter($column_index)); ?></th>
                                 <?php endforeach; ?>
                             </tr>
                         </thead>
                         <tbody id="signatur_field_tbody">
-                            <?php foreach ($settings['rows'] as $row_cells) : ?>
-                                <tr>
+                            <?php foreach ($settings['rows'] as $row_index => $row_cells) : ?>
+                                <?php
+                                $row_padding      = isset($settings['row_padding'][$row_index])
+                                    ? $settings['row_padding'][$row_index]
+                                    : signatur_sanitize_padding(array());
+                                $cell_padding_css = signatur_padding_css($row_padding);
+                                ?>
+                                <tr data-padding="<?php echo esc_attr(wp_json_encode($row_padding)); ?>">
                                     <?php foreach ($row_cells as $cell_span) : ?>
                                         <?php
                                         $colspan = $cell_span[0];
                                         $rowspan = $cell_span[1];
                                         $element = isset($cell_span[2]) ? $cell_span[2] : null;
+                                        $style   = $cell_padding_css . ';';
                                         $attrs   = '';
 
                                         if ($colspan > 1) {
@@ -315,16 +322,16 @@ function signatur_render_add_signature_page()
                                         }
 
                                         if ($element && 'text' === $element['type']) {
-                                            $attrs .= ' style="text-align:' . esc_attr($element['align']) . '; vertical-align:' . esc_attr($element['valign']) . ';"';
+                                            $style .= ' text-align:' . $element['align'] . '; vertical-align:' . $element['valign'] . ';';
                                             $attrs .= ' data-element="' . esc_attr(wp_json_encode($element)) . '"';
                                         }
                                         ?>
-                                        <td<?php echo $attrs; ?>><?php
-                                                                    echo ($element && 'text' === $element['type'])
-                                                                        ? signatur_render_text_span($element)
-                                                                        : '&nbsp;';
-                                                                    ?></td>
-                                        <?php endforeach; ?>
+                                        <td<?php echo $attrs; ?> style="<?php echo esc_attr($style); ?>"><?php
+                                            echo ($element && 'text' === $element['type'])
+                                                ? signatur_render_text_span($element)
+                                                : '&nbsp;';
+                                        ?></td>
+                                    <?php endforeach; ?>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -351,6 +358,10 @@ function signatur_render_add_signature_page()
 
         <button type="button" id="signatur_cell_edit_element" class="signatur-icon-button" data-modal-title="<?php echo esc_attr__('Edit text', 'signatur'); ?>" data-modal-type="text" title="<?php esc_attr_e('Edit element', 'signatur'); ?>" aria-label="<?php esc_attr_e('Edit element', 'signatur'); ?>">
             <img src="<?php echo esc_url(plugins_url('assets/icon-edit-element.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
+        </button>
+
+        <button type="button" id="signatur_cell_delete_element" class="signatur-icon-button" title="<?php esc_attr_e('Delete element', 'signatur'); ?>" aria-label="<?php esc_attr_e('Delete element', 'signatur'); ?>">
+            <img src="<?php echo esc_url(plugins_url('assets/icon-delete.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
         </button>
 
         <button type="button" id="signatur_cell_add_element" class="signatur-icon-button" data-modal-title="<?php echo esc_attr__('Add element', 'signatur'); ?>" data-modal-type="element" title="<?php esc_attr_e('Add element', 'signatur'); ?>" aria-label="<?php esc_attr_e('Add element', 'signatur'); ?>">
@@ -401,13 +412,15 @@ function signatur_render_add_signature_page()
                 <span><?php esc_html_e('px', 'signatur'); ?></span>
                 <span style="font-size:11px; color:#646970;"><?php esc_html_e('min. 200px', 'signatur'); ?></span>
             </p>
+        </template>
 
-            <p style="display:flex; align-items:center; gap:6px; margin:12px 0 0;">
+        <template id="signatur_modal_template_row">
+            <p style="display:flex; align-items:center; gap:6px; margin:0;">
                 <span style="font-weight:600;">Padding</span>
-                <input type="number" id="signatur_padding_top" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Top', 'signatur'); ?>" style="width:50px;">
-                <input type="number" id="signatur_padding_left" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Left', 'signatur'); ?>" style="width:50px;">
-                <input type="number" id="signatur_padding_bottom" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Bottom', 'signatur'); ?>" style="width:50px;">
-                <input type="number" id="signatur_padding_right" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Right', 'signatur'); ?>" style="width:50px;">
+                <input type="number" id="signatur_row_padding_top" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Top', 'signatur'); ?>" style="width:50px;">
+                <input type="number" id="signatur_row_padding_left" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Left', 'signatur'); ?>" style="width:50px;">
+                <input type="number" id="signatur_row_padding_bottom" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Bottom', 'signatur'); ?>" style="width:50px;">
+                <input type="number" id="signatur_row_padding_right" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Right', 'signatur'); ?>" style="width:50px;">
             </p>
         </template>
 

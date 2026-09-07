@@ -86,20 +86,35 @@ function signatur_get_table_name()
  * therefore carry no cell of their own there (standard HTML table
  * semantics) - see signatur_validate_grid_rows() for the full occupancy
  * check.
+ *
+ * `row_padding` is a parallel array to `rows` giving each row its own
+ * {top,right,bottom,left}, rendered onto that row's <td> cells (padding on
+ * <tr> is unreliable everywhere).
  */
 function signatur_get_default_settings()
 {
     return array(
-        'width'   => 300,
-        'padding' => array(
-            'top'    => 0,
-            'right'  => 0,
-            'bottom' => 0,
-            'left'   => 0,
-        ),
-        'columns' => array(300),
-        'rows'    => array(array(array(1, 1))),
+        'width'       => 300,
+        'columns'     => array(300),
+        'rows'        => array(array(array(1, 1))),
+        'row_padding' => array(signatur_sanitize_padding(array())),
     );
+}
+
+/**
+ * Normalize a {top,right,bottom,left} padding array - every side an
+ * absolute integer, missing sides zeroed.
+ */
+function signatur_sanitize_padding($raw)
+{
+    $raw     = is_array($raw) ? $raw : array();
+    $padding = array();
+
+    foreach (array('top', 'right', 'bottom', 'left') as $side) {
+        $padding[$side] = isset($raw[$side]) ? absint($raw[$side]) : 0;
+    }
+
+    return $padding;
 }
 
 /**
@@ -262,13 +277,6 @@ function signatur_sanitize_settings($raw_json)
         $width = 200;
     }
 
-    $raw_padding = isset($decoded['padding']) && is_array($decoded['padding']) ? $decoded['padding'] : array();
-    $padding     = array();
-
-    foreach (array('top', 'right', 'bottom', 'left') as $side) {
-        $padding[$side] = isset($raw_padding[$side]) ? absint($raw_padding[$side]) : 0;
-    }
-
     $columns = array();
 
     if (isset($decoded['columns']) && is_array($decoded['columns'])) {
@@ -334,12 +342,23 @@ function signatur_sanitize_settings($raw_json)
         $rows      = array_fill(0, $row_count, array(array($column_count, 1)));
     }
 
+    $raw_row_padding = isset($decoded['row_padding']) && is_array($decoded['row_padding'])
+        ? array_values($decoded['row_padding'])
+        : array();
+    $row_padding     = array();
+
+    foreach ($rows as $index => $row) {
+        $row_padding[] = signatur_sanitize_padding(
+            isset($raw_row_padding[$index]) ? $raw_row_padding[$index] : array()
+        );
+    }
+
     return wp_json_encode(
         array(
-            'width'   => $width,
-            'padding' => $padding,
-            'columns' => $columns,
-            'rows'    => $rows,
+            'width'       => $width,
+            'columns'     => $columns,
+            'rows'        => $rows,
+            'row_padding' => $row_padding,
         )
     );
 }

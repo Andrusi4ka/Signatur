@@ -5,9 +5,11 @@
     var modalCancel = document.getElementById('signatur_modal_cancel');
     var modalSave = document.getElementById('signatur_modal_save');
     var widthTemplate = document.getElementById('signatur_modal_template_width');
+    var rowTemplate = document.getElementById('signatur_modal_template_row');
     var elementTemplate = document.getElementById('signatur_modal_template_element');
     var textTemplate = document.getElementById('signatur_modal_template_text');
     var modalTargetCell = null;
+    var modalTargetRow = null;
     var rowGroup = document.getElementById('signatur_row_group');
     var rowTopWrap = document.getElementById('signatur_row_top_wrap');
     var rowAddWrap = document.getElementById('signatur_row_add_wrap');
@@ -142,6 +144,41 @@
         }
     }
 
+    var ZERO_PADDING = { top: 0, right: 0, bottom: 0, left: 0 };
+
+    function readRowPadding(tr) {
+        try {
+            var p = JSON.parse(tr.dataset.padding || '');
+
+            return {
+                top: parseInt(p.top, 10) || 0,
+                right: parseInt(p.right, 10) || 0,
+                bottom: parseInt(p.bottom, 10) || 0,
+                left: parseInt(p.left, 10) || 0
+            };
+        } catch (err) {
+            return { top: 0, right: 0, bottom: 0, left: 0 };
+        }
+    }
+
+    /**
+     * Mirror a <tr>'s stored padding onto every <td> it owns - padding on
+     * <tr> is unreliable, so the row's setting lives on its cells (matches
+     * signatur_render_signature_table()).
+     */
+    function applyRowPadding(tr) {
+        var p = readRowPadding(tr);
+        var value = p.top + 'px ' + p.right + 'px ' + p.bottom + 'px ' + p.left + 'px';
+
+        Array.prototype.forEach.call(tr.children, function (td) {
+            td.style.padding = value;
+        });
+    }
+
+    function applyAllRowPadding() {
+        Array.prototype.forEach.call(fieldTbody.children, applyRowPadding);
+    }
+
     function openModal(title, type) {
         modalTitle.textContent = title;
         modalBody.innerHTML = '';
@@ -149,6 +186,23 @@
 
         if ('element' === type) {
             modalBody.appendChild(elementTemplate.content.cloneNode(true));
+        }
+
+        if ('row' === type) {
+            modalBody.appendChild(rowTemplate.content.cloneNode(true));
+
+            var rowPadding = modalTargetRow ? readRowPadding(modalTargetRow) : ZERO_PADDING;
+
+            paddingSides.forEach(function (side) {
+                var paddingInput = document.getElementById('signatur_row_padding_' + side);
+                paddingInput.value = rowPadding[side] || '';
+
+                paddingInput.addEventListener('blur', function () {
+                    if ('' !== paddingInput.value) {
+                        paddingInput.value = clampPadding(paddingInput.value);
+                    }
+                });
+            });
         }
 
         if ('text' === type) {
@@ -237,18 +291,6 @@
             widthInput.addEventListener('blur', function () {
                 widthInput.value = clampWidth(widthInput.value);
             });
-
-            paddingSides.forEach(function (side) {
-                var paddingInput = document.getElementById('signatur_padding_' + side);
-                var computed = fieldTable.style['padding' + side.charAt(0).toUpperCase() + side.slice(1)];
-                paddingInput.value = computed ? (parseInt(computed, 10) || '') : '';
-
-                paddingInput.addEventListener('blur', function () {
-                    if ('' !== paddingInput.value) {
-                        paddingInput.value = clampPadding(paddingInput.value);
-                    }
-                });
-            });
         }
 
         modalOverlay.style.display = 'flex';
@@ -264,6 +306,11 @@
         if (button) {
             if ('signatur_cell_add_element' === button.id || 'signatur_cell_edit_element' === button.id) {
                 modalTargetCell = activeColumnCell;
+            }
+
+            if ('row' === button.getAttribute('data-modal-type')) {
+                var group = button.closest('.signatur-row-actions');
+                modalTargetRow = group ? findRowForActionGroup(group) : null;
             }
 
             openModal(button.getAttribute('data-modal-title'), button.getAttribute('data-modal-type'));
@@ -288,6 +335,7 @@
 
     var columnAddEndButton = document.getElementById('signatur_column_add_end');
     var columnAddIndicator = document.getElementById('signatur_column_add_indicator');
+    var addColumnIndex = null;
 
     columnAddEndButton.addEventListener('mouseenter', function () {
         var rect = fieldTable.getBoundingClientRect();
@@ -562,6 +610,7 @@
             }
         });
 
+        applyAllRowPadding();
         renderColgroup();
         renderResizeHandles();
     }
@@ -660,6 +709,7 @@
             }
         }
 
+        applyAllRowPadding();
         rebuildRowActionsPanel();
     }
 
@@ -783,6 +833,7 @@
 
         row.parentNode.removeChild(row);
 
+        applyAllRowPadding();
         rebuildRowActionsPanel();
         rowHoverIndicator.style.display = 'none';
         clearSelection();
@@ -833,6 +884,8 @@
 
         var row = document.createElement('tr');
 
+        row.dataset.padding = JSON.stringify(ZERO_PADDING);
+
         columnWidths.forEach(function () {
             var cell = document.createElement('td');
             cell.innerHTML = '&nbsp;';
@@ -840,6 +893,7 @@
         });
 
         fieldTbody.appendChild(row);
+        applyRowPadding(row);
         rowsActions.appendChild(rowActionsTemplate.content.cloneNode(true));
         updateRowDeleteButtons();
         renderResizeHandles();
@@ -906,6 +960,7 @@
     window.addEventListener('scroll', renderResizeHandles, true);
     window.addEventListener('resize', renderResizeHandles);
 
+    var cellDeleteElementButton = document.getElementById('signatur_cell_delete_element');
     var cellEditElementButton = document.getElementById('signatur_cell_edit_element');
     var cellAddElementButton = document.getElementById('signatur_cell_add_element');
     var columnAddButton = document.getElementById('signatur_column_add');
@@ -1084,9 +1139,12 @@
         var buttonSize = 32;
         var gap = 4;
         var showSplit = getCellColSpan(cell) > 1 || getCellRowSpan(cell) > 1;
-        var showRemove = columnWidths.length > 1 && 1 === getCellColSpan(cell);
+        // A cell holds at most one element, so it is either "add", or the
+        // "edit + delete" pair, never all three.
         var showEdit = !! cell.dataset.element;
-        var buttonCount = 2 + (showEdit ? 1 : 0) + (showSplit ? 1 : 0) + (showRemove ? 1 : 0);
+        var showDelete = showEdit;
+        var showAdd = ! showEdit;
+        var buttonCount = (showEdit ? 1 : 0) + (showDelete ? 1 : 0) + (showAdd ? 1 : 0) + (showSplit ? 1 : 0);
         var groupWidth = buttonSize * buttonCount + gap * (buttonCount - 1);
         var rect = cell.getBoundingClientRect();
         var top = rect.top + (rect.height - buttonSize) / 2;
@@ -1101,31 +1159,30 @@
             cellEditElementButton.style.display = 'none';
         }
 
-        cellAddElementButton.style.top = top + 'px';
-        cellAddElementButton.style.left = left + 'px';
-        cellAddElementButton.style.display = 'inline-flex';
-        left += buttonSize + gap;
+        if (showDelete) {
+            cellDeleteElementButton.style.top = top + 'px';
+            cellDeleteElementButton.style.left = left + 'px';
+            cellDeleteElementButton.style.display = 'inline-flex';
+            left += buttonSize + gap;
+        } else {
+            cellDeleteElementButton.style.display = 'none';
+        }
+
+        if (showAdd) {
+            cellAddElementButton.style.top = top + 'px';
+            cellAddElementButton.style.left = left + 'px';
+            cellAddElementButton.style.display = 'inline-flex';
+            left += buttonSize + gap;
+        } else {
+            cellAddElementButton.style.display = 'none';
+        }
 
         if (showSplit) {
             columnSplitButton.style.top = top + 'px';
             columnSplitButton.style.left = left + 'px';
             columnSplitButton.style.display = 'inline-flex';
-            left += buttonSize + gap;
         } else {
             columnSplitButton.style.display = 'none';
-        }
-
-        columnAddButton.style.top = top + 'px';
-        columnAddButton.style.left = left + 'px';
-        columnAddButton.style.display = 'inline-flex';
-        left += buttonSize + gap;
-
-        if (showRemove) {
-            columnRemoveButton.style.top = top + 'px';
-            columnRemoveButton.style.left = left + 'px';
-            columnRemoveButton.style.display = 'inline-flex';
-        } else {
-            columnRemoveButton.style.display = 'none';
         }
     }
 
@@ -1151,12 +1208,53 @@
     }
 
     function hideCellElementButtons() {
+        cellDeleteElementButton.style.display = 'none';
         cellEditElementButton.style.display = 'none';
         cellAddElementButton.style.display = 'none';
     }
 
     function hideColumnAddButton() {
         columnAddButton.style.display = 'none';
+        columnRemoveButton.style.display = 'none';
+        columnAddIndicator.style.display = 'none';
+        addColumnIndex = null;
+    }
+
+    /**
+     * Show the add/remove column buttons under a clicked column header, with
+     * an indicator line at that column's right edge. "+" inserts a new
+     * column right after this one; "-" removes this column (hidden when only
+     * one column is left).
+     */
+    function showColumnAddForHeader(th) {
+        addColumnIndex = parseInt(th.getAttribute('data-index'), 10);
+
+        var buttonSize = 32;
+        var gap = 4;
+        var showRemove = columnWidths.length > 1;
+        var count = 1 + (showRemove ? 1 : 0);
+        var groupWidth = buttonSize * count + gap * (count - 1);
+        var thRect = th.getBoundingClientRect();
+        var tableRect = fieldTable.getBoundingClientRect();
+        var groupLeft = thRect.left + thRect.width / 2 - groupWidth / 2;
+        var top = thRect.bottom;
+
+        columnAddButton.style.top = top + 'px';
+        columnAddButton.style.left = groupLeft + 'px';
+        columnAddButton.style.display = 'inline-flex';
+
+        if (showRemove) {
+            columnRemoveButton.style.top = top + 'px';
+            columnRemoveButton.style.left = (groupLeft + buttonSize + gap) + 'px';
+            columnRemoveButton.style.display = 'inline-flex';
+        } else {
+            columnRemoveButton.style.display = 'none';
+        }
+
+        columnAddIndicator.style.top = tableRect.top + 'px';
+        columnAddIndicator.style.left = (thRect.right - 1) + 'px';
+        columnAddIndicator.style.height = tableRect.height + 'px';
+        columnAddIndicator.style.display = 'block';
     }
 
     function hideColumnCombineButton() {
@@ -1229,19 +1327,16 @@
     });
 
     columnRemoveButton.addEventListener('click', function () {
-        var pos = activeColumnCell && findCellPosition(buildGrid(), activeColumnCell);
+        var index = addColumnIndex;
 
-        if (! pos || columnWidths.length <= 1) {
-            hideColumnButtons();
+        if (index === null || isNaN(index) || index < 0 || index >= columnWidths.length || columnWidths.length <= 1) {
+            hideColumnAddButton();
             return;
         }
 
         pushUndoSnapshot();
-
-        var span = getCellColSpan(activeColumnCell);
-
-        removeColumnAt(pos.col + span - 1);
-        hideColumnButtons();
+        removeColumnAt(index);
+        hideColumnAddButton();
     });
 
     columnSplitButton.addEventListener('click', function () {
@@ -1252,6 +1347,17 @@
         pushUndoSnapshot();
         splitCell(activeColumnCell);
         clearSelection();
+    });
+
+    cellDeleteElementButton.addEventListener('click', function () {
+        if (! activeColumnCell || ! activeColumnCell.dataset.element) {
+            hideColumnButtons();
+            return;
+        }
+
+        pushUndoSnapshot();
+        applyElementToCell(activeColumnCell, null);
+        positionColumnButtons(activeColumnCell);
     });
 
     function finishSelection() {
@@ -1279,26 +1385,41 @@
 
     document.documentElement.addEventListener('mouseleave', finishSelection);
 
-    columnAddButton.addEventListener('click', function () {
-        var pos = activeColumnCell && findCellPosition(buildGrid(), activeColumnCell);
+    headerRow.addEventListener('click', function (e) {
+        var th = e.target.closest('.signatur-column-header');
 
-        if (! pos) {
-            hideColumnButtons();
+        if (! th) {
+            return;
+        }
+
+        var index = parseInt(th.getAttribute('data-index'), 10);
+        var alreadyShown = 'none' !== columnAddButton.style.display && index === addColumnIndex;
+
+        clearSelection();
+
+        // Toggle: a second click on the same header just hides it.
+        if (! alreadyShown) {
+            showColumnAddForHeader(th);
+        }
+    });
+
+    columnAddButton.addEventListener('click', function () {
+        var index = addColumnIndex;
+
+        if (index === null || isNaN(index) || index < 0 || index >= columnWidths.length) {
+            hideColumnAddButton();
             return;
         }
 
         pushUndoSnapshot();
 
-        var start = pos.col;
-        var span = getCellColSpan(activeColumnCell);
-        var insertIndex = start + span;
-        var neighborWidth = columnWidths[start];
+        var neighborWidth = columnWidths[index];
         var newWidth = Math.max(minColumnWidth, Math.floor(neighborWidth / 2));
 
-        columnWidths[start] = Math.max(minColumnWidth, neighborWidth - newWidth);
-        insertColumnAt(insertIndex, newWidth);
+        columnWidths[index] = Math.max(minColumnWidth, neighborWidth - newWidth);
+        insertColumnAt(index + 1, newWidth);
 
-        hideColumnButtons();
+        hideColumnAddButton();
     });
 
     columnCombineButton.addEventListener('click', function () {
@@ -1364,6 +1485,23 @@
         setCellRowSpan(topLeftCell, maxRow - minRow + 1);
         topLeftCell.classList.remove('signatur-cell-selected');
 
+        // The merged cell keeps the first element found among the cells
+        // being merged (reading order) - so a cell's content is not lost
+        // just because it was not the top-left one.
+        if (! topLeftCell.dataset.element) {
+            for (var e = 0; e < rectCells.length; e++) {
+                if (rectCells[e] !== topLeftCell && rectCells[e].dataset.element) {
+                    try {
+                        applyElementToCell(topLeftCell, JSON.parse(rectCells[e].dataset.element));
+                    } catch (err) {
+                        // Corrupt data-element - leave the merged cell empty.
+                    }
+
+                    break;
+                }
+            }
+        }
+
         rectCells.forEach(function (cell) {
             if (cell !== topLeftCell && cell.parentNode) {
                 cell.parentNode.removeChild(cell);
@@ -1422,6 +1560,18 @@
             applyElementToCell(modalTargetCell, element);
         }
 
+        if ('row' === activeModalType && modalTargetRow) {
+            var rowPadding = {};
+
+            paddingSides.forEach(function (side) {
+                rowPadding[side] = clampPadding(document.getElementById('signatur_row_padding_' + side).value);
+            });
+
+            pushUndoSnapshot();
+            modalTargetRow.dataset.padding = JSON.stringify(rowPadding);
+            applyRowPadding(modalTargetRow);
+        }
+
         if ('width' === activeModalType) {
             pushUndoSnapshot();
 
@@ -1452,14 +1602,6 @@
 
             renderColgroup();
             renderResizeHandles();
-
-            paddingSides.forEach(function (side) {
-                var paddingInput = document.getElementById('signatur_padding_' + side);
-                var padding = clampPadding(paddingInput.value);
-                var property = 'padding' + side.charAt(0).toUpperCase() + side.slice(1);
-
-                fieldTable.style[property] = padding + 'px';
-            });
         }
 
         closeModal();
@@ -1479,13 +1621,6 @@
      * for the form submission and for each undo/redo step.
      */
     function serializeSettings() {
-        var padding = {};
-
-        paddingSides.forEach(function (side) {
-            var property = 'padding' + side.charAt(0).toUpperCase() + side.slice(1);
-            padding[side] = parseInt(fieldTable.style[property], 10) || 0;
-        });
-
         var rows = Array.prototype.map.call(fieldTbody.children, function (row) {
             return Array.prototype.map.call(row.children, function (cell) {
                 var span = [getCellColSpan(cell), getCellRowSpan(cell)];
@@ -1502,11 +1637,13 @@
             });
         });
 
+        var rowPadding = Array.prototype.map.call(fieldTbody.children, readRowPadding);
+
         return {
             width: parseInt(fieldTable.style.width, 10) || minWidth,
-            padding: padding,
             columns: columnWidths.slice(),
-            rows: rows
+            rows: rows,
+            row_padding: rowPadding
         };
     }
 
@@ -1523,18 +1660,16 @@
         rowAddWrap.style.width = width + 'px';
         rowGroup.style.width = (width + 200) + 'px';
 
-        paddingSides.forEach(function (side) {
-            var property = 'padding' + side.charAt(0).toUpperCase() + side.slice(1);
-            fieldTable.style[property] = settings.padding[side] + 'px';
-        });
-
         columnWidths = settings.columns.slice();
         renderColgroup();
 
         fieldTbody.innerHTML = '';
 
-        settings.rows.forEach(function (rowCells) {
+        settings.rows.forEach(function (rowCells, rowIndex) {
             var row = document.createElement('tr');
+            var rowPad = (settings.row_padding && settings.row_padding[rowIndex]) || ZERO_PADDING;
+
+            row.dataset.padding = JSON.stringify(rowPad);
 
             rowCells.forEach(function (cellSpan) {
                 var cell = document.createElement('td');
@@ -1548,6 +1683,7 @@
             fieldTbody.appendChild(row);
         });
 
+        applyAllRowPadding();
         rebuildRowActionsPanel();
 
         clearSelection();

@@ -154,6 +154,15 @@ function signatur_render_text_span($element)
 }
 
 /**
+ * Shorthand `padding:` declaration from a {top,right,bottom,left} array.
+ */
+function signatur_padding_css($padding)
+{
+    return 'padding:' . (int) $padding['top'] . 'px ' . (int) $padding['right'] . 'px '
+        . (int) $padding['bottom'] . 'px ' . (int) $padding['left'] . 'px';
+}
+
+/**
  * Build the signature's table markup straight from its stored settings -
  * this is the actual signature content, so unlike the admin editor's table
  * it has no header row, row numbers, or any other editor-only chrome.
@@ -163,7 +172,7 @@ function signatur_render_signature_table($settings)
     // TEMP: visible grid border while testing Outlook rendering. Remove the
     // "border:1px solid #cccccc;" here and the per-cell border below to go
     // back to a borderless signature.
-    $html  = '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse; table-layout:fixed; border:1px solid #cccccc; width:' . (int) $settings['width'] . 'px; padding-top:' . (int) $settings['padding']['top'] . 'px; padding-right:' . (int) $settings['padding']['right'] . 'px; padding-bottom:' . (int) $settings['padding']['bottom'] . 'px; padding-left:' . (int) $settings['padding']['left'] . 'px;">';
+    $html  = '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse; table-layout:fixed; border:1px solid #cccccc; width:' . (int) $settings['width'] . 'px;">';
     $html .= '<colgroup>';
 
     foreach ($settings['columns'] as $column_width) {
@@ -172,7 +181,11 @@ function signatur_render_signature_table($settings)
 
     $html .= '</colgroup><tbody>';
 
-    foreach ($settings['rows'] as $row_cells) {
+    foreach ($settings['rows'] as $row_index => $row_cells) {
+        $row_padding = isset($settings['row_padding'][$row_index])
+            ? $settings['row_padding'][$row_index]
+            : signatur_sanitize_padding(array());
+
         $html .= '<tr>';
 
         foreach ($row_cells as $cell_span) {
@@ -190,7 +203,7 @@ function signatur_render_signature_table($settings)
             }
 
             // TEMP: per-cell border, see the note at the top of this function.
-            $cell_style = 'padding:0; line-height:1.4; overflow-wrap:break-word; border:1px solid #cccccc;';
+            $cell_style = signatur_padding_css($row_padding) . '; line-height:1.4; overflow-wrap:break-word; border:1px solid #cccccc;';
 
             if ($element && 'text' === $element['type']) {
                 $cell_style .= ' ' . signatur_text_base_style($element) . ';';

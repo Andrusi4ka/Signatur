@@ -210,3 +210,7 @@ msgstr "Вертикальне вирівнювання"
 #: signatur.php
 msgid "pt"
 msgstr "pt"
+
+#: signatur.php
+msgid "Delete element"
+msgstr "Видалити елемент"

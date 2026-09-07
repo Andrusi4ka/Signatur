@@ -210,3 +210,7 @@ msgstr "Vertical alignment"
 #: signatur.php
 msgid "pt"
 msgstr "pt"
+
+#: signatur.php
+msgid "Delete element"
+msgstr "Delete element"
