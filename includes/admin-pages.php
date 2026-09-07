@@ -273,6 +273,12 @@ function signatur_render_add_signature_page()
                 </div>
 
                 <div style="display:flex; align-items:flex-start; margin-top:8px;">
+                    <div id="signatur_rows_numbers" class="signatur-editor-only" style="display:flex; flex-direction:column; margin-right:8px;">
+                        <div class="signatur-row-number signatur-row-number-spacer" aria-hidden="true"></div>
+                        <?php for ($i = 1, $signatur_rows_total = count($settings['rows']); $i <= $signatur_rows_total; $i++) : ?>
+                            <div class="signatur-row-number"><?php echo (int) $i; ?></div>
+                        <?php endfor; ?>
+                    </div>
                     <table id="signatur_field_table" class="widefat striped" style="width:<?php echo esc_attr($settings['width']); ?>px; margin-right:8px;">
                         <colgroup id="signatur_field_colgroup">
                             <?php foreach ($settings['columns'] as $column_width) : ?>
@@ -339,14 +345,6 @@ function signatur_render_add_signature_page()
                             <?php endforeach; ?>
                         </tbody>
                     </table>
-                    <div id="signatur_rows_actions" class="signatur-editor-only" style="display:flex; flex-direction:column;">
-                        <div class="signatur-row-actions signatur-row-actions-spacer" aria-hidden="true"></div>
-                        <?php for ($i = 0, $signatur_row_total = count($settings['rows']); $i < $signatur_row_total; $i++) : ?>
-                            <div class="signatur-row-actions">
-                                <?php signatur_render_row_actions_buttons(); ?>
-                            </div>
-                        <?php endfor; ?>
-                    </div>
                 </div>
 
                 <div id="signatur_row_add_wrap" class="signatur-editor-only" style="width:<?php echo esc_attr($settings['width']); ?>px; margin:8px 0 0; display:flex; justify-content:center;">
@@ -382,6 +380,10 @@ function signatur_render_add_signature_page()
         <button type="button" id="signatur_column_split" class="signatur-icon-button" title="<?php esc_attr_e('Split cell', 'signatur'); ?>" aria-label="<?php esc_attr_e('Split cell', 'signatur'); ?>">
             <img src="<?php echo esc_url(plugins_url('assets/icon-shift.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
         </button>
+
+        <div id="signatur_row_actions" class="signatur-editor-only">
+            <?php signatur_render_row_actions_buttons(); ?>
+        </div>
 
         <button type="button" id="signatur_column_add" class="signatur-icon-button" title="<?php esc_attr_e('Add column', 'signatur'); ?>" aria-label="<?php esc_attr_e('Add column', 'signatur'); ?>">
             <img src="<?php echo esc_url(plugins_url('assets/icon-plus-column.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
@@ -491,12 +493,6 @@ function signatur_render_add_signature_page()
             <p style="margin:12px 0 0;">
                 <input type="url" id="signatur_text_link" class="regular-text" style="width:100%;" placeholder="<?php echo esc_attr__('https://example.com', 'signatur'); ?>" aria-label="<?php echo esc_attr__('https://example.com', 'signatur'); ?>">
             </p>
-        </template>
-
-        <template id="signatur_row_actions_template">
-            <div class="signatur-row-actions">
-                <?php signatur_render_row_actions_buttons(); ?>
-            </div>
         </template>
     </div>
 

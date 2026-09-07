@@ -32,15 +32,8 @@
     height: 24px;
 }
 
-.signatur-row-actions {
-    height: 25px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.signatur-row-actions-spacer {
-    height: 22px;
+#signatur_row_actions {
+    gap: 6px;
 }
 
 #signatur_modal_overlay {
@@ -158,6 +151,29 @@
     color: #1d2327;
 }
 
+/* Left-side row numbers - height is synced to each <tr> by builder.js. */
+.signatur-row-number {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    min-height: 20px;
+    padding: 0 4px;
+    font-size: 11px;
+    color: #646970;
+    background: #f0f0f1;
+    border: 1px solid #dcdcde;
+    user-select: none;
+}
+
+.signatur-row-number-spacer {
+    min-height: 0;
+    background: transparent;
+    border: 0;
+}
+
+#signatur_row_actions,
 #signatur_cell_delete_element,
 #signatur_cell_copy_element,
 #signatur_cell_paste_element,

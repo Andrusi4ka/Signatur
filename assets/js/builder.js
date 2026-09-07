@@ -15,8 +15,10 @@
     var rowAddWrap = document.getElementById('signatur_row_add_wrap');
     var fieldTable = document.getElementById('signatur_field_table');
     var fieldTbody = document.getElementById('signatur_field_tbody');
-    var rowsActions = document.getElementById('signatur_rows_actions');
-    var rowActionsTemplate = document.getElementById('signatur_row_actions_template');
+    var rowsNumbers = document.getElementById('signatur_rows_numbers');
+    var rowActionsGroup = document.getElementById('signatur_row_actions');
+    var rowDeleteButton = rowActionsGroup.querySelector('.signatur-row-delete-button');
+    var activeRow = null;
     var colgroup = document.getElementById('signatur_field_colgroup');
     var headerRow = document.getElementById('signatur_field_header_row');
     var resizeHandles = document.getElementById('signatur_col_resize_handles');
@@ -201,6 +203,11 @@
     }
 
     function openModal(title, type) {
+        // Dismiss any floating buttons so they don't sit above the overlay.
+        hideRowActions();
+        hideColumnButtons();
+        hideColumnCombineButton();
+
         modalTitle.textContent = title;
         modalBody.innerHTML = '';
         activeModalType = type || null;
@@ -337,8 +344,7 @@
             }
 
             if ('row' === button.getAttribute('data-modal-type')) {
-                var group = button.closest('.signatur-row-actions');
-                modalTargetRow = group ? findRowForActionGroup(group) : null;
+                modalTargetRow = activeRow;
             }
 
             openModal(button.getAttribute('data-modal-title'), button.getAttribute('data-modal-type'));
@@ -738,49 +744,82 @@
         }
 
         applyAllRowStyles();
-        rebuildRowActionsPanel();
+        rebuildRowNumbers();
     }
 
-    /**
-     * Highlight the row a hovered edit/delete button belongs to.
-     * Delegated on the container instead of attached per-group, so it
-     * keeps working as groups are added/removed by
-     * rebuildRowActionsPanel() without ever needing to be re-wired.
-     */
-    function findRowForActionGroup(group) {
-        var groups = Array.prototype.slice.call(rowsActions.children).slice(1);
-        var index = groups.indexOf(group);
-
-        if (-1 === index) {
-            return null;
-        }
-
-        var visibleRows = Array.prototype.filter.call(fieldTbody.children, function (row) {
+    function nonEmptyRows() {
+        return Array.prototype.filter.call(fieldTbody.children, function (row) {
             return row.children.length > 0;
         });
-
-        return visibleRows[index] || null;
     }
 
     /**
-     * Rebuild the row-actions sidebar so it has exactly one group per
-     * row that currently has real cells of its own - used after any
-     * change to the row count or to which rows are empty.
+     * The <tr> a left-side row-number box belongs to (nth non-empty row).
      */
-    function rebuildRowActionsPanel() {
-        var nonEmptyRowCount = Array.prototype.filter.call(fieldTbody.children, function (row) {
-            return row.children.length > 0;
-        }).length;
-        var spacer = rowsActions.firstElementChild;
+    function rowForNumberBox(box) {
+        var boxes = Array.prototype.slice.call(rowsNumbers.children, 1);
+        var index = boxes.indexOf(box);
 
-        rowsActions.innerHTML = '';
-        rowsActions.appendChild(spacer);
+        return -1 === index ? null : (nonEmptyRows()[index] || null);
+    }
 
-        for (var i = 0; i < nonEmptyRowCount; i++) {
-            rowsActions.appendChild(rowActionsTemplate.content.cloneNode(true));
+    /**
+     * Show the edit/delete row buttons to the left of the row numbers, so
+     * they don't cover them. Toggled by clicking the row number.
+     */
+    function showRowActionsForRow(row) {
+        activeRow = row;
+        updateRowDeleteButtons();
+
+        var rect = row.getBoundingClientRect();
+
+        rowActionsGroup.style.display = 'inline-flex';
+
+        var anchorLeft = rowsNumbers.getBoundingClientRect().left;
+
+        rowActionsGroup.style.top = (rect.top + (rect.height - 32) / 2) + 'px';
+        rowActionsGroup.style.left = Math.max(2, anchorLeft - rowActionsGroup.offsetWidth - 6) + 'px';
+    }
+
+    function hideRowActions() {
+        activeRow = null;
+        rowActionsGroup.style.display = 'none';
+    }
+
+    /**
+     * One numbered box per non-empty row, matching the row-actions sidebar.
+     * Heights are then synced to the real <tr> heights so the numbers line
+     * up with their rows regardless of content / padding / border.
+     */
+    function rebuildRowNumbers() {
+        var count = nonEmptyRows().length;
+        var spacer = rowsNumbers.firstElementChild;
+
+        rowsNumbers.innerHTML = '';
+        rowsNumbers.appendChild(spacer);
+
+        for (var i = 1; i <= count; i++) {
+            var box = document.createElement('div');
+            box.className = 'signatur-row-number';
+            box.textContent = i;
+            rowsNumbers.appendChild(box);
         }
 
         updateRowDeleteButtons();
+        syncRowNumberHeights();
+    }
+
+    function syncRowNumberHeights() {
+        var rows = nonEmptyRows();
+        var boxes = Array.prototype.slice.call(rowsNumbers.children, 1);
+
+        rowsNumbers.firstElementChild.style.height = headerRow.getBoundingClientRect().height + 'px';
+
+        rows.forEach(function (row, i) {
+            if (boxes[i]) {
+                boxes[i].style.height = row.getBoundingClientRect().height + 'px';
+            }
+        });
     }
 
     /**
@@ -788,11 +827,7 @@
      * so every "Delete row" button is greyed out while that's true.
      */
     function updateRowDeleteButtons() {
-        var disableDelete = fieldTbody.children.length <= 1;
-
-        Array.prototype.forEach.call(rowsActions.querySelectorAll('.signatur-row-delete-button'), function (button) {
-            button.disabled = disableDelete;
-        });
+        rowDeleteButton.disabled = fieldTbody.children.length <= 1;
     }
 
     /**
@@ -862,49 +897,43 @@
         row.parentNode.removeChild(row);
 
         applyAllRowStyles();
-        rebuildRowActionsPanel();
-        rowHoverIndicator.style.display = 'none';
+        rebuildRowNumbers();
+        hideRowActions();
         clearSelection();
         hideColumnButtons();
         hideColumnCombineButton();
         renderResizeHandles();
     }
 
-    rowsActions.addEventListener('mouseover', function (e) {
-        var group = e.target.closest('.signatur-row-actions');
-        var row = group && findRowForActionGroup(group);
+    rowsNumbers.addEventListener('click', function (e) {
+        var box = e.target.closest('.signatur-row-number');
+
+        if (! box || box.classList.contains('signatur-row-number-spacer')) {
+            return;
+        }
+
+        var row = rowForNumberBox(box);
 
         if (! row) {
             return;
         }
 
-        var rowRect = row.getBoundingClientRect();
-        var tableRect = fieldTable.getBoundingClientRect();
+        var alreadyShown = 'none' !== rowActionsGroup.style.display && row === activeRow;
 
-        rowHoverIndicator.style.top = rowRect.top + 'px';
-        rowHoverIndicator.style.left = tableRect.left + 'px';
-        rowHoverIndicator.style.width = tableRect.width + 'px';
-        rowHoverIndicator.style.height = rowRect.height + 'px';
-        rowHoverIndicator.style.display = 'block';
-    });
+        clearSelection();
 
-    rowsActions.addEventListener('mouseout', function (e) {
-        if (e.target.closest('.signatur-row-actions')) {
-            rowHoverIndicator.style.display = 'none';
+        if (! alreadyShown) {
+            showRowActionsForRow(row);
         }
     });
 
-    rowsActions.addEventListener('click', function (e) {
-        var deleteButton = e.target.closest('.signatur-row-delete-button');
-        var group = deleteButton && deleteButton.closest('.signatur-row-actions');
-        var row = group && findRowForActionGroup(group);
-
-        if (! row || fieldTbody.children.length <= 1) {
+    rowActionsGroup.addEventListener('click', function (e) {
+        if (! e.target.closest('.signatur-row-delete-button') || ! activeRow || fieldTbody.children.length <= 1) {
             return;
         }
 
         pushUndoSnapshot();
-        removeRow(row);
+        removeRow(activeRow);
     });
 
     rowAddButton.addEventListener('click', function () {
@@ -923,14 +952,17 @@
 
         fieldTbody.appendChild(row);
         applyRowStyles(row);
-        rowsActions.appendChild(rowActionsTemplate.content.cloneNode(true));
-        updateRowDeleteButtons();
+        rebuildRowNumbers();
         renderResizeHandles();
     });
 
     renderColumnHeaders();
-    updateRowDeleteButtons();
     renderResizeHandles();
+    rebuildRowNumbers();
+
+    if (window.ResizeObserver) {
+        new ResizeObserver(syncRowNumberHeights).observe(fieldTbody);
+    }
 
     var resizing = null;
 
@@ -1298,6 +1330,7 @@
         highlightSelection([]);
         hideColumnCombineButton();
         hideColumnButtons();
+        hideRowActions();
     }
 
     fieldTbody.addEventListener('mousedown', function (e) {
@@ -1312,6 +1345,7 @@
         selectionAnchor = cell;
         hideColumnButtons();
         hideColumnCombineButton();
+        hideRowActions();
         highlightSelection([cell]);
     });
 
@@ -1374,6 +1408,7 @@
 
         pushUndoSnapshot();
         applyElementToCell(activeColumnCell, null);
+        syncRowNumberHeights();
         positionColumnButtons(activeColumnCell);
     });
 
@@ -1398,6 +1433,7 @@
 
         pushUndoSnapshot();
         applyElementToCell(activeColumnCell, elementClipboard);
+        syncRowNumberHeights();
         positionColumnButtons(activeColumnCell);
     });
 
@@ -1549,14 +1585,16 @@
             }
         });
 
-        rebuildRowActionsPanel();
+        rebuildRowNumbers();
 
         selectedCells = [];
         clearSelection();
     });
 
     document.addEventListener('click', function (e) {
-        if (! e.target.closest('#signatur_field_table')) {
+        if (! e.target.closest('#signatur_field_table')
+            && ! e.target.closest('#signatur_rows_numbers')
+            && ! e.target.closest('#signatur_row_actions')) {
             clearSelection();
         }
     });
@@ -1564,9 +1602,9 @@
     window.addEventListener('scroll', function () {
         hideColumnButtons();
         hideColumnCombineButton();
+        hideRowActions();
         rowAddIndicator.style.display = 'none';
         columnAddIndicator.style.display = 'none';
-        rowHoverIndicator.style.display = 'none';
     }, true);
 
     modalCancel.addEventListener('click', closeModal);
@@ -1599,6 +1637,7 @@
 
             pushUndoSnapshot();
             applyElementToCell(modalTargetCell, element);
+            syncRowNumberHeights();
         }
 
         if ('row' === activeModalType && modalTargetRow) {
@@ -1620,6 +1659,7 @@
             modalTargetRow.dataset.padding = JSON.stringify(rowPadding);
             modalTargetRow.dataset.border = JSON.stringify(rowBorder);
             applyRowStyles(modalTargetRow);
+            syncRowNumberHeights();
         }
 
         if ('width' === activeModalType) {
@@ -1738,7 +1778,7 @@
         });
 
         applyAllRowStyles();
-        rebuildRowActionsPanel();
+        rebuildRowNumbers();
 
         clearSelection();
         hideColumnButtons();
