@@ -214,3 +214,19 @@ msgstr "pt"
 #: signatur.php
 msgid "Delete element"
 msgstr "Delete element"
+
+#: signatur.php
+msgid "Copy element"
+msgstr "Copy element"
+
+#: signatur.php
+msgid "Paste element"
+msgstr "Paste element"
+
+#: signatur.php
+msgid "None"
+msgstr "None"
+
+#: signatur.php
+msgid "Both"
+msgstr "Both"

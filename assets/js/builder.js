@@ -145,6 +145,7 @@
     }
 
     var ZERO_PADDING = { top: 0, right: 0, bottom: 0, left: 0 };
+    var DEFAULT_ROW_BORDER = { style: 'solid', width: 1, color: '#000000', sides: 'none' };
 
     function readRowPadding(tr) {
         try {
@@ -161,22 +162,42 @@
         }
     }
 
+    function readRowBorder(tr) {
+        try {
+            var b = JSON.parse(tr.dataset.border || '');
+
+            return {
+                style: b.style || 'solid',
+                width: parseInt(b.width, 10) || 0,
+                color: b.color || '#000000',
+                sides: b.sides || 'none'
+            };
+        } catch (err) {
+            return { style: 'solid', width: 0, color: '#000000', sides: 'none' };
+        }
+    }
+
     /**
-     * Mirror a <tr>'s stored padding onto every <td> it owns - padding on
-     * <tr> is unreliable, so the row's setting lives on its cells (matches
-     * signatur_render_signature_table()).
+     * Mirror a <tr>'s stored padding + border onto every <td> it owns -
+     * styling <tr> directly is unreliable, so the row's settings live on
+     * its cells (matches signatur_render_signature_table()).
      */
-    function applyRowPadding(tr) {
+    function applyRowStyles(tr) {
         var p = readRowPadding(tr);
-        var value = p.top + 'px ' + p.right + 'px ' + p.bottom + 'px ' + p.left + 'px';
+        var b = readRowBorder(tr);
+        var padding = p.top + 'px ' + p.right + 'px ' + p.bottom + 'px ' + p.left + 'px';
+        var hasBorder = 'none' !== b.sides && b.width > 0;
+        var rule = hasBorder ? (b.width + 'px ' + b.style + ' ' + b.color) : '';
 
         Array.prototype.forEach.call(tr.children, function (td) {
-            td.style.padding = value;
+            td.style.padding = padding;
+            td.style.borderTop = (hasBorder && ('top' === b.sides || 'both' === b.sides)) ? rule : '';
+            td.style.borderBottom = (hasBorder && ('bottom' === b.sides || 'both' === b.sides)) ? rule : '';
         });
     }
 
-    function applyAllRowPadding() {
-        Array.prototype.forEach.call(fieldTbody.children, applyRowPadding);
+    function applyAllRowStyles() {
+        Array.prototype.forEach.call(fieldTbody.children, applyRowStyles);
     }
 
     function openModal(title, type) {
@@ -203,6 +224,13 @@
                     }
                 });
             });
+
+            var rowBorder = modalTargetRow ? readRowBorder(modalTargetRow) : DEFAULT_ROW_BORDER;
+
+            document.getElementById('signatur_row_border_style').value = rowBorder.style;
+            document.getElementById('signatur_row_border_width').value = rowBorder.width || '';
+            document.getElementById('signatur_row_border_color').value = rowBorder.color;
+            document.getElementById('signatur_row_border_sides').value = rowBorder.sides;
         }
 
         if ('text' === type) {
@@ -610,7 +638,7 @@
             }
         });
 
-        applyAllRowPadding();
+        applyAllRowStyles();
         renderColgroup();
         renderResizeHandles();
     }
@@ -709,7 +737,7 @@
             }
         }
 
-        applyAllRowPadding();
+        applyAllRowStyles();
         rebuildRowActionsPanel();
     }
 
@@ -833,7 +861,7 @@
 
         row.parentNode.removeChild(row);
 
-        applyAllRowPadding();
+        applyAllRowStyles();
         rebuildRowActionsPanel();
         rowHoverIndicator.style.display = 'none';
         clearSelection();
@@ -885,6 +913,7 @@
         var row = document.createElement('tr');
 
         row.dataset.padding = JSON.stringify(ZERO_PADDING);
+        row.dataset.border = JSON.stringify(DEFAULT_ROW_BORDER);
 
         columnWidths.forEach(function () {
             var cell = document.createElement('td');
@@ -893,7 +922,7 @@
         });
 
         fieldTbody.appendChild(row);
-        applyRowPadding(row);
+        applyRowStyles(row);
         rowsActions.appendChild(rowActionsTemplate.content.cloneNode(true));
         updateRowDeleteButtons();
         renderResizeHandles();
@@ -961,8 +990,11 @@
     window.addEventListener('resize', renderResizeHandles);
 
     var cellDeleteElementButton = document.getElementById('signatur_cell_delete_element');
+    var cellCopyElementButton = document.getElementById('signatur_cell_copy_element');
+    var cellPasteElementButton = document.getElementById('signatur_cell_paste_element');
     var cellEditElementButton = document.getElementById('signatur_cell_edit_element');
     var cellAddElementButton = document.getElementById('signatur_cell_add_element');
+    var elementClipboard = null;
     var columnAddButton = document.getElementById('signatur_column_add');
     var columnCombineButton = document.getElementById('signatur_column_combine');
     var columnRemoveButton = document.getElementById('signatur_column_remove');
@@ -1138,52 +1170,35 @@
     function positionColumnButtons(cell) {
         var buttonSize = 32;
         var gap = 4;
-        var showSplit = getCellColSpan(cell) > 1 || getCellRowSpan(cell) > 1;
-        // A cell holds at most one element, so it is either "add", or the
-        // "edit + delete" pair, never all three.
-        var showEdit = !! cell.dataset.element;
-        var showDelete = showEdit;
-        var showAdd = ! showEdit;
-        var buttonCount = (showEdit ? 1 : 0) + (showDelete ? 1 : 0) + (showAdd ? 1 : 0) + (showSplit ? 1 : 0);
-        var groupWidth = buttonSize * buttonCount + gap * (buttonCount - 1);
+        var hasElement = !! cell.dataset.element;
+        // A cell holds at most one element: either the "add" button, or the
+        // edit / delete / copy trio. "Paste" shows only on an empty cell
+        // once something has been copied.
+        var buttons = [
+            { el: cellEditElementButton, show: hasElement },
+            { el: cellDeleteElementButton, show: hasElement },
+            { el: cellCopyElementButton, show: hasElement },
+            { el: cellPasteElementButton, show: ! hasElement && null !== elementClipboard },
+            { el: cellAddElementButton, show: ! hasElement },
+            { el: columnSplitButton, show: getCellColSpan(cell) > 1 || getCellRowSpan(cell) > 1 }
+        ];
+
+        var visibleCount = buttons.filter(function (b) { return b.show; }).length;
+        var groupWidth = buttonSize * visibleCount + gap * (visibleCount - 1);
         var rect = cell.getBoundingClientRect();
         var top = rect.top + (rect.height - buttonSize) / 2;
         var left = rect.left + (rect.width - groupWidth) / 2;
 
-        if (showEdit) {
-            cellEditElementButton.style.top = top + 'px';
-            cellEditElementButton.style.left = left + 'px';
-            cellEditElementButton.style.display = 'inline-flex';
-            left += buttonSize + gap;
-        } else {
-            cellEditElementButton.style.display = 'none';
-        }
-
-        if (showDelete) {
-            cellDeleteElementButton.style.top = top + 'px';
-            cellDeleteElementButton.style.left = left + 'px';
-            cellDeleteElementButton.style.display = 'inline-flex';
-            left += buttonSize + gap;
-        } else {
-            cellDeleteElementButton.style.display = 'none';
-        }
-
-        if (showAdd) {
-            cellAddElementButton.style.top = top + 'px';
-            cellAddElementButton.style.left = left + 'px';
-            cellAddElementButton.style.display = 'inline-flex';
-            left += buttonSize + gap;
-        } else {
-            cellAddElementButton.style.display = 'none';
-        }
-
-        if (showSplit) {
-            columnSplitButton.style.top = top + 'px';
-            columnSplitButton.style.left = left + 'px';
-            columnSplitButton.style.display = 'inline-flex';
-        } else {
-            columnSplitButton.style.display = 'none';
-        }
+        buttons.forEach(function (b) {
+            if (b.show) {
+                b.el.style.top = top + 'px';
+                b.el.style.left = left + 'px';
+                b.el.style.display = 'inline-flex';
+                left += buttonSize + gap;
+            } else {
+                b.el.style.display = 'none';
+            }
+        });
     }
 
     function positionColumnCombineButton(cells) {
@@ -1209,6 +1224,8 @@
 
     function hideCellElementButtons() {
         cellDeleteElementButton.style.display = 'none';
+        cellCopyElementButton.style.display = 'none';
+        cellPasteElementButton.style.display = 'none';
         cellEditElementButton.style.display = 'none';
         cellAddElementButton.style.display = 'none';
     }
@@ -1357,6 +1374,30 @@
 
         pushUndoSnapshot();
         applyElementToCell(activeColumnCell, null);
+        positionColumnButtons(activeColumnCell);
+    });
+
+    cellCopyElementButton.addEventListener('click', function () {
+        if (! activeColumnCell || ! activeColumnCell.dataset.element) {
+            return;
+        }
+
+        try {
+            elementClipboard = JSON.parse(activeColumnCell.dataset.element);
+        } catch (err) {
+            elementClipboard = null;
+        }
+
+        positionColumnButtons(activeColumnCell);
+    });
+
+    cellPasteElementButton.addEventListener('click', function () {
+        if (! activeColumnCell || null === elementClipboard) {
+            return;
+        }
+
+        pushUndoSnapshot();
+        applyElementToCell(activeColumnCell, elementClipboard);
         positionColumnButtons(activeColumnCell);
     });
 
@@ -1567,9 +1608,18 @@
                 rowPadding[side] = clampPadding(document.getElementById('signatur_row_padding_' + side).value);
             });
 
+            var borderWidth = parseInt(document.getElementById('signatur_row_border_width').value, 10);
+            var rowBorder = {
+                style: document.getElementById('signatur_row_border_style').value,
+                width: Math.max(0, Math.min(20, isNaN(borderWidth) ? 0 : borderWidth)),
+                color: document.getElementById('signatur_row_border_color').value,
+                sides: document.getElementById('signatur_row_border_sides').value
+            };
+
             pushUndoSnapshot();
             modalTargetRow.dataset.padding = JSON.stringify(rowPadding);
-            applyRowPadding(modalTargetRow);
+            modalTargetRow.dataset.border = JSON.stringify(rowBorder);
+            applyRowStyles(modalTargetRow);
         }
 
         if ('width' === activeModalType) {
@@ -1638,12 +1688,14 @@
         });
 
         var rowPadding = Array.prototype.map.call(fieldTbody.children, readRowPadding);
+        var rowBorder = Array.prototype.map.call(fieldTbody.children, readRowBorder);
 
         return {
             width: parseInt(fieldTable.style.width, 10) || minWidth,
             columns: columnWidths.slice(),
             rows: rows,
-            row_padding: rowPadding
+            row_padding: rowPadding,
+            row_border: rowBorder
         };
     }
 
@@ -1668,8 +1720,10 @@
         settings.rows.forEach(function (rowCells, rowIndex) {
             var row = document.createElement('tr');
             var rowPad = (settings.row_padding && settings.row_padding[rowIndex]) || ZERO_PADDING;
+            var rowBord = (settings.row_border && settings.row_border[rowIndex]) || DEFAULT_ROW_BORDER;
 
             row.dataset.padding = JSON.stringify(rowPad);
+            row.dataset.border = JSON.stringify(rowBord);
 
             rowCells.forEach(function (cellSpan) {
                 var cell = document.createElement('td');
@@ -1683,7 +1737,7 @@
             fieldTbody.appendChild(row);
         });
 
-        applyAllRowPadding();
+        applyAllRowStyles();
         rebuildRowActionsPanel();
 
         clearSelection();

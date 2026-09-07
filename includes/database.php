@@ -87,9 +87,10 @@ function signatur_get_table_name()
  * semantics) - see signatur_validate_grid_rows() for the full occupancy
  * check.
  *
- * `row_padding` is a parallel array to `rows` giving each row its own
- * {top,right,bottom,left}, rendered onto that row's <td> cells (padding on
- * <tr> is unreliable everywhere).
+ * `row_padding` and `row_border` are parallel arrays to `rows`: each gives
+ * one row its own padding {top,right,bottom,left} / border
+ * {style,width,color,sides}, rendered onto that row's <td> cells (styling
+ * <tr> directly is unreliable everywhere).
  */
 function signatur_get_default_settings()
 {
@@ -98,6 +99,7 @@ function signatur_get_default_settings()
         'columns'     => array(300),
         'rows'        => array(array(array(1, 1))),
         'row_padding' => array(signatur_sanitize_padding(array())),
+        'row_border'  => array(signatur_sanitize_row_border(array())),
     );
 }
 
@@ -115,6 +117,37 @@ function signatur_sanitize_padding($raw)
     }
 
     return $padding;
+}
+
+/**
+ * Normalize a row border {style,width,color,sides}. `sides` is which edges
+ * to draw it on: none | top | bottom | both.
+ */
+function signatur_sanitize_row_border($raw)
+{
+    $raw = is_array($raw) ? $raw : array();
+
+    $style = isset($raw['style']) && in_array($raw['style'], array('solid', 'dashed', 'dotted'), true)
+        ? $raw['style']
+        : 'solid';
+
+    $width = isset($raw['width']) ? absint($raw['width']) : 1;
+    $width = min(20, $width);
+
+    $color = isset($raw['color']) && preg_match('/^#[0-9a-f]{6}$/i', $raw['color'])
+        ? strtolower($raw['color'])
+        : '#000000';
+
+    $sides = isset($raw['sides']) && in_array($raw['sides'], array('none', 'top', 'bottom', 'both'), true)
+        ? $raw['sides']
+        : 'none';
+
+    return array(
+        'style' => $style,
+        'width' => $width,
+        'color' => $color,
+        'sides' => $sides,
+    );
 }
 
 /**
@@ -345,11 +378,18 @@ function signatur_sanitize_settings($raw_json)
     $raw_row_padding = isset($decoded['row_padding']) && is_array($decoded['row_padding'])
         ? array_values($decoded['row_padding'])
         : array();
+    $raw_row_border  = isset($decoded['row_border']) && is_array($decoded['row_border'])
+        ? array_values($decoded['row_border'])
+        : array();
     $row_padding     = array();
+    $row_border      = array();
 
     foreach ($rows as $index => $row) {
         $row_padding[] = signatur_sanitize_padding(
             isset($raw_row_padding[$index]) ? $raw_row_padding[$index] : array()
+        );
+        $row_border[] = signatur_sanitize_row_border(
+            isset($raw_row_border[$index]) ? $raw_row_border[$index] : array()
         );
     }
 
@@ -359,6 +399,7 @@ function signatur_sanitize_settings($raw_json)
             'columns'     => $columns,
             'rows'        => $rows,
             'row_padding' => $row_padding,
+            'row_border'  => $row_border,
         )
     );
 }

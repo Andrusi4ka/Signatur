@@ -159,6 +159,8 @@
 }
 
 #signatur_cell_delete_element,
+#signatur_cell_copy_element,
+#signatur_cell_paste_element,
 #signatur_cell_edit_element,
 #signatur_cell_add_element,
 #signatur_column_add,

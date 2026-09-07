@@ -163,6 +163,30 @@ function signatur_padding_css($padding)
 }
 
 /**
+ * `border-top` / `border-bottom` declarations for a row border
+ * {style,width,color,sides}, or '' when it is off.
+ */
+function signatur_row_border_css($border)
+{
+    if ('none' === $border['sides'] || (int) $border['width'] < 1) {
+        return '';
+    }
+
+    $rule = (int) $border['width'] . 'px ' . $border['style'] . ' ' . $border['color'];
+    $css  = '';
+
+    if ('top' === $border['sides'] || 'both' === $border['sides']) {
+        $css .= ' border-top:' . $rule . ';';
+    }
+
+    if ('bottom' === $border['sides'] || 'both' === $border['sides']) {
+        $css .= ' border-bottom:' . $rule . ';';
+    }
+
+    return $css;
+}
+
+/**
  * Build the signature's table markup straight from its stored settings -
  * this is the actual signature content, so unlike the admin editor's table
  * it has no header row, row numbers, or any other editor-only chrome.
@@ -185,6 +209,9 @@ function signatur_render_signature_table($settings)
         $row_padding = isset($settings['row_padding'][$row_index])
             ? $settings['row_padding'][$row_index]
             : signatur_sanitize_padding(array());
+        $row_border  = isset($settings['row_border'][$row_index])
+            ? $settings['row_border'][$row_index]
+            : signatur_sanitize_row_border(array());
 
         $html .= '<tr>';
 
@@ -204,6 +231,7 @@ function signatur_render_signature_table($settings)
 
             // TEMP: per-cell border, see the note at the top of this function.
             $cell_style = signatur_padding_css($row_padding) . '; line-height:1.4; overflow-wrap:break-word; border:1px solid #cccccc;';
+            $cell_style .= signatur_row_border_css($row_border);
 
             if ($element && 'text' === $element['type']) {
                 $cell_style .= ' ' . signatur_text_base_style($element) . ';';
