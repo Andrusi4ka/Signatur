@@ -15,6 +15,8 @@ function signatur_handle_save_signature()
 
     check_admin_referer('signatur_save_signature');
 
+    global $wpdb;
+
     $title = isset($_POST['signatur_title'])
         ? sanitize_text_field(wp_unslash($_POST['signatur_title']))
         : '';
@@ -25,11 +27,10 @@ function signatur_handle_save_signature()
         isset($_POST['signatur_settings']) ? wp_unslash($_POST['signatur_settings']) : ''
     );
 
-    $id = isset($_POST['signatur_id']) ? absint($_POST['signatur_id']) : 0;
+    $id        = isset($_POST['signatur_id']) ? absint($_POST['signatur_id']) : 0;
+    $is_update = (bool) $id;
 
     if ('' !== $title) {
-        global $wpdb;
-
         if ($id) {
             $wpdb->update(
                 signatur_get_table_name(),
@@ -55,15 +56,22 @@ function signatur_handle_save_signature()
                 ),
                 array('%s', '%d', '%s', '%s', '%s')
             );
+
+            $id = (int) $wpdb->insert_id;
         }
     }
 
+    // Stay on the "Add/Edit signature" screen after saving instead of
+    // jumping back to the list - $id is known either way at this point
+    // (posted for an update, or just inserted for a new signature).
+    $redirect_url = admin_url('admin.php?page=signatur-add-signature');
+
+    if ($id) {
+        $redirect_url = add_query_arg('id', $id, $redirect_url);
+    }
+
     wp_safe_redirect(
-        add_query_arg(
-            $id ? 'signatur_updated' : 'signatur_saved',
-            '1',
-            admin_url('admin.php?page=signatur-all-signatures')
-        )
+        add_query_arg($is_update ? 'signatur_updated' : 'signatur_saved', '1', $redirect_url)
     );
     exit;
 }

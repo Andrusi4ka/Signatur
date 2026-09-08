@@ -99,8 +99,9 @@ function signatur_get_default_settings()
         'border'      => false,
         'columns'     => array(300),
         'rows'        => array(array(array(1, 1))),
-        'row_padding' => array(signatur_sanitize_padding(array())),
-        'row_border'  => array(signatur_sanitize_row_border(array())),
+        'row_padding'    => array(signatur_sanitize_padding(array())),
+        'row_border'     => array(signatur_sanitize_row_border(array())),
+        'row_background' => array(signatur_sanitize_row_background('')),
     );
 }
 
@@ -149,6 +150,24 @@ function signatur_sanitize_row_border($raw)
         'color' => $color,
         'sides' => $sides,
     );
+}
+
+/**
+ * Normalize a row's background colour - a hex string, or '' for no
+ * background (the row stays transparent / inherits whatever sits behind
+ * it).
+ */
+function signatur_sanitize_row_background($raw)
+{
+    if (is_array($raw) && isset($raw['color'])) {
+        $raw = $raw['color'];
+    }
+
+    if (is_string($raw) && preg_match('/^#[0-9a-f]{6}$/i', $raw)) {
+        return strtolower($raw);
+    }
+
+    return '';
 }
 
 /**
@@ -240,6 +259,7 @@ function signatur_get_default_image_element()
         'url'     => '',
         'width'   => 200,
         'align'   => 'left',
+        'valign'  => 'top',
         'link'    => '',
         'padding' => signatur_sanitize_padding(array()),
     );
@@ -270,6 +290,10 @@ function signatur_sanitize_image_element($raw)
         ? $raw['align']
         : $defaults['align'];
 
+    $valign = isset($raw['valign']) && in_array($raw['valign'], array('top', 'middle', 'bottom'), true)
+        ? $raw['valign']
+        : $defaults['valign'];
+
     $link = isset($raw['link']) ? esc_url_raw((string) $raw['link']) : '';
 
     $padding = signatur_sanitize_padding(isset($raw['padding']) ? $raw['padding'] : array());
@@ -279,6 +303,7 @@ function signatur_sanitize_image_element($raw)
         'url'     => $url,
         'width'   => $width,
         'align'   => $align,
+        'valign'  => $valign,
         'link'    => $link,
         'padding' => $padding,
     );
@@ -554,14 +579,18 @@ function signatur_sanitize_settings($raw_json)
         $rows      = array_fill(0, $row_count, array(array($column_count, 1)));
     }
 
-    $raw_row_padding = isset($decoded['row_padding']) && is_array($decoded['row_padding'])
+    $raw_row_padding    = isset($decoded['row_padding']) && is_array($decoded['row_padding'])
         ? array_values($decoded['row_padding'])
         : array();
-    $raw_row_border  = isset($decoded['row_border']) && is_array($decoded['row_border'])
+    $raw_row_border     = isset($decoded['row_border']) && is_array($decoded['row_border'])
         ? array_values($decoded['row_border'])
         : array();
-    $row_padding     = array();
-    $row_border      = array();
+    $raw_row_background = isset($decoded['row_background']) && is_array($decoded['row_background'])
+        ? array_values($decoded['row_background'])
+        : array();
+    $row_padding        = array();
+    $row_border         = array();
+    $row_background     = array();
 
     foreach ($rows as $index => $row) {
         $row_padding[] = signatur_sanitize_padding(
@@ -570,16 +599,20 @@ function signatur_sanitize_settings($raw_json)
         $row_border[] = signatur_sanitize_row_border(
             isset($raw_row_border[$index]) ? $raw_row_border[$index] : array()
         );
+        $row_background[] = signatur_sanitize_row_background(
+            isset($raw_row_background[$index]) ? $raw_row_background[$index] : ''
+        );
     }
 
     return wp_json_encode(
         array(
-            'width'       => $width,
-            'border'      => $border,
-            'columns'     => $columns,
-            'rows'        => $rows,
-            'row_padding' => $row_padding,
-            'row_border'  => $row_border,
+            'width'          => $width,
+            'border'         => $border,
+            'columns'        => $columns,
+            'rows'           => $rows,
+            'row_padding'    => $row_padding,
+            'row_border'     => $row_border,
+            'row_background' => $row_background,
         )
     );
 }

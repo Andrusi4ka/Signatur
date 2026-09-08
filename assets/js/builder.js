@@ -215,7 +215,7 @@
         if (el && 'image' === el.type && '' !== String(el.url || '').trim()) {
             cell.dataset.element = JSON.stringify(el);
             cell.style.textAlign = el.align;
-            cell.style.verticalAlign = 'top';
+            cell.style.verticalAlign = el.valign || 'top';
             cell.style.fontFamily = '';
             cell.style.fontSize = '';
             cell.style.color = '';
@@ -247,6 +247,7 @@
 
     var ZERO_PADDING = { top: 0, right: 0, bottom: 0, left: 0 };
     var DEFAULT_ROW_BORDER = { style: 'solid', width: 1, color: '#000000', sides: 'none' };
+    var DEFAULT_ROW_BACKGROUND = '';
 
     function readRowPadding(tr) {
         try {
@@ -278,14 +279,21 @@
         }
     }
 
+    function readRowBackground(tr) {
+        var color = tr.dataset.background || '';
+
+        return /^#[0-9a-f]{6}$/i.test(color) ? color : '';
+    }
+
     /**
-     * Mirror a <tr>'s stored padding + border onto every <td> it owns -
-     * styling <tr> directly is unreliable, so the row's settings live on
-     * its cells (matches signatur_render_signature_table()).
+     * Mirror a <tr>'s stored padding + border + background onto every <td>
+     * it owns - styling <tr> directly is unreliable, so the row's settings
+     * live on its cells (matches signatur_render_signature_table()).
      */
     function applyRowStyles(tr) {
         var p = readRowPadding(tr);
         var b = readRowBorder(tr);
+        var background = readRowBackground(tr);
         var padding = p.top + 'px ' + p.right + 'px ' + p.bottom + 'px ' + p.left + 'px';
         var hasBorder = 'none' !== b.sides && b.width > 0;
         var rule = hasBorder ? (b.width + 'px ' + b.style + ' ' + b.color) : '';
@@ -294,6 +302,7 @@
             td.style.padding = padding;
             td.style.borderTop = (hasBorder && ('top' === b.sides || 'both' === b.sides)) ? rule : '';
             td.style.borderBottom = (hasBorder && ('bottom' === b.sides || 'both' === b.sides)) ? rule : '';
+            td.style.backgroundColor = background;
         });
     }
 
@@ -337,6 +346,20 @@
             document.getElementById('signatur_row_border_width').value = rowBorder.width || '';
             document.getElementById('signatur_row_border_color').value = rowBorder.color;
             document.getElementById('signatur_row_border_sides').value = rowBorder.sides;
+
+            var rowBackground = modalTargetRow ? readRowBackground(modalTargetRow) : DEFAULT_ROW_BACKGROUND;
+            var backgroundInput = document.getElementById('signatur_row_background_color');
+
+            backgroundInput.value = rowBackground || '#ffffff';
+            backgroundInput.dataset.active = rowBackground ? '1' : '0';
+
+            document.getElementById('signatur_row_background_clear').addEventListener('click', function () {
+                backgroundInput.dataset.active = '0';
+            });
+
+            backgroundInput.addEventListener('input', function () {
+                backgroundInput.dataset.active = '1';
+            });
         }
 
         if ('text' === type) {
@@ -438,6 +461,7 @@
             var imageLinkInput = document.getElementById('signatur_image_link');
             var imageWidthInput = document.getElementById('signatur_image_width');
             var imageAlignSelect = document.getElementById('signatur_image_align');
+            var imageValignSelect = document.getElementById('signatur_image_valign');
             var imagePreview = document.getElementById('signatur_image_preview');
             var imageUploadButton = document.getElementById('signatur_image_upload');
             var imageFileInput = document.getElementById('signatur_image_file');
@@ -446,6 +470,7 @@
             imageLinkInput.value = imageStored && imageStored.link ? imageStored.link : '';
             imageWidthInput.value = imageStored ? imageStored.width : 200;
             imageAlignSelect.value = imageStored ? imageStored.align : 'left';
+            imageValignSelect.value = imageStored && imageStored.valign ? imageStored.valign : 'top';
 
             var imagePadding = imageStored && imageStored.padding ? imageStored.padding : ZERO_PADDING;
 
@@ -1328,6 +1353,7 @@
 
         row.dataset.padding = JSON.stringify(ZERO_PADDING);
         row.dataset.border = JSON.stringify(DEFAULT_ROW_BORDER);
+        row.dataset.background = DEFAULT_ROW_BACKGROUND;
 
         columnWidths.forEach(function () {
             var cell = document.createElement('td');
@@ -2057,6 +2083,7 @@
                 url: document.getElementById('signatur_image_url').value.trim(),
                 width: Math.max(1, Math.min(1000, imageWidth)),
                 align: document.getElementById('signatur_image_align').value,
+                valign: document.getElementById('signatur_image_valign').value,
                 link: document.getElementById('signatur_image_link').value.trim(),
                 padding: {}
             };
@@ -2118,9 +2145,13 @@
                 sides: document.getElementById('signatur_row_border_sides').value
             };
 
+            var backgroundInput = document.getElementById('signatur_row_background_color');
+            var rowBackground = '1' === backgroundInput.dataset.active ? backgroundInput.value : '';
+
             pushUndoSnapshot();
             modalTargetRow.dataset.padding = JSON.stringify(rowPadding);
             modalTargetRow.dataset.border = JSON.stringify(rowBorder);
+            modalTargetRow.dataset.background = rowBackground;
             applyRowStyles(modalTargetRow);
             syncRowNumberHeights();
         }
@@ -2194,6 +2225,7 @@
 
         var rowPadding = Array.prototype.map.call(fieldTbody.children, readRowPadding);
         var rowBorder = Array.prototype.map.call(fieldTbody.children, readRowBorder);
+        var rowBackground = Array.prototype.map.call(fieldTbody.children, readRowBackground);
 
         return {
             width: parseInt(fieldTable.style.width, 10) || minWidth,
@@ -2201,7 +2233,8 @@
             columns: columnWidths.slice(),
             rows: rows,
             row_padding: rowPadding,
-            row_border: rowBorder
+            row_border: rowBorder,
+            row_background: rowBackground
         };
     }
 
@@ -2228,9 +2261,11 @@
             var row = document.createElement('tr');
             var rowPad = (settings.row_padding && settings.row_padding[rowIndex]) || ZERO_PADDING;
             var rowBord = (settings.row_border && settings.row_border[rowIndex]) || DEFAULT_ROW_BORDER;
+            var rowBg = (settings.row_background && settings.row_background[rowIndex]) || DEFAULT_ROW_BACKGROUND;
 
             row.dataset.padding = JSON.stringify(rowPad);
             row.dataset.border = JSON.stringify(rowBord);
+            row.dataset.background = rowBg;
 
             rowCells.forEach(function (cellSpan) {
                 var cell = document.createElement('td');

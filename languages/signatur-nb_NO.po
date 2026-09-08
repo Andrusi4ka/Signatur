@@ -298,3 +298,11 @@ msgstr "Last opp ikon"
 #: signatur.php
 msgid "Height"
 msgstr "Høyde"
+
+#: signatur.php
+msgid "Background"
+msgstr "Bakgrunn"
+
+#: signatur.php
+msgid "Clear"
+msgstr "Tøm"

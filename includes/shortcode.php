@@ -291,12 +291,15 @@ function signatur_render_signature_table($settings)
     $occupied = array();
 
     foreach ($settings['rows'] as $row_index => $row_cells) {
-        $row_padding = isset($settings['row_padding'][$row_index])
+        $row_padding    = isset($settings['row_padding'][$row_index])
             ? $settings['row_padding'][$row_index]
             : signatur_sanitize_padding(array());
-        $row_border  = isset($settings['row_border'][$row_index])
+        $row_border     = isset($settings['row_border'][$row_index])
             ? $settings['row_border'][$row_index]
             : signatur_sanitize_row_border(array());
+        $row_background = isset($settings['row_background'][$row_index])
+            ? $settings['row_background'][$row_index]
+            : '';
 
         foreach ($occupied as $col => $rows_left) {
             $occupied[$col] = $rows_left - 1;
@@ -348,13 +351,17 @@ function signatur_render_signature_table($settings)
             $cell_style  = signatur_padding_css($row_padding) . '; line-height:1.4; overflow-wrap:break-word;' . $grid_border;
             $cell_style .= signatur_row_border_css($row_border);
 
+            if ('' !== $row_background) {
+                $cell_style .= ' background-color:' . $row_background . ';';
+            }
+
             if ($element && 'text' === $element['type']) {
                 $cell_style .= ' ' . signatur_text_base_style($element) . ';';
                 $cell_style .= ' text-align:' . $element['align'] . '; vertical-align:' . $element['valign'] . ';';
                 $html       .= '<td' . $attrs . ' style="' . esc_attr($cell_style) . '">' . signatur_render_text_span($element) . '</td>';
             } elseif ($element && 'image' === $element['type']) {
                 $available   = $span_width - (int) $row_padding['left'] - (int) $row_padding['right'] - $border_allowance;
-                $cell_style .= ' text-align:' . $element['align'] . '; vertical-align:top;';
+                $cell_style .= ' text-align:' . $element['align'] . '; vertical-align:' . $element['valign'] . ';';
                 $html       .= '<td' . $attrs . ' style="' . esc_attr($cell_style) . '">' . signatur_render_image_element($element, $available) . '</td>';
             } elseif ($element && 'social' === $element['type']) {
                 $cell_style .= ' text-align:' . $element['align'] . '; vertical-align:' . $element['valign'] . ';';

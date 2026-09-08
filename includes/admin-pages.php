@@ -251,6 +251,18 @@ function signatur_render_add_signature_page()
     <div class="wrap">
         <h1><?php echo esc_html($page_title); ?></h1>
 
+        <?php if (! empty($_GET['signatur_saved'])) : ?>
+            <div class="notice notice-success is-dismissible">
+                <p><?php esc_html_e('Signature saved.', 'signatur'); ?></p>
+            </div>
+        <?php endif; ?>
+
+        <?php if (! empty($_GET['signatur_updated'])) : ?>
+            <div class="notice notice-success is-dismissible">
+                <p><?php esc_html_e('Signature updated.', 'signatur'); ?></p>
+            </div>
+        <?php endif; ?>
+
         <form id="signatur_form" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
             <?php wp_nonce_field('signatur_save_signature'); ?>
             <input type="hidden" name="action" value="signatur_save_signature">
@@ -332,9 +344,16 @@ function signatur_render_add_signature_page()
                                 $row_border      = isset($settings['row_border'][$row_index])
                                     ? $settings['row_border'][$row_index]
                                     : signatur_sanitize_row_border(array());
+                                $row_background  = isset($settings['row_background'][$row_index])
+                                    ? $settings['row_background'][$row_index]
+                                    : '';
                                 $cell_style_base = signatur_padding_css($row_padding) . ';' . signatur_row_border_css($row_border);
+
+                                if ('' !== $row_background) {
+                                    $cell_style_base .= ' background-color:' . $row_background . ';';
+                                }
                                 ?>
-                                <tr data-padding="<?php echo esc_attr(wp_json_encode($row_padding)); ?>" data-border="<?php echo esc_attr(wp_json_encode($row_border)); ?>">
+                                <tr data-padding="<?php echo esc_attr(wp_json_encode($row_padding)); ?>" data-border="<?php echo esc_attr(wp_json_encode($row_border)); ?>" data-background="<?php echo esc_attr($row_background); ?>">
                                     <?php foreach ($row_cells as $cell_span) : ?>
                                         <?php
                                         $colspan = $cell_span[0];
@@ -355,7 +374,7 @@ function signatur_render_add_signature_page()
                                             $style .= ' text-align:' . $element['align'] . '; vertical-align:' . $element['valign'] . ';';
                                             $attrs .= ' data-element="' . esc_attr(wp_json_encode($element)) . '"';
                                         } elseif ($element && 'image' === $element['type']) {
-                                            $style .= ' text-align:' . $element['align'] . '; vertical-align:top;';
+                                            $style .= ' text-align:' . $element['align'] . '; vertical-align:' . $element['valign'] . ';';
                                             $attrs .= ' data-element="' . esc_attr(wp_json_encode($element)) . '"';
                                         } elseif ($element && 'social' === $element['type']) {
                                             $style .= ' text-align:' . $element['align'] . '; vertical-align:' . $element['valign'] . ';';
@@ -492,6 +511,12 @@ function signatur_render_add_signature_page()
                     <option value="both"><?php esc_html_e('Both', 'signatur'); ?></option>
                 </select>
             </p>
+
+            <p style="display:flex; align-items:center; gap:6px; margin:12px 0 0;">
+                <span style="font-weight:600;"><?php esc_html_e('Background', 'signatur'); ?></span>
+                <input type="color" id="signatur_row_background_color" value="#ffffff">
+                <button type="button" id="signatur_row_background_clear" class="button"><?php esc_html_e('Clear', 'signatur'); ?></button>
+            </p>
         </template>
 
         <template id="signatur_modal_template_element">
@@ -562,6 +587,12 @@ function signatur_render_add_signature_page()
                     <option value="left"><?php esc_html_e('Left', 'signatur'); ?></option>
                     <option value="center"><?php esc_html_e('Center', 'signatur'); ?></option>
                     <option value="right"><?php esc_html_e('Right', 'signatur'); ?></option>
+                </select>
+
+                <select id="signatur_image_valign" aria-label="<?php esc_attr_e('Vertical alignment', 'signatur'); ?>">
+                    <option value="top"><?php esc_html_e('Top', 'signatur'); ?></option>
+                    <option value="middle"><?php esc_html_e('Middle', 'signatur'); ?></option>
+                    <option value="bottom"><?php esc_html_e('Bottom', 'signatur'); ?></option>
                 </select>
             </div>
 

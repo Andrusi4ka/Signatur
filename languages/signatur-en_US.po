@@ -298,3 +298,11 @@ msgstr "Upload icon"
 #: signatur.php
 msgid "Height"
 msgstr "Height"
+
+#: signatur.php
+msgid "Background"
+msgstr "Background"
+
+#: signatur.php
+msgid "Clear"
+msgstr "Clear"

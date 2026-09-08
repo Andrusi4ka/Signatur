@@ -145,8 +145,11 @@
     user-select: none;
 }
 
+/* !important so the selection highlight still shows over a custom row
+   background, which is applied as an inline style (higher specificity
+   than this class alone would otherwise beat). */
 #signatur_field_table td.signatur-cell-selected {
-    background: #d5e5f8;
+    background: #d5e5f8 !important;
 }
 
 /* Border on a <tr> itself is not rendered by browsers in a collapsed-border

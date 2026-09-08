@@ -298,3 +298,11 @@ msgstr "Загрузить иконку"
 #: signatur.php
 msgid "Height"
 msgstr "Высота"
+
+#: signatur.php
+msgid "Background"
+msgstr "Фон"
+
+#: signatur.php
+msgid "Clear"
+msgstr "Очистить"
