@@ -21,8 +21,6 @@ function signatur_handle_save_signature()
         ? sanitize_text_field(wp_unslash($_POST['signatur_title']))
         : '';
 
-    $show_title = isset($_POST['signatur_show_title']) ? 1 : 0;
-
     $settings = signatur_sanitize_settings(
         isset($_POST['signatur_settings']) ? wp_unslash($_POST['signatur_settings']) : ''
     );
@@ -36,12 +34,11 @@ function signatur_handle_save_signature()
                 signatur_get_table_name(),
                 array(
                     'title'      => $title,
-                    'show_title' => $show_title,
                     'settings'   => $settings,
                     'updated_at' => current_time('mysql'),
                 ),
                 array('id' => $id),
-                array('%s', '%d', '%s', '%s'),
+                array('%s', '%s', '%s'),
                 array('%d')
             );
         } else {
@@ -49,12 +46,11 @@ function signatur_handle_save_signature()
                 signatur_get_table_name(),
                 array(
                     'title'      => $title,
-                    'show_title' => $show_title,
                     'settings'   => $settings,
                     'created_at' => current_time('mysql'),
                     'updated_at' => current_time('mysql'),
                 ),
-                array('%s', '%d', '%s', '%s', '%s')
+                array('%s', '%s', '%s', '%s')
             );
 
             $id = (int) $wpdb->insert_id;

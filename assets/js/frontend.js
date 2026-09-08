@@ -69,15 +69,13 @@
             return;
         }
 
-        var original = button.textContent;
-        var copiedLabel = button.getAttribute('data-label-copied') || original;
-
         copySignature(target, function () {
-            button.textContent = copiedLabel;
+            // Visual-only feedback (dimmed + outlined via .is-copied in
+            // frontend.css) - the label text never changes, so the button
+            // doesn't resize/jump when copying succeeds.
             button.classList.add('is-copied');
 
             window.setTimeout(function () {
-                button.textContent = original;
                 button.classList.remove('is-copied');
             }, 2000);
         });

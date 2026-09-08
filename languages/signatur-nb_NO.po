@@ -80,10 +80,6 @@ msgid "https://example.com"
 msgstr "Lenke (valgfritt), f.eks. https://example.com"
 
 #: signatur.php
-msgid "Show on site"
-msgstr "Vis på nettstedet"
-
-#: signatur.php
 msgid "Edit row"
 msgstr "Rediger rad"
 
@@ -190,10 +186,6 @@ msgstr "Rediger tekst"
 #: signatur.php
 msgid "Copy signature"
 msgstr "Kopier signatur"
-
-#: signatur.php
-msgid "Copied"
-msgstr "Kopiert"
 
 #: signatur.php
 msgid "Middle"
@@ -306,3 +298,39 @@ msgstr "Bakgrunn"
 #: signatur.php
 msgid "Clear"
 msgstr "Tøm"
+
+#: signatur.php
+msgid "Preview: how the copy button looks on the front end"
+msgstr "Forhåndsvisning: slik ser kopier-knappen ut på nettsiden"
+
+#: signatur.php
+msgid "Add title"
+msgstr "Legg til tittel"
+
+#: signatur.php
+msgid "Edit copy button"
+msgstr "Rediger kopier-knapp"
+
+#: signatur.php
+msgid "Text size"
+msgstr "Tekststørrelse"
+
+#: signatur.php
+msgid "Radius"
+msgstr "Radius"
+
+#: signatur.php
+msgid "Text transform"
+msgstr "Tekstformat"
+
+#: signatur.php
+msgid "Uppercase"
+msgstr "Store bokstaver"
+
+#: signatur.php
+msgid "Lowercase"
+msgstr "Små bokstaver"
+
+#: signatur.php
+msgid "Capitalize"
+msgstr "Stor forbokstav"

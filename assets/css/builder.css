@@ -104,15 +104,13 @@
     color: #fff;
 }
 
-#signatur_text_color {
-    width: 40px;
-    height: 30px;
-    padding: 0;
-    border: 1px solid #8c8f94;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
+/* One consistent medium height across every control used in the modals -
+   text inputs, colour pickers, selects and buttons otherwise each render at
+   their own native height (a <select> and an <input type="color"> in
+   particular default to noticeably taller than a text input), which reads
+   as visibly uneven side by side. 32px matches .signatur-icon-button, the
+   height already established elsewhere in the builder's own UI. */
+.wrap input[type="color"],
 .wrap input[type="date"],
 .wrap input[type="datetime-local"],
 .wrap input[type="datetime"],
@@ -125,10 +123,28 @@
 .wrap input[type="text"],
 .wrap input[type="time"],
 .wrap input[type="url"],
-.wrap input[type="week"] {
-    min-height: 30px;
-    height: 30px;
-    line-height: 28px;
+.wrap input[type="week"],
+.wrap select,
+#signatur_modal_body .button,
+#signatur_modal_footer .button {
+    box-sizing: border-box;
+    height: 32px;
+    min-height: 32px;
+    line-height: 30px;
+    border-radius: 4px;
+}
+
+.wrap select {
+    padding: 0 6px;
+    border-color: #8c8f94;
+    cursor: pointer;
+}
+
+.wrap input[type="color"] {
+    width: 40px;
+    padding: 2px;
+    border: 1px solid #8c8f94;
+    cursor: pointer;
 }
 
 #signatur_field_table {

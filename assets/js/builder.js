@@ -10,6 +10,10 @@
     var textTemplate = document.getElementById('signatur_modal_template_text');
     var imageTemplate = document.getElementById('signatur_modal_template_image');
     var socialTemplate = document.getElementById('signatur_modal_template_social');
+    var copyButtonTemplate = document.getElementById('signatur_modal_template_copy_button');
+    var copyButtonWrap = document.getElementById('signatur_copy_button_wrap');
+    var copyButtonPreview = document.getElementById('signatur_copy_button_preview');
+    var copyButtonSection = document.getElementById('signatur_copy_button_section');
     var modalTargetCell = null;
     var modalTargetRow = null;
     var rowGroup = document.getElementById('signatur_row_group');
@@ -52,6 +56,43 @@
         if (isNaN(padding) || padding < 0) {
             return 0;
         }
+
+        return padding;
+    }
+
+    /**
+     * Populate a group of 4 padding number inputs (ids `<prefix>_top`,
+     * `<prefix>_right`, `<prefix>_bottom`, `<prefix>_left`) from a stored
+     * {top,right,bottom,left} object, and wire each to clamp its own value
+     * on blur. Shared by every modal with its own padding group (row,
+     * image, social, copy button).
+     */
+    function populatePaddingInputs(prefix, padding) {
+        var source = padding || ZERO_PADDING;
+
+        paddingSides.forEach(function (side) {
+            var input = document.getElementById(prefix + '_' + side);
+            input.value = source[side] || '';
+
+            input.addEventListener('blur', function () {
+                if ('' !== input.value) {
+                    input.value = clampPadding(input.value);
+                }
+            });
+        });
+    }
+
+    /**
+     * The inverse of populatePaddingInputs() - read a group of 4 padding
+     * number inputs back into a {top,right,bottom,left} object, clamping
+     * each value.
+     */
+    function readPaddingInputs(prefix) {
+        var padding = {};
+
+        paddingSides.forEach(function (side) {
+            padding[side] = clampPadding(document.getElementById(prefix + '_' + side).value);
+        });
 
         return padding;
     }
@@ -310,6 +351,65 @@
         Array.prototype.forEach.call(fieldTbody.children, applyRowStyles);
     }
 
+    // Mirrors signatur_get_default_copy_button() in includes/database.php.
+    var DEFAULT_COPY_BUTTON = {
+        text: 'Copy signature',
+        align: 'left',
+        bg_color: '#f6f7f7',
+        text_color: '#1d2327',
+        font_size: 14,
+        padding: { top: 8, right: 16, bottom: 8, left: 16 },
+        border_width: 1,
+        border_style: 'solid',
+        border_color: '#8c8f94',
+        border_radius: 4,
+        text_transform: 'none'
+    };
+
+    function readCopyButtonSettings() {
+        try {
+            var stored = JSON.parse(copyButtonWrap.dataset.copyButton || '');
+
+            return {
+                text: stored.text || DEFAULT_COPY_BUTTON.text,
+                align: stored.align || DEFAULT_COPY_BUTTON.align,
+                bg_color: stored.bg_color || DEFAULT_COPY_BUTTON.bg_color,
+                text_color: stored.text_color || DEFAULT_COPY_BUTTON.text_color,
+                font_size: parseInt(stored.font_size, 10) || DEFAULT_COPY_BUTTON.font_size,
+                padding: stored.padding || DEFAULT_COPY_BUTTON.padding,
+                border_width: isNaN(parseInt(stored.border_width, 10)) ? DEFAULT_COPY_BUTTON.border_width : parseInt(stored.border_width, 10),
+                border_style: stored.border_style || DEFAULT_COPY_BUTTON.border_style,
+                border_color: stored.border_color || DEFAULT_COPY_BUTTON.border_color,
+                border_radius: isNaN(parseInt(stored.border_radius, 10)) ? DEFAULT_COPY_BUTTON.border_radius : parseInt(stored.border_radius, 10),
+                text_transform: stored.text_transform || DEFAULT_COPY_BUTTON.text_transform
+            };
+        } catch (err) {
+            return JSON.parse(JSON.stringify(DEFAULT_COPY_BUTTON));
+        }
+    }
+
+    /**
+     * Apply the copy button's stored appearance to its admin-preview element
+     * - mirrors PHP signatur_copy_button_style() so the preview matches the
+     * real front-end button exactly. `align` is deliberately not applied
+     * here - the preview always sits centered in the editor, only the real
+     * front-end button (signatur_render_shortcode()) honours it.
+     */
+    function applyCopyButtonPreview(settings) {
+        var p = settings.padding || ZERO_PADDING;
+
+        copyButtonPreview.textContent = settings.text;
+        copyButtonPreview.style.padding = (p.top || 0) + 'px ' + (p.right || 0) + 'px ' + (p.bottom || 0) + 'px ' + (p.left || 0) + 'px';
+        copyButtonPreview.style.fontSize = settings.font_size + 'px';
+        copyButtonPreview.style.color = settings.text_color;
+        copyButtonPreview.style.backgroundColor = settings.bg_color;
+        copyButtonPreview.style.borderRadius = settings.border_radius + 'px';
+        copyButtonPreview.style.border = settings.border_width + 'px ' + settings.border_style + ' ' + settings.border_color;
+        copyButtonPreview.style.textTransform = settings.text_transform;
+    }
+
+    var copyButtonSettings = readCopyButtonSettings();
+
     function openModal(title, type) {
         // Dismiss any floating buttons so they don't sit above the overlay.
         hideRowActions();
@@ -327,18 +427,7 @@
         if ('row' === type) {
             modalBody.appendChild(rowTemplate.content.cloneNode(true));
 
-            var rowPadding = modalTargetRow ? readRowPadding(modalTargetRow) : ZERO_PADDING;
-
-            paddingSides.forEach(function (side) {
-                var paddingInput = document.getElementById('signatur_row_padding_' + side);
-                paddingInput.value = rowPadding[side] || '';
-
-                paddingInput.addEventListener('blur', function () {
-                    if ('' !== paddingInput.value) {
-                        paddingInput.value = clampPadding(paddingInput.value);
-                    }
-                });
-            });
+            populatePaddingInputs('signatur_row_padding', modalTargetRow ? readRowPadding(modalTargetRow) : ZERO_PADDING);
 
             var rowBorder = modalTargetRow ? readRowBorder(modalTargetRow) : DEFAULT_ROW_BORDER;
 
@@ -472,18 +561,7 @@
             imageAlignSelect.value = imageStored ? imageStored.align : 'left';
             imageValignSelect.value = imageStored && imageStored.valign ? imageStored.valign : 'top';
 
-            var imagePadding = imageStored && imageStored.padding ? imageStored.padding : ZERO_PADDING;
-
-            paddingSides.forEach(function (side) {
-                var imagePaddingInput = document.getElementById('signatur_image_padding_' + side);
-                imagePaddingInput.value = imagePadding[side] || '';
-
-                imagePaddingInput.addEventListener('blur', function () {
-                    if ('' !== imagePaddingInput.value) {
-                        imagePaddingInput.value = clampPadding(imagePaddingInput.value);
-                    }
-                });
-            });
+            populatePaddingInputs('signatur_image_padding', imageStored && imageStored.padding ? imageStored.padding : ZERO_PADDING);
 
             function updateImagePreview() {
                 var url = imageUrlInput.value.trim();
@@ -609,18 +687,7 @@
             socialAlignSelect.value = socialStored ? socialStored.align : 'left';
             socialValignSelect.value = socialStored && socialStored.valign ? socialStored.valign : 'top';
 
-            var socialPadding = socialStored && socialStored.padding ? socialStored.padding : ZERO_PADDING;
-
-            paddingSides.forEach(function (side) {
-                var socialPaddingInput = document.getElementById('signatur_social_padding_' + side);
-                socialPaddingInput.value = socialPadding[side] || '';
-
-                socialPaddingInput.addEventListener('blur', function () {
-                    if ('' !== socialPaddingInput.value) {
-                        socialPaddingInput.value = clampPadding(socialPaddingInput.value);
-                    }
-                });
-            });
+            populatePaddingInputs('signatur_social_padding', socialStored && socialStored.padding ? socialStored.padding : ZERO_PADDING);
 
             /**
              * The icon that will actually be used - the uploaded custom
@@ -697,6 +764,25 @@
             });
 
             document.getElementById('signatur_border_toggle').checked = signatureBorder;
+        }
+
+        if ('copy_button' === type) {
+            modalBody.appendChild(copyButtonTemplate.content.cloneNode(true));
+
+            var cb = readCopyButtonSettings();
+
+            document.getElementById('signatur_copy_button_text').value = cb.text;
+            document.getElementById('signatur_copy_button_bg_color').value = cb.bg_color;
+            document.getElementById('signatur_copy_button_text_color').value = cb.text_color;
+            document.getElementById('signatur_copy_button_align').value = cb.align;
+            document.getElementById('signatur_copy_button_font_size').value = cb.font_size;
+            document.getElementById('signatur_copy_button_border_radius').value = cb.border_radius;
+            document.getElementById('signatur_copy_button_border_style').value = cb.border_style;
+            document.getElementById('signatur_copy_button_border_width').value = cb.border_width;
+            document.getElementById('signatur_copy_button_border_color').value = cb.border_color;
+            document.getElementById('signatur_copy_button_text_transform').value = cb.text_transform;
+
+            populatePaddingInputs('signatur_copy_button_padding', cb.padding);
         }
 
         modalOverlay.style.display = 'flex';
@@ -1217,6 +1303,29 @@
 
         updateRowDeleteButtons();
         syncRowNumberHeights();
+        syncGutterOffset();
+    }
+
+    /**
+     * The row-number gutter to the left of the table (#signatur_rows_numbers)
+     * has no equivalent in the toolbar row above the table, the "add row"
+     * button below it, or the copy-button preview further down - all three
+     * are width-matched to the table itself but, without this, start flush
+     * at the left edge of the whole editor instead of lining up with the
+     * table (which sits shifted right by the gutter's width). Its width can
+     * change (e.g. 1 vs 3-digit row numbers), so it is measured rather than
+     * assumed.
+     */
+    function syncGutterOffset() {
+        var offset = rowsNumbers.offsetWidth
+            + (parseFloat(window.getComputedStyle(rowsNumbers).marginRight) || 0);
+
+        rowTopWrap.style.marginLeft = offset + 'px';
+        rowAddWrap.style.marginLeft = offset + 'px';
+
+        if (copyButtonSection) {
+            copyButtonSection.style.marginLeft = offset + 'px';
+        }
     }
 
     function syncRowNumberHeights() {
@@ -2085,13 +2194,8 @@
                 align: document.getElementById('signatur_image_align').value,
                 valign: document.getElementById('signatur_image_valign').value,
                 link: document.getElementById('signatur_image_link').value.trim(),
-                padding: {}
+                padding: readPaddingInputs('signatur_image_padding')
             };
-
-            paddingSides.forEach(function (side) {
-                var imagePaddingInput = document.getElementById('signatur_image_padding_' + side);
-                imageElement.padding[side] = clampPadding(imagePaddingInput.value);
-            });
 
             // An empty URL clears the cell (handled inside applyElementToCell),
             // mirroring how clearing a text element's text removes it.
@@ -2115,13 +2219,8 @@
                 height: Math.max(8, Math.min(200, socialHeight)),
                 align: document.getElementById('signatur_social_align').value,
                 valign: document.getElementById('signatur_social_valign').value,
-                padding: {}
+                padding: readPaddingInputs('signatur_social_padding')
             };
-
-            paddingSides.forEach(function (side) {
-                var socialPaddingInput = document.getElementById('signatur_social_padding_' + side);
-                socialElement.padding[side] = clampPadding(socialPaddingInput.value);
-            });
 
             // An empty link clears the cell (handled inside applyElementToCell) -
             // the link is required, mirroring how an empty URL clears an image.
@@ -2131,11 +2230,7 @@
         }
 
         if ('row' === activeModalType && modalTargetRow) {
-            var rowPadding = {};
-
-            paddingSides.forEach(function (side) {
-                rowPadding[side] = clampPadding(document.getElementById('signatur_row_padding_' + side).value);
-            });
+            var rowPadding = readPaddingInputs('signatur_row_padding');
 
             var borderWidth = parseInt(document.getElementById('signatur_row_border_width').value, 10);
             var rowBorder = {
@@ -2190,6 +2285,34 @@
             renderResizeHandles();
         }
 
+        if ('copy_button' === activeModalType) {
+            pushUndoSnapshot();
+
+            var cbFontSize = parseInt(document.getElementById('signatur_copy_button_font_size').value, 10);
+            var cbBorderWidth = parseInt(document.getElementById('signatur_copy_button_border_width').value, 10);
+            var cbBorderRadius = parseInt(document.getElementById('signatur_copy_button_border_radius').value, 10);
+            var cbPadding = readPaddingInputs('signatur_copy_button_padding');
+
+            var cbText = document.getElementById('signatur_copy_button_text').value.trim();
+
+            copyButtonSettings = {
+                text: '' === cbText ? DEFAULT_COPY_BUTTON.text : cbText,
+                align: document.getElementById('signatur_copy_button_align').value,
+                bg_color: document.getElementById('signatur_copy_button_bg_color').value,
+                text_color: document.getElementById('signatur_copy_button_text_color').value,
+                font_size: Math.max(8, Math.min(72, isNaN(cbFontSize) ? DEFAULT_COPY_BUTTON.font_size : cbFontSize)),
+                padding: cbPadding,
+                border_width: Math.max(0, Math.min(20, isNaN(cbBorderWidth) ? 0 : cbBorderWidth)),
+                border_style: document.getElementById('signatur_copy_button_border_style').value,
+                border_color: document.getElementById('signatur_copy_button_border_color').value,
+                border_radius: Math.max(0, Math.min(100, isNaN(cbBorderRadius) ? 0 : cbBorderRadius)),
+                text_transform: document.getElementById('signatur_copy_button_text_transform').value
+            };
+
+            copyButtonWrap.dataset.copyButton = JSON.stringify(copyButtonSettings);
+            applyCopyButtonPreview(copyButtonSettings);
+        }
+
         closeModal();
     });
 
@@ -2234,7 +2357,8 @@
             rows: rows,
             row_padding: rowPadding,
             row_border: rowBorder,
-            row_background: rowBackground
+            row_background: rowBackground,
+            copy_button: copyButtonSettings
         };
     }
 
@@ -2281,6 +2405,10 @@
 
         applyAllRowStyles();
         rebuildRowNumbers();
+
+        copyButtonSettings = settings.copy_button || JSON.parse(JSON.stringify(DEFAULT_COPY_BUTTON));
+        copyButtonWrap.dataset.copyButton = JSON.stringify(copyButtonSettings);
+        applyCopyButtonPreview(copyButtonSettings);
 
         clearSelection();
         hideColumnButtons();

@@ -80,10 +80,6 @@ msgid "https://example.com"
 msgstr "Ссылка (необязательно), напр. https://example.com"
 
 #: signatur.php
-msgid "Show on site"
-msgstr "Показывать на сайте"
-
-#: signatur.php
 msgid "Edit row"
 msgstr "Редактировать строку"
 
@@ -190,10 +186,6 @@ msgstr "Редактировать текст"
 #: signatur.php
 msgid "Copy signature"
 msgstr "Копировать подпись"
-
-#: signatur.php
-msgid "Copied"
-msgstr "Скопировано"
 
 #: signatur.php
 msgid "Middle"
@@ -306,3 +298,39 @@ msgstr "Фон"
 #: signatur.php
 msgid "Clear"
 msgstr "Очистить"
+
+#: signatur.php
+msgid "Preview: how the copy button looks on the front end"
+msgstr "Превью: как выглядит кнопка копирования на сайте"
+
+#: signatur.php
+msgid "Add title"
+msgstr "Добавить название"
+
+#: signatur.php
+msgid "Edit copy button"
+msgstr "Редактировать кнопку копирования"
+
+#: signatur.php
+msgid "Text size"
+msgstr "Размер текста"
+
+#: signatur.php
+msgid "Radius"
+msgstr "Радиус"
+
+#: signatur.php
+msgid "Text transform"
+msgstr "Регистр текста"
+
+#: signatur.php
+msgid "Uppercase"
+msgstr "ЗАГЛАВНЫЕ БУКВЫ"
+
+#: signatur.php
+msgid "Lowercase"
+msgstr "строчные буквы"
+
+#: signatur.php
+msgid "Capitalize"
+msgstr "С заглавной буквы"

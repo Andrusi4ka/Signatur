@@ -80,10 +80,6 @@ msgid "https://example.com"
 msgstr "https://example.com"
 
 #: signatur.php
-msgid "Show on site"
-msgstr "Show on site"
-
-#: signatur.php
 msgid "Edit row"
 msgstr "Edit row"
 
@@ -190,10 +186,6 @@ msgstr "Edit text"
 #: signatur.php
 msgid "Copy signature"
 msgstr "Copy signature"
-
-#: signatur.php
-msgid "Copied"
-msgstr "Copied"
 
 #: signatur.php
 msgid "Middle"
@@ -306,3 +298,39 @@ msgstr "Background"
 #: signatur.php
 msgid "Clear"
 msgstr "Clear"
+
+#: signatur.php
+msgid "Preview: how the copy button looks on the front end"
+msgstr "Preview: how the copy button looks on the front end"
+
+#: signatur.php
+msgid "Add title"
+msgstr "Add title"
+
+#: signatur.php
+msgid "Edit copy button"
+msgstr "Edit copy button"
+
+#: signatur.php
+msgid "Text size"
+msgstr "Text size"
+
+#: signatur.php
+msgid "Radius"
+msgstr "Radius"
+
+#: signatur.php
+msgid "Text transform"
+msgstr "Text transform"
+
+#: signatur.php
+msgid "Uppercase"
+msgstr "Uppercase"
+
+#: signatur.php
+msgid "Lowercase"
+msgstr "Lowercase"
+
+#: signatur.php
+msgid "Capitalize"
+msgstr "Capitalize"

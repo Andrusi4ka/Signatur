@@ -40,7 +40,6 @@ function signatur_create_table()
     $sql = "CREATE TABLE {$table_name} (
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
         title VARCHAR(255) NOT NULL,
-        show_title TINYINT(1) NOT NULL DEFAULT 1,
         settings LONGTEXT NULL,
         created_at DATETIME NOT NULL,
         updated_at DATETIME NOT NULL,
@@ -50,18 +49,24 @@ function signatur_create_table()
     require_once ABSPATH . 'wp-admin/includes/upgrade.php';
     dbDelta($sql);
 
-    // The per-signature title link was removed; drop its legacy column if
-    // an earlier version created it. dbDelta never drops columns.
-    $has_link = $wpdb->get_var(
-        $wpdb->prepare(
-            "SELECT COUNT(*) FROM information_schema.COLUMNS
-             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s AND COLUMN_NAME = 'link'",
-            $table_name
-        )
-    );
+    // Legacy columns from earlier versions of this table - dbDelta() never
+    // drops columns, so any still present on an existing install are
+    // dropped here explicitly. `link` was the per-signature title link;
+    // `show_title` was whether the title showed on the front end (the
+    // title is now admin-only and never rendered there at all).
+    foreach (array('link', 'show_title') as $legacy_column) {
+        $has_column = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT COUNT(*) FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s AND COLUMN_NAME = %s",
+                $table_name,
+                $legacy_column
+            )
+        );
 
-    if ($has_link) {
-        $wpdb->query("ALTER TABLE {$table_name} DROP COLUMN link");
+        if ($has_column) {
+            $wpdb->query("ALTER TABLE {$table_name} DROP COLUMN {$legacy_column}");
+        }
     }
 }
 
@@ -95,13 +100,98 @@ function signatur_get_table_name()
 function signatur_get_default_settings()
 {
     return array(
-        'width'       => 300,
-        'border'      => false,
-        'columns'     => array(300),
-        'rows'        => array(array(array(1, 1))),
+        'width'          => 300,
+        'border'         => false,
+        'columns'        => array(300),
+        'rows'           => array(array(array(1, 1))),
         'row_padding'    => array(signatur_sanitize_padding(array())),
         'row_border'     => array(signatur_sanitize_row_border(array())),
         'row_background' => array(signatur_sanitize_row_background('')),
+        'copy_button'    => signatur_get_default_copy_button(),
+    );
+}
+
+/**
+ * Default appearance for the front-end "Copy signature" button.
+ */
+function signatur_get_default_copy_button()
+{
+    return array(
+        'text'           => __('Copy signature', 'signatur'),
+        'align'          => 'left',
+        'bg_color'       => '#f6f7f7',
+        'text_color'     => '#1d2327',
+        'font_size'      => 14,
+        'padding'        => array('top' => 8, 'right' => 16, 'bottom' => 8, 'left' => 16),
+        'border_width'   => 1,
+        'border_style'   => 'solid',
+        'border_color'   => '#8c8f94',
+        'border_radius'  => 4,
+        'text_transform' => 'none',
+    );
+}
+
+/**
+ * Validate a raw "Copy signature" button appearance object.
+ */
+function signatur_sanitize_copy_button($raw)
+{
+    $raw      = is_array($raw) ? $raw : array();
+    $defaults = signatur_get_default_copy_button();
+
+    $text = isset($raw['text']) ? sanitize_text_field((string) $raw['text']) : '';
+
+    if ('' === $text) {
+        $text = $defaults['text'];
+    }
+
+    $align = isset($raw['align']) && in_array($raw['align'], array('left', 'center', 'right'), true)
+        ? $raw['align']
+        : $defaults['align'];
+
+    $bg_color = isset($raw['bg_color']) && preg_match('/^#[0-9a-f]{6}$/i', $raw['bg_color'])
+        ? strtolower($raw['bg_color'])
+        : $defaults['bg_color'];
+
+    $text_color = isset($raw['text_color']) && preg_match('/^#[0-9a-f]{6}$/i', $raw['text_color'])
+        ? strtolower($raw['text_color'])
+        : $defaults['text_color'];
+
+    $font_size = isset($raw['font_size']) ? absint($raw['font_size']) : $defaults['font_size'];
+    $font_size = max(8, min(72, $font_size));
+
+    $padding = signatur_sanitize_padding(isset($raw['padding']) ? $raw['padding'] : array());
+
+    $border_width = isset($raw['border_width']) ? absint($raw['border_width']) : $defaults['border_width'];
+    $border_width = min(20, $border_width);
+
+    $border_style = isset($raw['border_style']) && in_array($raw['border_style'], array('solid', 'dashed', 'dotted'), true)
+        ? $raw['border_style']
+        : $defaults['border_style'];
+
+    $border_color = isset($raw['border_color']) && preg_match('/^#[0-9a-f]{6}$/i', $raw['border_color'])
+        ? strtolower($raw['border_color'])
+        : $defaults['border_color'];
+
+    $border_radius = isset($raw['border_radius']) ? absint($raw['border_radius']) : $defaults['border_radius'];
+    $border_radius = min(100, $border_radius);
+
+    $text_transform = isset($raw['text_transform']) && in_array($raw['text_transform'], array('none', 'uppercase', 'lowercase', 'capitalize'), true)
+        ? $raw['text_transform']
+        : $defaults['text_transform'];
+
+    return array(
+        'text'           => $text,
+        'align'          => $align,
+        'bg_color'       => $bg_color,
+        'text_color'     => $text_color,
+        'font_size'      => $font_size,
+        'padding'        => $padding,
+        'border_width'   => $border_width,
+        'border_style'   => $border_style,
+        'border_color'   => $border_color,
+        'border_radius'  => $border_radius,
+        'text_transform' => $text_transform,
     );
 }
 
@@ -604,6 +694,8 @@ function signatur_sanitize_settings($raw_json)
         );
     }
 
+    $copy_button = signatur_sanitize_copy_button(isset($decoded['copy_button']) ? $decoded['copy_button'] : array());
+
     return wp_json_encode(
         array(
             'width'          => $width,
@@ -613,6 +705,7 @@ function signatur_sanitize_settings($raw_json)
             'row_padding'    => $row_padding,
             'row_border'     => $row_border,
             'row_background' => $row_background,
+            'copy_button'    => $copy_button,
         )
     );
 }

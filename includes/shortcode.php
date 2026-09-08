@@ -59,7 +59,7 @@ function signatur_render_shortcode($atts)
 
     $signature = $wpdb->get_row(
         $wpdb->prepare(
-            'SELECT title, show_title, settings FROM ' . signatur_get_table_name() . ' WHERE id = %d',
+            'SELECT settings FROM ' . signatur_get_table_name() . ' WHERE id = %d',
             $id
         )
     );
@@ -68,14 +68,10 @@ function signatur_render_shortcode($atts)
         return esc_html__('Signature not found.', 'signatur');
     }
 
-    $output = '';
-
-    if ($signature->show_title) {
-        $output .= '<div class="signatur-signature-title">' . esc_html($signature->title) . '</div>';
-    }
-
+    // The title is an admin-only label to tell signatures apart in the list
+    // - it is never rendered on the front end.
     $settings = json_decode(signatur_sanitize_settings($signature->settings), true);
-    $output  .= signatur_render_signature_table($settings);
+    $output   = signatur_render_signature_table($settings);
 
     $dom_id     = 'signatur-signature-' . $id;
     $show_copy  = ! in_array(strtolower((string) $atts['copy']), array('no', 'false', '0', ''), true);
@@ -88,11 +84,16 @@ function signatur_render_shortcode($atts)
     wp_enqueue_style('signatur-frontend');
     wp_enqueue_script('signatur-frontend');
 
-    $button = '<p class="signatur-copy">'
+    $copy_button = $settings['copy_button'];
+
+    // Width-matched to the table so "left/center/right" aligns the button
+    // against the table's own edges, not the full width of whatever the
+    // signature is embedded in.
+    $button = '<p class="signatur-copy" style="width:' . (int) $settings['width'] . 'px; text-align:' . esc_attr($copy_button['align']) . ';">'
         . '<button type="button" class="signatur-copy-button"'
-        . ' data-target="' . esc_attr($dom_id) . '"'
-        . ' data-label-copied="' . esc_attr__('Copied', 'signatur') . '">'
-        . esc_html__('Copy signature', 'signatur')
+        . ' style="' . esc_attr(signatur_copy_button_style($copy_button)) . '"'
+        . ' data-target="' . esc_attr($dom_id) . '">'
+        . esc_html($copy_button['text'])
         . '</button></p>';
 
     return '<div class="signatur-signature-wrap">' . $signature_html . $button . '</div>';
@@ -233,6 +234,24 @@ function signatur_padding_css($padding)
 {
     return 'padding:' . (int) $padding['top'] . 'px ' . (int) $padding['right'] . 'px '
         . (int) $padding['bottom'] . 'px ' . (int) $padding['left'] . 'px';
+}
+
+/**
+ * The inline style string for the "Copy signature" button, built from its
+ * stored appearance settings (signatur_get_default_copy_button() /
+ * signatur_sanitize_copy_button()). Shared between the real front-end
+ * button (signatur_render_shortcode()) and its static admin-editor preview,
+ * so they always look identical.
+ */
+function signatur_copy_button_style($copy_button)
+{
+    return signatur_padding_css($copy_button['padding'])
+        . '; font-size:' . (int) $copy_button['font_size'] . 'px'
+        . '; color:' . $copy_button['text_color']
+        . '; background-color:' . $copy_button['bg_color']
+        . '; border-radius:' . (int) $copy_button['border_radius'] . 'px'
+        . '; border:' . (int) $copy_button['border_width'] . 'px ' . $copy_button['border_style'] . ' ' . $copy_button['border_color']
+        . '; text-transform:' . $copy_button['text_transform'] . ';';
 }
 
 /**

@@ -16,7 +16,7 @@ if (! defined('ABSPATH')) {
 }
 
 define('SIGNATUR_VERSION', '1.5.25');
-define('SIGNATUR_DB_VERSION', '1.5.0');
+define('SIGNATUR_DB_VERSION', '1.5.1');
 define('SIGNATUR_PLUGIN_FILE', __FILE__);
 define('SIGNATUR_PLUGIN_DIR', plugin_dir_path(__FILE__));
 

@@ -74,6 +74,17 @@ function signatur_enqueue_builder_assets($hook_suffix)
         SIGNATUR_VERSION
     );
 
+    // Also load the front-end stylesheet, purely so the static copy-button
+    // preview below the table (see signatur_render_add_signature_page())
+    // looks exactly like the real thing on the site - it has no behaviour
+    // here, frontend.js is never enqueued on this screen.
+    wp_enqueue_style(
+        'signatur-frontend',
+        plugins_url('assets/css/frontend.css', SIGNATUR_PLUGIN_FILE),
+        array(),
+        SIGNATUR_VERSION
+    );
+
     wp_enqueue_script(
         'signatur-builder',
         plugins_url('assets/js/builder.js', SIGNATUR_PLUGIN_FILE),
@@ -220,25 +231,23 @@ function signatur_render_row_actions_buttons()
  */
 function signatur_render_add_signature_page()
 {
-    $id         = isset($_GET['id']) ? absint($_GET['id']) : 0;
-    $title      = '';
-    $show_title = true;
-    $settings   = signatur_get_default_settings();
+    $id       = isset($_GET['id']) ? absint($_GET['id']) : 0;
+    $title    = '';
+    $settings = signatur_get_default_settings();
 
     if ($id) {
         global $wpdb;
 
         $signature = $wpdb->get_row(
             $wpdb->prepare(
-                'SELECT title, show_title, settings FROM ' . signatur_get_table_name() . ' WHERE id = %d',
+                'SELECT title, settings FROM ' . signatur_get_table_name() . ' WHERE id = %d',
                 $id
             )
         );
 
         if ($signature) {
-            $title      = $signature->title;
-            $show_title = (bool) $signature->show_title;
-            $settings   = json_decode(signatur_sanitize_settings($signature->settings), true);
+            $title    = $signature->title;
+            $settings = json_decode(signatur_sanitize_settings($signature->settings), true);
         } else {
             $id = 0;
         }
@@ -268,24 +277,12 @@ function signatur_render_add_signature_page()
             <input type="hidden" name="action" value="signatur_save_signature">
             <input type="hidden" name="signatur_id" value="<?php echo esc_attr($id); ?>">
 
-            <table class="form-table" role="presentation">
-                <tbody>
-                    <tr>
-                        <th scope="row">
-                            <label for="signatur_title"><?php esc_html_e('Title', 'signatur'); ?></label>
-                        </th>
-                        <td>
-                            <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
-                                <input type="text" id="signatur_title" name="signatur_title" class="regular-text" value="<?php echo esc_attr($title); ?>" required>
-                                <label for="signatur_show_title" style="display:flex; align-items:center; gap:6px; font-weight:400;">
-                                    <input type="checkbox" id="signatur_show_title" name="signatur_show_title" value="1" <?php checked($show_title); ?>>
-                                    <?php esc_html_e('Show on site', 'signatur'); ?>
-                                </label>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <div id="titlediv">
+                <div id="titlewrap">
+                    <label class="screen-reader-text" id="title-prompt-text" for="title"><?php esc_html_e('Add title', 'signatur'); ?></label>
+                    <input type="text" name="signatur_title" size="30" value="<?php echo esc_attr($title); ?>" id="title" spellcheck="true" autocomplete="off" placeholder="<?php esc_attr_e('Add title', 'signatur'); ?>" required>
+                </div>
+            </div>
 
             <input type="hidden" name="signatur_settings" id="signatur_settings_input" value="<?php echo esc_attr(wp_json_encode($settings)); ?>">
 
@@ -404,6 +401,35 @@ function signatur_render_add_signature_page()
                         <img src="<?php echo esc_url(plugins_url('assets/icon-plus-row.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
                     </button>
                 </div>
+
+                <?php
+                /*
+                 * A static preview of the "Copy signature" button shown on
+                 * the front end - purely illustrative, so it carries no
+                 * data-target / data-label-copied and does nothing when
+                 * clicked (frontend.js, which is what makes the real button
+                 * work, is never loaded on this admin screen). Its own
+                 * appearance settings (signatur_get_default_copy_button())
+                 * are edited via the button next to it.
+                 *
+                 * The preview always sits centered here regardless of the
+                 * stored `align` - that setting only affects the real
+                 * front-end placement (signatur_render_shortcode()); the
+                 * admin editor just needs one predictable spot for it and
+                 * its edit button.
+                 */
+                ?>
+                <div id="signatur_copy_button_section" class="signatur-editor-only" style="width:<?php echo esc_attr($settings['width']); ?>px; margin:32px 0 0; text-align:center;">
+                    <p style="margin:0 0 6px; font-size:11px; color:#646970;"><?php esc_html_e('Preview: how the copy button looks on the front end', 'signatur'); ?></p>
+                    <div id="signatur_copy_button_wrap" style="display:inline-flex; align-items:center; gap:8px;" data-copy-button="<?php echo esc_attr(wp_json_encode($settings['copy_button'])); ?>">
+                        <p class="signatur-copy" style="margin:0;">
+                            <button type="button" id="signatur_copy_button_preview" class="signatur-copy-button" style="<?php echo esc_attr(signatur_copy_button_style($settings['copy_button'])); ?>"><?php echo esc_html($settings['copy_button']['text']); ?></button>
+                        </p>
+                        <button type="button" id="signatur_copy_button_edit" class="signatur-icon-button" data-modal-title="<?php echo esc_attr__('Edit copy button', 'signatur'); ?>" data-modal-type="copy_button" title="<?php esc_attr_e('Edit copy button', 'signatur'); ?>" aria-label="<?php esc_attr_e('Edit copy button', 'signatur'); ?>">
+                            <img src="<?php echo esc_url(plugins_url('assets/icon-edit.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <?php submit_button(__('Save', 'signatur')); ?>
@@ -516,6 +542,65 @@ function signatur_render_add_signature_page()
                 <span style="font-weight:600;"><?php esc_html_e('Background', 'signatur'); ?></span>
                 <input type="color" id="signatur_row_background_color" value="#ffffff">
                 <button type="button" id="signatur_row_background_clear" class="button"><?php esc_html_e('Clear', 'signatur'); ?></button>
+            </p>
+        </template>
+
+        <template id="signatur_modal_template_copy_button">
+            <p style="margin:0;">
+                <input type="text" id="signatur_copy_button_text" class="regular-text" style="width:100%;">
+            </p>
+
+            <div class="signatur-text-controls" style="margin-top:12px;">
+                <label for="signatur_copy_button_bg_color"><?php esc_html_e('Background', 'signatur'); ?></label>
+                <input type="color" id="signatur_copy_button_bg_color" value="#f6f7f7">
+
+                <label for="signatur_copy_button_text_color"><?php esc_html_e('Text', 'signatur'); ?></label>
+                <input type="color" id="signatur_copy_button_text_color" value="#1d2327">
+
+                <select id="signatur_copy_button_align" aria-label="<?php esc_attr_e('Horizontal alignment', 'signatur'); ?>" style="width:110px;">
+                    <option value="left"><?php esc_html_e('Left', 'signatur'); ?></option>
+                    <option value="center"><?php esc_html_e('Center', 'signatur'); ?></option>
+                    <option value="right"><?php esc_html_e('Right', 'signatur'); ?></option>
+                </select>
+            </div>
+
+            <p style="display:flex; align-items:center; gap:6px; margin:12px 0 0;">
+                <span style="font-weight:600;">Padding</span>
+                <input type="number" id="signatur_copy_button_padding_top" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Top', 'signatur'); ?>" style="width:50px;">
+                <input type="number" id="signatur_copy_button_padding_left" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Left', 'signatur'); ?>" style="width:50px;">
+                <input type="number" id="signatur_copy_button_padding_bottom" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Bottom', 'signatur'); ?>" style="width:50px;">
+                <input type="number" id="signatur_copy_button_padding_right" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Right', 'signatur'); ?>" style="width:50px;">
+            </p>
+
+            <div class="signatur-text-controls" style="margin-top:12px;">
+                <label for="signatur_copy_button_font_size"><?php esc_html_e('Text size', 'signatur'); ?></label>
+                <input type="number" id="signatur_copy_button_font_size" class="small-text" min="8" max="72" step="1" style="width:56px;">
+                <span><?php esc_html_e('px', 'signatur'); ?></span>
+
+                <label for="signatur_copy_button_border_radius"><?php esc_html_e('Radius', 'signatur'); ?></label>
+                <input type="number" id="signatur_copy_button_border_radius" class="small-text" min="0" max="100" step="1" style="width:56px;">
+                <span><?php esc_html_e('px', 'signatur'); ?></span>
+            </div>
+
+            <p style="display:flex; align-items:center; gap:6px; margin:12px 0 0;">
+                <span style="font-weight:600;">Border</span>
+                <select id="signatur_copy_button_border_style">
+                    <option value="solid">solid</option>
+                    <option value="dashed">dashed</option>
+                    <option value="dotted">dotted</option>
+                </select>
+                <input type="number" id="signatur_copy_button_border_width" class="small-text" min="0" max="20" step="1" placeholder="px" style="width:50px;">
+                <input type="color" id="signatur_copy_button_border_color" value="#8c8f94">
+            </p>
+
+            <p style="display:flex; align-items:center; gap:6px; margin:12px 0 0;">
+                <span style="font-weight:600;"><?php esc_html_e('Text transform', 'signatur'); ?></span>
+                <select id="signatur_copy_button_text_transform" style="width:120px;">
+                    <option value="none"><?php esc_html_e('None', 'signatur'); ?></option>
+                    <option value="uppercase"><?php esc_html_e('Uppercase', 'signatur'); ?></option>
+                    <option value="lowercase"><?php esc_html_e('Lowercase', 'signatur'); ?></option>
+                    <option value="capitalize"><?php esc_html_e('Capitalize', 'signatur'); ?></option>
+                </select>
             </p>
         </template>
 

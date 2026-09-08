@@ -13,16 +13,31 @@
     border: 1px solid #8c8f94;
     border-radius: 4px;
     cursor: pointer;
+    transition: filter 0.15s ease;
 }
 
+/*
+ * Hover/active/copied feedback all use `filter`/`outline`, never
+ * `background`/`color`/`border-color` - those are set per-signature as
+ * inline styles (see signatur_copy_button_style()), which always win over a
+ * class, so a class-based background/border here would silently do nothing
+ * the moment a signature has its own button colours (which is now the
+ * default, not an edge case). filter/outline are untouched by the inline
+ * style, so they reliably dim/ring the button regardless of its colours.
+ */
 .signatur-copy-button:hover,
-.signatur-copy-button:focus {
-    background: #f0f0f1;
-    border-color: #646970;
+.signatur-copy-button:focus-visible {
+    filter: brightness(0.94);
 }
 
+.signatur-copy-button:active {
+    filter: brightness(0.85);
+}
+
+/* Click feedback only - never changes the label text (that used to resize
+   the button and make it jump). */
 .signatur-copy-button.is-copied {
-    color: #fff;
-    background: #2271b1;
-    border-color: #2271b1;
+    filter: brightness(0.85);
+    outline: 2px solid rgba(0, 0, 0, 0.35);
+    outline-offset: 2px;
 }

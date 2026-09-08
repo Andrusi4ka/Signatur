@@ -80,10 +80,6 @@ msgid "https://example.com"
 msgstr "Посилання (необовʼязково), напр. https://example.com"
 
 #: signatur.php
-msgid "Show on site"
-msgstr "Показувати на сайті"
-
-#: signatur.php
 msgid "Edit row"
 msgstr "Редагувати рядок"
 
@@ -190,10 +186,6 @@ msgstr "Редагувати текст"
 #: signatur.php
 msgid "Copy signature"
 msgstr "Копіювати підпис"
-
-#: signatur.php
-msgid "Copied"
-msgstr "Скопійовано"
 
 #: signatur.php
 msgid "Middle"
@@ -306,3 +298,39 @@ msgstr "Фон"
 #: signatur.php
 msgid "Clear"
 msgstr "Очистити"
+
+#: signatur.php
+msgid "Preview: how the copy button looks on the front end"
+msgstr "Прев'ю: як виглядає кнопка копіювання на сайті"
+
+#: signatur.php
+msgid "Add title"
+msgstr "Додати назву"
+
+#: signatur.php
+msgid "Edit copy button"
+msgstr "Редагувати кнопку копіювання"
+
+#: signatur.php
+msgid "Text size"
+msgstr "Розмір тексту"
+
+#: signatur.php
+msgid "Radius"
+msgstr "Радіус"
+
+#: signatur.php
+msgid "Text transform"
+msgstr "Регістр тексту"
+
+#: signatur.php
+msgid "Uppercase"
+msgstr "ВЕЛИКІ ЛІТЕРИ"
+
+#: signatur.php
+msgid "Lowercase"
+msgstr "маленькі літери"
+
+#: signatur.php
+msgid "Capitalize"
+msgstr "З великої літери"
