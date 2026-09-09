@@ -334,3 +334,35 @@ msgstr "Lowercase"
 #: signatur.php
 msgid "Capitalize"
 msgstr "Capitalize"
+
+#: signatur.php
+msgid "Field"
+msgstr "Field"
+
+#: signatur.php
+msgid "Add field"
+msgstr "Add field"
+
+#: signatur.php
+msgid "Edit field"
+msgstr "Edit field"
+
+#: signatur.php
+msgid "Required"
+msgstr "Required"
+
+#: signatur.php
+msgid "Email"
+msgstr "Email"
+
+#: signatur.php
+msgid "Phone"
+msgstr "Phone"
+
+#: signatur.php
+msgid "URL"
+msgstr "URL"
+
+#: signatur.php
+msgid "Please fill in all required fields before copying."
+msgstr "Please fill in all required fields before copying."

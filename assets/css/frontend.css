@@ -38,6 +38,11 @@
    the button and make it jump). */
 .signatur-copy-button.is-copied {
     filter: brightness(0.85);
-    outline: 2px solid rgba(0, 0, 0, 0.35);
-    outline-offset: 2px;
+}
+
+/* Fillable "field" elements (signatur_render_field_element()) - a clear
+   focus cue, since the field is otherwise just a dashed underline. */
+.signatur-field:focus {
+    outline: 2px solid #2271b1;
+    outline-offset: 1px;
 }

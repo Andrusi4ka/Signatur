@@ -48,6 +48,22 @@
     height: 24px;
 }
 
+/* The "field" element (a front-end fill-in) is set apart with a pale
+   yellow ground - on its picker button and on the disabled preview input
+   shown in the grid and the field modal. */
+.signatur-element-button--field {
+    background: #fdf6d8;
+}
+
+.signatur-element-button--field:hover,
+.signatur-element-button--field:focus {
+    background: #f8edbf;
+}
+
+.signatur-field--editor {
+    background: #fdf6d8;
+}
+
 #signatur_row_actions {
     gap: 6px;
 }

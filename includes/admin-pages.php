@@ -376,6 +376,9 @@ function signatur_render_add_signature_page()
                                         } elseif ($element && 'social' === $element['type']) {
                                             $style .= ' text-align:' . $element['align'] . '; vertical-align:' . $element['valign'] . ';';
                                             $attrs .= ' data-element="' . esc_attr(wp_json_encode($element)) . '"';
+                                        } elseif ($element && 'field' === $element['type']) {
+                                            $style .= ' text-align:' . $element['align'] . '; vertical-align:' . $element['valign'] . ';';
+                                            $attrs .= ' data-element="' . esc_attr(wp_json_encode($element)) . '"';
                                         }
                                         ?>
                                         <td<?php echo $attrs; ?> style="<?php echo esc_attr($style); ?>"><?php
@@ -385,6 +388,8 @@ function signatur_render_add_signature_page()
                                                 echo signatur_render_image_element($element);
                                             } elseif ($element && 'social' === $element['type']) {
                                                 echo signatur_render_social_element($element);
+                                            } elseif ($element && 'field' === $element['type']) {
+                                                echo signatur_render_field_element($element, 'editor');
                                             } else {
                                                 echo '&nbsp;';
                                             }
@@ -435,7 +440,7 @@ function signatur_render_add_signature_page()
             <?php submit_button(__('Save', 'signatur')); ?>
         </form>
 
-        <button type="button" id="signatur_cell_edit_element" class="signatur-icon-button" data-title-text="<?php echo esc_attr__('Edit text', 'signatur'); ?>" data-title-image="<?php echo esc_attr__('Edit image', 'signatur'); ?>" data-title-social="<?php echo esc_attr__('Edit social', 'signatur'); ?>" title="<?php esc_attr_e('Edit element', 'signatur'); ?>" aria-label="<?php esc_attr_e('Edit element', 'signatur'); ?>">
+        <button type="button" id="signatur_cell_edit_element" class="signatur-icon-button" data-title-text="<?php echo esc_attr__('Edit text', 'signatur'); ?>" data-title-image="<?php echo esc_attr__('Edit image', 'signatur'); ?>" data-title-social="<?php echo esc_attr__('Edit social', 'signatur'); ?>" data-title-field="<?php echo esc_attr__('Edit field', 'signatur'); ?>" title="<?php esc_attr_e('Edit element', 'signatur'); ?>" aria-label="<?php esc_attr_e('Edit element', 'signatur'); ?>">
             <img src="<?php echo esc_url(plugins_url('assets/icon-edit-element.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
         </button>
 
@@ -615,6 +620,9 @@ function signatur_render_add_signature_page()
                 <button type="button" id="signatur_add_social_element" class="signatur-icon-button signatur-element-button" data-modal-title="<?php echo esc_attr__('Add social', 'signatur'); ?>" data-modal-type="social" title="<?php esc_attr_e('Social', 'signatur'); ?>" aria-label="<?php esc_attr_e('Social', 'signatur'); ?>">
                     <img src="<?php echo esc_url(plugins_url('assets/icon-add-social.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="24" height="24">
                 </button>
+                <button type="button" id="signatur_add_field_element" class="signatur-icon-button signatur-element-button signatur-element-button--field" data-modal-title="<?php echo esc_attr__('Add field', 'signatur'); ?>" data-modal-type="field" title="<?php esc_attr_e('Field', 'signatur'); ?>" aria-label="<?php esc_attr_e('Field', 'signatur'); ?>">
+                    <img src="<?php echo esc_url(plugins_url('assets/icon-add-input.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="24" height="24">
+                </button>
             </div>
         </template>
 
@@ -744,6 +752,53 @@ function signatur_render_add_signature_page()
                 <input type="number" id="signatur_social_padding_left" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Left', 'signatur'); ?>" style="width:50px;">
                 <input type="number" id="signatur_social_padding_bottom" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Bottom', 'signatur'); ?>" style="width:50px;">
                 <input type="number" id="signatur_social_padding_right" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Right', 'signatur'); ?>" style="width:50px;">
+            </p>
+        </template>
+
+        <template id="signatur_modal_template_field">
+            <p style="margin:0; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                <img src="<?php echo esc_url(plugins_url('assets/icon-email.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="24" height="24">
+                <select id="signatur_field_type" aria-label="<?php esc_attr_e('Type', 'signatur'); ?>">
+                    <option value="text"><?php esc_html_e('Text', 'signatur'); ?></option>
+                    <option value="email"><?php esc_html_e('Email', 'signatur'); ?></option>
+                    <option value="tel"><?php esc_html_e('Phone', 'signatur'); ?></option>
+                    <option value="url"><?php esc_html_e('URL', 'signatur'); ?></option>
+                </select>
+                <label style="display:inline-flex; align-items:center; gap:6px;">
+                    <input type="checkbox" id="signatur_field_required">
+                    <?php esc_html_e('Required', 'signatur'); ?>
+                </label>
+            </p>
+
+            <p style="margin:12px 0 0;">
+                <input type="text" id="signatur_field_placeholder" class="regular-text" style="width:100%;" placeholder="<?php esc_attr_e('Placeholder', 'signatur'); ?>" aria-label="<?php esc_attr_e('Placeholder', 'signatur'); ?>">
+            </p>
+
+            <div class="signatur-text-controls" style="margin-top:12px;">
+                <input type="number" id="signatur_field_size" class="small-text" min="8" max="72" step="1" style="width:56px;">
+                <span><?php esc_html_e('pt', 'signatur'); ?></span>
+
+                <input type="color" id="signatur_field_color" value="#000000">
+
+                <button type="button" id="signatur_field_bold" class="button signatur-text-toggle" title="<?php esc_attr_e('Bold', 'signatur'); ?>" aria-label="<?php esc_attr_e('Bold', 'signatur'); ?>" style="font-weight:700;">B</button>
+                <button type="button" id="signatur_field_italic" class="button signatur-text-toggle" title="<?php esc_attr_e('Italic', 'signatur'); ?>" aria-label="<?php esc_attr_e('Italic', 'signatur'); ?>" style="font-style:italic;">I</button>
+                <button type="button" id="signatur_field_underline" class="button signatur-text-toggle" title="<?php esc_attr_e('Underline', 'signatur'); ?>" aria-label="<?php esc_attr_e('Underline', 'signatur'); ?>" style="text-decoration:underline;">U</button>
+
+                <select id="signatur_field_align" aria-label="<?php esc_attr_e('Horizontal alignment', 'signatur'); ?>">
+                    <option value="left"><?php esc_html_e('Left', 'signatur'); ?></option>
+                    <option value="center"><?php esc_html_e('Center', 'signatur'); ?></option>
+                    <option value="right"><?php esc_html_e('Right', 'signatur'); ?></option>
+                </select>
+
+                <select id="signatur_field_valign" aria-label="<?php esc_attr_e('Vertical alignment', 'signatur'); ?>">
+                    <option value="top"><?php esc_html_e('Top', 'signatur'); ?></option>
+                    <option value="middle"><?php esc_html_e('Middle', 'signatur'); ?></option>
+                    <option value="bottom"><?php esc_html_e('Bottom', 'signatur'); ?></option>
+                </select>
+            </div>
+
+            <p style="margin:12px 0 0;">
+                <input type="text" id="signatur_field_preview" class="signatur-field signatur-field--editor" disabled style="width:100%;">
             </p>
         </template>
     </div>

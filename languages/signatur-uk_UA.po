@@ -334,3 +334,35 @@ msgstr "маленькі літери"
 #: signatur.php
 msgid "Capitalize"
 msgstr "З великої літери"
+
+#: signatur.php
+msgid "Field"
+msgstr "Поле"
+
+#: signatur.php
+msgid "Add field"
+msgstr "Додати поле"
+
+#: signatur.php
+msgid "Edit field"
+msgstr "Редагувати поле"
+
+#: signatur.php
+msgid "Required"
+msgstr "Обов'язкове"
+
+#: signatur.php
+msgid "Email"
+msgstr "Ел. пошта"
+
+#: signatur.php
+msgid "Phone"
+msgstr "Телефон"
+
+#: signatur.php
+msgid "URL"
+msgstr "URL"
+
+#: signatur.php
+msgid "Please fill in all required fields before copying."
+msgstr "Заповніть усі обов'язкові поля перед копіюванням."

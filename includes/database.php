@@ -501,6 +501,86 @@ function signatur_sanitize_social_element($raw)
 }
 
 /**
+ * The input types a fillable "field" element may use.
+ */
+function signatur_get_field_element_types()
+{
+    return array('text', 'email', 'tel', 'url');
+}
+
+/**
+ * Default values for a fillable "field" element placed inside a grid cell.
+ * On the front end this renders as an <input> the visitor fills in; the
+ * typed value is baked into the signature as plain text when it is copied
+ * (see signatur_render_field_element() / frontend.js). The text styling
+ * keys mirror the text element so the typed value blends into the
+ * signature.
+ */
+function signatur_get_default_field_element()
+{
+    return array(
+        'type'       => 'field',
+        'field_type' => 'text',
+        'placeholder' => '',
+        'required'   => false,
+        'size'       => 11,
+        'color'      => '#000000',
+        'bold'       => false,
+        'italic'     => false,
+        'underline'  => false,
+        'align'      => 'left',
+        'valign'     => 'top',
+    );
+}
+
+/**
+ * Validate a raw fillable "field" element. Returns a normalized array, or
+ * null when the shape is wrong. Unlike the text element, an empty
+ * placeholder is fine - the element is still usable.
+ */
+function signatur_sanitize_field_element($raw)
+{
+    if (! is_array($raw) || ! isset($raw['type']) || 'field' !== $raw['type']) {
+        return null;
+    }
+
+    $defaults = signatur_get_default_field_element();
+
+    $field_type = isset($raw['field_type']) && in_array($raw['field_type'], signatur_get_field_element_types(), true)
+        ? $raw['field_type']
+        : $defaults['field_type'];
+
+    $size = isset($raw['size']) ? absint($raw['size']) : $defaults['size'];
+    $size = max(8, min(72, $size));
+
+    $color = isset($raw['color']) && preg_match('/^#[0-9a-f]{6}$/i', $raw['color'])
+        ? strtolower($raw['color'])
+        : $defaults['color'];
+
+    $align = isset($raw['align']) && in_array($raw['align'], array('left', 'center', 'right'), true)
+        ? $raw['align']
+        : $defaults['align'];
+
+    $valign = isset($raw['valign']) && in_array($raw['valign'], array('top', 'middle', 'bottom'), true)
+        ? $raw['valign']
+        : $defaults['valign'];
+
+    return array(
+        'type'        => 'field',
+        'field_type'  => $field_type,
+        'placeholder' => isset($raw['placeholder']) ? sanitize_text_field((string) $raw['placeholder']) : '',
+        'required'    => ! empty($raw['required']),
+        'size'        => $size,
+        'color'       => $color,
+        'bold'        => ! empty($raw['bold']),
+        'italic'      => ! empty($raw['italic']),
+        'underline'   => ! empty($raw['underline']),
+        'align'       => $align,
+        'valign'      => $valign,
+    );
+}
+
+/**
  * Validate any cell element - dispatches on its `type`. Returns a
  * normalized element array, or null when it is not usable.
  */
@@ -516,6 +596,10 @@ function signatur_sanitize_element($raw)
 
     if (in_array($raw['type'], array('social', 'facebook'), true)) {
         return signatur_sanitize_social_element($raw);
+    }
+
+    if ('field' === $raw['type']) {
+        return signatur_sanitize_field_element($raw);
     }
 
     return signatur_sanitize_text_element($raw);

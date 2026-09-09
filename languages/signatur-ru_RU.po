@@ -334,3 +334,35 @@ msgstr "строчные буквы"
 #: signatur.php
 msgid "Capitalize"
 msgstr "С заглавной буквы"
+
+#: signatur.php
+msgid "Field"
+msgstr "Поле"
+
+#: signatur.php
+msgid "Add field"
+msgstr "Добавить поле"
+
+#: signatur.php
+msgid "Edit field"
+msgstr "Редактировать поле"
+
+#: signatur.php
+msgid "Required"
+msgstr "Обязательное"
+
+#: signatur.php
+msgid "Email"
+msgstr "Эл. почта"
+
+#: signatur.php
+msgid "Phone"
+msgstr "Телефон"
+
+#: signatur.php
+msgid "URL"
+msgstr "URL"
+
+#: signatur.php
+msgid "Please fill in all required fields before copying."
+msgstr "Заполните все обязательные поля перед копированием."

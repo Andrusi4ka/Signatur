@@ -334,3 +334,35 @@ msgstr "Små bokstaver"
 #: signatur.php
 msgid "Capitalize"
 msgstr "Stor forbokstav"
+
+#: signatur.php
+msgid "Field"
+msgstr "Felt"
+
+#: signatur.php
+msgid "Add field"
+msgstr "Legg til felt"
+
+#: signatur.php
+msgid "Edit field"
+msgstr "Rediger felt"
+
+#: signatur.php
+msgid "Required"
+msgstr "Påkrevd"
+
+#: signatur.php
+msgid "Email"
+msgstr "E-post"
+
+#: signatur.php
+msgid "Phone"
+msgstr "Telefon"
+
+#: signatur.php
+msgid "URL"
+msgstr "URL"
+
+#: signatur.php
+msgid "Please fill in all required fields before copying."
+msgstr "Fyll ut alle påkrevde felt før du kopierer."

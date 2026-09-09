@@ -10,6 +10,7 @@
     var textTemplate = document.getElementById('signatur_modal_template_text');
     var imageTemplate = document.getElementById('signatur_modal_template_image');
     var socialTemplate = document.getElementById('signatur_modal_template_social');
+    var fieldTemplate = document.getElementById('signatur_modal_template_field');
     var copyButtonTemplate = document.getElementById('signatur_modal_template_copy_button');
     var copyButtonWrap = document.getElementById('signatur_copy_button_wrap');
     var copyButtonPreview = document.getElementById('signatur_copy_button_preview');
@@ -212,6 +213,30 @@
     }
 
     /**
+     * Render a fillable "field" element for the editor - a disabled, tinted
+     * <input> so the admin sees where the field sits. Mirror of the PHP
+     * signatur_render_field_element($element, 'editor'); the front-end
+     * version (live input / baked text) is built in PHP + frontend.js.
+     */
+    function renderFieldEl(el) {
+        var input = document.createElement('input');
+        var types = ['text', 'email', 'tel', 'url'];
+        var style = textElementStyle(el)
+            + '; display:inline-block; width:100%; box-sizing:border-box; background:transparent;'
+            + ' border:0; border-bottom:1px dashed #999999; padding:1px 2px;'
+            + ' text-align:' + el.align + ';';
+
+        input.setAttribute('type', -1 !== types.indexOf(el.field_type) ? el.field_type : 'text');
+        input.className = 'signatur-field signatur-field--editor';
+        input.setAttribute('placeholder', el.placeholder || '');
+        input.setAttribute('data-required', el.required ? '1' : '0');
+        input.setAttribute('style', style);
+        input.disabled = true;
+
+        return input;
+    }
+
+    /**
      * Put an element into a cell (or clear it when el is null / empty),
      * keeping the cell's data-element attribute, alignment and visible
      * content in sync. This is the single place cell content is written.
@@ -273,6 +298,18 @@
             cell.style.fontSize = '';
             cell.style.color = '';
             cell.appendChild(renderSocialEl(el));
+
+            return;
+        }
+
+        if (el && 'field' === el.type) {
+            cell.dataset.element = JSON.stringify(el);
+            cell.style.textAlign = el.align;
+            cell.style.verticalAlign = el.valign || 'top';
+            cell.style.fontFamily = DEFAULT_FONT;
+            cell.style.fontSize = el.size + 'pt';
+            cell.style.color = el.color;
+            cell.appendChild(renderFieldEl(el));
 
             return;
         }
@@ -751,6 +788,85 @@
                     socialUploadButton.disabled = false;
                     socialFileInput.value = '';
                 });
+            });
+        }
+
+        if ('field' === type) {
+            modalBody.appendChild(fieldTemplate.content.cloneNode(true));
+
+            var fieldStored = null;
+
+            if (modalTargetCell && modalTargetCell.dataset.element) {
+                try {
+                    var parsedField = JSON.parse(modalTargetCell.dataset.element);
+
+                    if (parsedField && 'field' === parsedField.type) {
+                        fieldStored = parsedField;
+                    }
+                } catch (err) {
+                    fieldStored = null;
+                }
+            }
+
+            var fieldTypeSelect = document.getElementById('signatur_field_type');
+            var fieldPlaceholderInput = document.getElementById('signatur_field_placeholder');
+            var fieldRequiredInput = document.getElementById('signatur_field_required');
+            var fieldSizeInput = document.getElementById('signatur_field_size');
+            var fieldColorInput = document.getElementById('signatur_field_color');
+            var fieldAlignSelect = document.getElementById('signatur_field_align');
+            var fieldValignSelect = document.getElementById('signatur_field_valign');
+            var fieldPreview = document.getElementById('signatur_field_preview');
+            var fieldToggles = ['bold', 'italic', 'underline'].map(function (name) {
+                return document.getElementById('signatur_field_' + name);
+            });
+
+            fieldTypeSelect.value = fieldStored ? fieldStored.field_type : 'text';
+            fieldPlaceholderInput.value = fieldStored ? fieldStored.placeholder : '';
+            fieldRequiredInput.checked = !!(fieldStored && fieldStored.required);
+            fieldSizeInput.value = fieldStored ? fieldStored.size : 11;
+            fieldColorInput.value = fieldStored ? fieldStored.color : '#000000';
+            fieldAlignSelect.value = fieldStored ? fieldStored.align : 'left';
+            fieldValignSelect.value = fieldStored && fieldStored.valign ? fieldStored.valign : 'top';
+
+            fieldToggles[0].classList.toggle('is-active', !!(fieldStored && fieldStored.bold));
+            fieldToggles[1].classList.toggle('is-active', !!(fieldStored && fieldStored.italic));
+            fieldToggles[2].classList.toggle('is-active', !!(fieldStored && fieldStored.underline));
+
+            function updateFieldPreview() {
+                fieldPreview.type = fieldTypeSelect.value;
+                fieldPreview.placeholder = fieldPlaceholderInput.value;
+                fieldPreview.style.fontFamily = DEFAULT_FONT;
+                fieldPreview.style.fontSize = (parseInt(fieldSizeInput.value, 10) || 11) + 'pt';
+                fieldPreview.style.color = fieldColorInput.value;
+                fieldPreview.style.fontWeight = fieldToggles[0].classList.contains('is-active') ? 'bold' : 'normal';
+                fieldPreview.style.fontStyle = fieldToggles[1].classList.contains('is-active') ? 'italic' : 'normal';
+                fieldPreview.style.textDecoration = fieldToggles[2].classList.contains('is-active') ? 'underline' : 'none';
+                fieldPreview.style.textAlign = fieldAlignSelect.value;
+            }
+
+            updateFieldPreview();
+
+            [fieldTypeSelect, fieldPlaceholderInput, fieldSizeInput, fieldColorInput, fieldAlignSelect].forEach(function (control) {
+                control.addEventListener('input', updateFieldPreview);
+                control.addEventListener('change', updateFieldPreview);
+            });
+
+            fieldToggles.forEach(function (toggle) {
+                toggle.addEventListener('click', function () {
+                    toggle.classList.toggle('is-active');
+                    updateFieldPreview();
+                });
+            });
+
+            fieldSizeInput.addEventListener('blur', function () {
+                var value = parseInt(fieldSizeInput.value, 10);
+
+                if (isNaN(value)) {
+                    value = 11;
+                }
+
+                fieldSizeInput.value = Math.max(8, Math.min(72, value));
+                updateFieldPreview();
             });
         }
 
@@ -1970,7 +2086,7 @@
             return;
         }
 
-        var type = stored && ('image' === stored.type || 'social' === stored.type) ? stored.type : 'text';
+        var type = stored && ('image' === stored.type || 'social' === stored.type || 'field' === stored.type) ? stored.type : 'text';
         var titleAttr = 'text' === type ? 'data-title-text' : 'data-title-' + type;
 
         modalTargetCell = activeColumnCell;
@@ -2226,6 +2342,32 @@
             // the link is required, mirroring how an empty URL clears an image.
             pushUndoSnapshot();
             applyElementToCell(modalTargetCell, socialElement);
+            syncRowNumberHeights();
+        }
+
+        if ('field' === activeModalType && modalTargetCell) {
+            var fieldSize = parseInt(document.getElementById('signatur_field_size').value, 10);
+
+            if (isNaN(fieldSize)) {
+                fieldSize = 11;
+            }
+
+            var fieldElement = {
+                type: 'field',
+                field_type: document.getElementById('signatur_field_type').value,
+                placeholder: document.getElementById('signatur_field_placeholder').value.trim(),
+                required: document.getElementById('signatur_field_required').checked,
+                size: Math.max(8, Math.min(72, fieldSize)),
+                color: document.getElementById('signatur_field_color').value,
+                bold: document.getElementById('signatur_field_bold').classList.contains('is-active'),
+                italic: document.getElementById('signatur_field_italic').classList.contains('is-active'),
+                underline: document.getElementById('signatur_field_underline').classList.contains('is-active'),
+                align: document.getElementById('signatur_field_align').value,
+                valign: document.getElementById('signatur_field_valign').value
+            };
+
+            pushUndoSnapshot();
+            applyElementToCell(modalTargetCell, fieldElement);
             syncRowNumberHeights();
         }
 

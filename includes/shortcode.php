@@ -70,11 +70,15 @@ function signatur_render_shortcode($atts)
 
     // The title is an admin-only label to tell signatures apart in the list
     // - it is never rendered on the front end.
-    $settings = json_decode(signatur_sanitize_settings($signature->settings), true);
-    $output   = signatur_render_signature_table($settings);
+    $settings  = json_decode(signatur_sanitize_settings($signature->settings), true);
+    $show_copy = ! in_array(strtolower((string) $atts['copy']), array('no', 'false', '0', ''), true);
 
-    $dom_id     = 'signatur-signature-' . $id;
-    $show_copy  = ! in_array(strtolower((string) $atts['copy']), array('no', 'false', '0', ''), true);
+    // Fillable "field" elements only render as live <input>s when the copy
+    // button is there to turn them into text - otherwise they show as their
+    // placeholder text (see signatur_render_field_element()).
+    $output = signatur_render_signature_table($settings, $show_copy);
+
+    $dom_id         = 'signatur-signature-' . $id;
     $signature_html = '<div class="signatur-signature" id="' . esc_attr($dom_id) . '">' . $output . '</div>';
 
     if (! $show_copy) {
@@ -83,6 +87,15 @@ function signatur_render_shortcode($atts)
 
     wp_enqueue_style('signatur-frontend');
     wp_enqueue_script('signatur-frontend');
+    wp_localize_script(
+        'signatur-frontend',
+        'signaturFrontend',
+        array(
+            'i18n' => array(
+                'requiredFields' => __('Please fill in all required fields before copying.', 'signatur'),
+            ),
+        )
+    );
 
     $copy_button = $settings['copy_button'];
 
@@ -228,6 +241,74 @@ function signatur_render_social_element($element)
 }
 
 /**
+ * The font / weight / style / decoration part of a text-styled element
+ * (text and field elements share these keys). Base triplet plus any of
+ * bold / italic / underline that are set.
+ */
+function signatur_text_style_string($element)
+{
+    $styles = array(signatur_text_base_style($element));
+
+    if (! empty($element['bold'])) {
+        $styles[] = 'font-weight:bold';
+    }
+
+    if (! empty($element['italic'])) {
+        $styles[] = 'font-style:italic';
+    }
+
+    if (! empty($element['underline'])) {
+        $styles[] = 'text-decoration:underline';
+    }
+
+    return implode('; ', $styles);
+}
+
+/**
+ * Render a fillable "field" element. $context picks the shape:
+ *  - 'front'        live <input class="signatur-field"> the visitor types
+ *                   into; frontend.js bakes its value into text on copy.
+ *  - 'front-static' just the placeholder text in a <span> - used when the
+ *                   signature is embedded with copy="no" (nothing would
+ *                   turn a dangling input into text).
+ *  - 'editor'       a disabled, tinted <input> so the admin sees where the
+ *                   field sits and that the cell is for front-end filling.
+ */
+function signatur_render_field_element($element, $context = 'front')
+{
+    $text_style = signatur_text_style_string($element);
+
+    if ('front-static' === $context) {
+        return '<span class="signatur-field-static" style="' . esc_attr($text_style) . ';">'
+            . esc_html($element['placeholder'])
+            . '</span>';
+    }
+
+    $field_type = in_array($element['field_type'], signatur_get_field_element_types(), true)
+        ? $element['field_type']
+        : 'text';
+
+    $style = $text_style
+        . '; display:inline-block; width:100%; box-sizing:border-box; background:transparent;'
+        . ' border:0; border-bottom:1px dashed #999999; padding:1px 2px;'
+        . ' text-align:' . $element['align'] . ';';
+
+    $class = 'signatur-field';
+    $extra = '';
+
+    if ('editor' === $context) {
+        $class .= ' signatur-field--editor';
+        $extra  = ' disabled';
+    }
+
+    return '<input type="' . esc_attr($field_type) . '"'
+        . ' class="' . esc_attr($class) . '"'
+        . ' placeholder="' . esc_attr($element['placeholder']) . '"'
+        . ' data-required="' . (! empty($element['required']) ? '1' : '0') . '"'
+        . ' style="' . esc_attr($style) . '"' . $extra . '>';
+}
+
+/**
  * Shorthand `padding:` declaration from a {top,right,bottom,left} array.
  */
 function signatur_padding_css($padding)
@@ -283,7 +364,7 @@ function signatur_row_border_css($border)
  * this is the actual signature content, so unlike the admin editor's table
  * it has no header row, row numbers, or any other editor-only chrome.
  */
-function signatur_render_signature_table($settings)
+function signatur_render_signature_table($settings, $interactive = true)
 {
     // Optional plain grid border (toggled from the "Signature width" modal),
     // just to make the cell structure visible. When off we still emit
@@ -385,6 +466,10 @@ function signatur_render_signature_table($settings)
             } elseif ($element && 'social' === $element['type']) {
                 $cell_style .= ' text-align:' . $element['align'] . '; vertical-align:' . $element['valign'] . ';';
                 $html       .= '<td' . $attrs . ' style="' . esc_attr($cell_style) . '">' . signatur_render_social_element($element) . '</td>';
+            } elseif ($element && 'field' === $element['type']) {
+                $cell_style .= ' ' . signatur_text_base_style($element) . ';';
+                $cell_style .= ' text-align:' . $element['align'] . '; vertical-align:' . $element['valign'] . ';';
+                $html       .= '<td' . $attrs . ' style="' . esc_attr($cell_style) . '">' . signatur_render_field_element($element, $interactive ? 'front' : 'front-static') . '</td>';
             } else {
                 $html .= '<td' . $attrs . ' style="' . esc_attr($cell_style) . '">&nbsp;</td>';
             }
