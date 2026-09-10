@@ -14,19 +14,55 @@
      * typed, carrying over just the text styling. The email client only
      * ever sees text, never a form control.
      */
+    /**
+     * The href for a linked field value, keyed off the input's type. Only
+     * ever produces a mailto:, tel: or https:// URL.
+     */
+    function fieldLinkHref(type, value) {
+        if ('email' === type) {
+            return 'mailto:' + value;
+        }
+
+        if ('tel' === type) {
+            return 'tel:' + value.replace(/[^\d+]/g, '');
+        }
+
+        if (/^https?:\/\//i.test(value)) {
+            return value;
+        }
+
+        return 'https://' + value.replace(/^\/+/, '');
+    }
+
     function bakeFieldInputs(scope) {
         Array.prototype.forEach.call(scope.querySelectorAll('input.signatur-field'), function (input) {
-            var span = document.createElement('span');
+            var value = input.value.trim();
+            var linked = '1' === input.getAttribute('data-link') && '' !== value;
+            var node = document.createElement(linked ? 'a' : 'span');
 
-            span.textContent = input.value.trim();
-            span.style.fontFamily = input.style.fontFamily;
-            span.style.fontSize = input.style.fontSize;
-            span.style.color = input.style.color;
-            span.style.fontWeight = input.style.fontWeight;
-            span.style.fontStyle = input.style.fontStyle;
-            span.style.textDecoration = input.style.textDecoration;
+            node.textContent = value;
+            node.style.fontFamily = input.style.fontFamily;
+            node.style.fontSize = input.style.fontSize;
+            node.style.color = input.style.color;
+            node.style.fontWeight = input.style.fontWeight;
+            node.style.fontStyle = input.style.fontStyle;
 
-            input.parentNode.replaceChild(span, input);
+            if (linked) {
+                node.setAttribute('href', fieldLinkHref(input.getAttribute('type'), value));
+                node.setAttribute('target', '_blank');
+                node.setAttribute('rel', 'noopener noreferrer');
+                node.style.textDecoration = 'underline';
+            } else {
+                node.style.textDecoration = input.style.textDecoration;
+            }
+
+            // The cell carries a pale-yellow fill to flag it as fillable -
+            // that's a page-only hint, never part of the copied signature.
+            if (input.parentNode && input.parentNode.style) {
+                input.parentNode.style.backgroundColor = '';
+            }
+
+            input.parentNode.replaceChild(node, input);
         });
     }
 
@@ -119,6 +155,23 @@
             onDone();
         }
     }
+
+    /**
+     * Mark empty fillable fields so frontend.css can show a blinking caret
+     * hint on them (see .signatur-field-empty). Toggled on load and on
+     * every keystroke.
+     */
+    function markFieldEmpty(input) {
+        input.classList.toggle('signatur-field-empty', '' === input.value.trim());
+    }
+
+    Array.prototype.forEach.call(document.querySelectorAll('.signatur-field'), markFieldEmpty);
+
+    document.addEventListener('input', function (e) {
+        if (e.target.classList && e.target.classList.contains('signatur-field')) {
+            markFieldEmpty(e.target);
+        }
+    });
 
     document.addEventListener('click', function (e) {
         var button = e.target.closest('.signatur-copy-button');

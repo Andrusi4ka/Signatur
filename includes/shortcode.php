@@ -290,7 +290,7 @@ function signatur_render_field_element($element, $context = 'front')
 
     $style = $text_style
         . '; display:inline-block; width:100%; box-sizing:border-box; background:transparent;'
-        . ' border:0; border-bottom:1px dashed #999999; padding:1px 2px;'
+        . ' border:0; padding:0; line-height:1.4; height:auto;'
         . ' text-align:' . $element['align'] . ';';
 
     $class = 'signatur-field';
@@ -299,6 +299,12 @@ function signatur_render_field_element($element, $context = 'front')
     if ('editor' === $context) {
         $class .= ' signatur-field--editor';
         $extra  = ' disabled';
+    }
+
+    if (! empty($element['link'])) {
+        // frontend.js turns the typed value into an <a> on copy, with the
+        // scheme picked from the input's type (mailto: / tel: / https://).
+        $extra .= ' data-link="1"';
     }
 
     return '<input type="' . esc_attr($field_type) . '"'
@@ -469,7 +475,15 @@ function signatur_render_signature_table($settings, $interactive = true)
             } elseif ($element && 'field' === $element['type']) {
                 $cell_style .= ' ' . signatur_text_base_style($element) . ';';
                 $cell_style .= ' text-align:' . $element['align'] . '; vertical-align:' . $element['valign'] . ';';
-                $html       .= '<td' . $attrs . ' style="' . esc_attr($cell_style) . '">' . signatur_render_field_element($element, $interactive ? 'front' : 'front-static') . '</td>';
+
+                // Pale-yellow fill on the whole cell marks it as fillable -
+                // last, so it wins over any row background. frontend.js
+                // strips it from the copied signature (bakeFieldInputs()).
+                if ($interactive) {
+                    $cell_style .= ' background-color:#fdf6d8;';
+                }
+
+                $html .= '<td' . $attrs . ' style="' . esc_attr($cell_style) . '">' . signatur_render_field_element($element, $interactive ? 'front' : 'front-static') . '</td>';
             } else {
                 $html .= '<td' . $attrs . ' style="' . esc_attr($cell_style) . '">&nbsp;</td>';
             }

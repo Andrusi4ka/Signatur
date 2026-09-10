@@ -379,6 +379,7 @@ function signatur_render_add_signature_page()
                                         } elseif ($element && 'field' === $element['type']) {
                                             $style .= ' text-align:' . $element['align'] . '; vertical-align:' . $element['valign'] . ';';
                                             $attrs .= ' data-element="' . esc_attr(wp_json_encode($element)) . '"';
+                                            $attrs .= ' class="signatur-field-cell"';
                                         }
                                         ?>
                                         <td<?php echo $attrs; ?> style="<?php echo esc_attr($style); ?>"><?php
@@ -562,7 +563,7 @@ function signatur_render_add_signature_page()
                 <label for="signatur_copy_button_text_color"><?php esc_html_e('Text', 'signatur'); ?></label>
                 <input type="color" id="signatur_copy_button_text_color" value="#1d2327">
 
-                <select id="signatur_copy_button_align" aria-label="<?php esc_attr_e('Horizontal alignment', 'signatur'); ?>" style="width:110px;">
+                <select id="signatur_copy_button_align" aria-label="<?php esc_attr_e('Horizontal alignment', 'signatur'); ?>">
                     <option value="left"><?php esc_html_e('Left', 'signatur'); ?></option>
                     <option value="center"><?php esc_html_e('Center', 'signatur'); ?></option>
                     <option value="right"><?php esc_html_e('Right', 'signatur'); ?></option>
@@ -600,7 +601,7 @@ function signatur_render_add_signature_page()
 
             <p style="display:flex; align-items:center; gap:6px; margin:12px 0 0;">
                 <span style="font-weight:600;"><?php esc_html_e('Text transform', 'signatur'); ?></span>
-                <select id="signatur_copy_button_text_transform" style="width:120px;">
+                <select id="signatur_copy_button_text_transform">
                     <option value="none"><?php esc_html_e('None', 'signatur'); ?></option>
                     <option value="uppercase"><?php esc_html_e('Uppercase', 'signatur'); ?></option>
                     <option value="lowercase"><?php esc_html_e('Lowercase', 'signatur'); ?></option>
@@ -758,7 +759,7 @@ function signatur_render_add_signature_page()
         <template id="signatur_modal_template_field">
             <p style="margin:0; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
                 <img src="<?php echo esc_url(plugins_url('assets/icon-email.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="24" height="24">
-                <select id="signatur_field_type" aria-label="<?php esc_attr_e('Type', 'signatur'); ?>">
+                <select id="signatur_field_type" aria-label="<?php esc_attr_e('Type', 'signatur'); ?>" style="min-width:150px;">
                     <option value="text"><?php esc_html_e('Text', 'signatur'); ?></option>
                     <option value="email"><?php esc_html_e('Email', 'signatur'); ?></option>
                     <option value="tel"><?php esc_html_e('Phone', 'signatur'); ?></option>
@@ -767,6 +768,10 @@ function signatur_render_add_signature_page()
                 <label style="display:inline-flex; align-items:center; gap:6px;">
                     <input type="checkbox" id="signatur_field_required">
                     <?php esc_html_e('Required', 'signatur'); ?>
+                </label>
+                <label style="display:inline-flex; align-items:center; gap:6px;">
+                    <input type="checkbox" id="signatur_field_link">
+                    <?php esc_html_e('Link', 'signatur'); ?>
                 </label>
             </p>
 

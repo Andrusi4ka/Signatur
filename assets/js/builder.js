@@ -223,13 +223,18 @@
         var types = ['text', 'email', 'tel', 'url'];
         var style = textElementStyle(el)
             + '; display:inline-block; width:100%; box-sizing:border-box; background:transparent;'
-            + ' border:0; border-bottom:1px dashed #999999; padding:1px 2px;'
+            + ' border:0; padding:0; line-height:1.4; height:auto;'
             + ' text-align:' + el.align + ';';
 
         input.setAttribute('type', -1 !== types.indexOf(el.field_type) ? el.field_type : 'text');
         input.className = 'signatur-field signatur-field--editor';
         input.setAttribute('placeholder', el.placeholder || '');
         input.setAttribute('data-required', el.required ? '1' : '0');
+
+        if (el.link) {
+            input.setAttribute('data-link', '1');
+        }
+
         input.setAttribute('style', style);
         input.disabled = true;
 
@@ -243,6 +248,8 @@
      */
     function applyElementToCell(cell, el) {
         cell.innerHTML = '';
+
+        cell.classList.remove('signatur-field-cell');
 
         if (el && 'text' === el.type && '' !== String(el.text).trim()) {
             cell.dataset.element = JSON.stringify(el);
@@ -304,6 +311,7 @@
 
         if (el && 'field' === el.type) {
             cell.dataset.element = JSON.stringify(el);
+            cell.classList.add('signatur-field-cell');
             cell.style.textAlign = el.align;
             cell.style.verticalAlign = el.valign || 'top';
             cell.style.fontFamily = DEFAULT_FONT;
@@ -811,6 +819,7 @@
             var fieldTypeSelect = document.getElementById('signatur_field_type');
             var fieldPlaceholderInput = document.getElementById('signatur_field_placeholder');
             var fieldRequiredInput = document.getElementById('signatur_field_required');
+            var fieldLinkInput = document.getElementById('signatur_field_link');
             var fieldSizeInput = document.getElementById('signatur_field_size');
             var fieldColorInput = document.getElementById('signatur_field_color');
             var fieldAlignSelect = document.getElementById('signatur_field_align');
@@ -823,6 +832,7 @@
             fieldTypeSelect.value = fieldStored ? fieldStored.field_type : 'text';
             fieldPlaceholderInput.value = fieldStored ? fieldStored.placeholder : '';
             fieldRequiredInput.checked = !!(fieldStored && fieldStored.required);
+            fieldLinkInput.checked = !!(fieldStored && fieldStored.link);
             fieldSizeInput.value = fieldStored ? fieldStored.size : 11;
             fieldColorInput.value = fieldStored ? fieldStored.color : '#000000';
             fieldAlignSelect.value = fieldStored ? fieldStored.align : 'left';
@@ -2357,6 +2367,7 @@
                 field_type: document.getElementById('signatur_field_type').value,
                 placeholder: document.getElementById('signatur_field_placeholder').value.trim(),
                 required: document.getElementById('signatur_field_required').checked,
+                link: document.getElementById('signatur_field_link').checked,
                 size: Math.max(8, Math.min(72, fieldSize)),
                 color: document.getElementById('signatur_field_color').value,
                 bold: document.getElementById('signatur_field_bold').classList.contains('is-active'),

@@ -61,7 +61,27 @@
 }
 
 .signatur-field--editor {
-    background: #fdf6d8;
+    /* Purely a preview - let clicks fall through to the cell so selecting
+       the cell (and its action buttons) still works when the input covers
+       the whole cell. (The pale-yellow ground is set inline, shared with
+       the front-end field - see signatur_render_field_element().) */
+    pointer-events: none;
+}
+
+/* The preview <input> is otherwise caught by the modal-control sizing rule
+   below (height:32px), which inflates the grid row - let it flow at the
+   cell's line-height like a text element instead. */
+.wrap input.signatur-field--editor {
+    height: auto !important;
+    min-height: auto !important;
+    line-height: 1.4;
+}
+
+/* Whole field cell gets the pale-yellow fill (mirrors the front end).
+   !important because applyRowStyles() writes the row background onto every
+   <td> as an inline style. */
+#signatur_field_table td.signatur-field-cell {
+    background: #fdf6d8 !important;
 }
 
 #signatur_row_actions {
@@ -154,6 +174,16 @@
     padding: 0 6px;
     border-color: #8c8f94;
     cursor: pointer;
+}
+
+/* Localised option labels ("По центру", "З великої літери", ...) overflow a
+   select's default width - give the modal's selects room. */
+#signatur_modal_body select {
+    min-width: 128px;
+}
+
+#signatur_copy_button_text_transform {
+    min-width: 190px;
 }
 
 .wrap input[type="color"] {
