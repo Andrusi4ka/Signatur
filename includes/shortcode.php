@@ -81,6 +81,19 @@ function signatur_render_shortcode($atts)
     $dom_id         = 'signatur-signature-' . $id;
     $signature_html = '<div class="signatur-signature" id="' . esc_attr($dom_id) . '">' . $output . '</div>';
 
+    // Static decorative frame - a page-only wrapper, so it is never part of
+    // what gets copied (frontend.js copies only the inner <table>). Styled
+    // inline so it works even when frontend.css is not enqueued (copy="no").
+    // The scissors sit on the top dashed line, near the left, with a white
+    // backing so the dashes look "cut" where the icon is.
+    $scissors = '<img src="' . esc_url(plugins_url('assets/icon-scissors.svg', SIGNATUR_PLUGIN_FILE)) . '"'
+        . ' alt="" style="position:absolute; top:-10px; left:24px; width:20px; height:20px; padding:0 4px; background:#ffffff;">';
+
+    $signature_html = '<div class="signatur-frame" style="position:relative; display:inline-block; padding:16px; border:1px dashed #cccccc; border-radius:10px;">'
+        . $scissors
+        . $signature_html
+        . '</div>';
+
     if (! $show_copy) {
         return $signature_html;
     }
@@ -432,7 +445,9 @@ function signatur_render_signature_table($settings, $interactive = true)
     // (e.g. Woodmart) doesn't leak a border into the signature.
     $grid_border = empty($settings['border']) ? ' border:0;' : ' border:1px solid #cccccc;';
 
-    $html  = '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse; table-layout:fixed;' . $grid_border . ' width:' . (int) $settings['width'] . 'px;">';
+    // margin:0 - inline so it beats a theme's plain `table { margin-bottom }`
+    // rule (e.g. Woodmart's 35px) both on the page and in the pasted copy.
+    $html  = '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse; table-layout:fixed; margin:0;' . $grid_border . ' width:' . (int) $settings['width'] . 'px;">';
     $html .= '<colgroup>';
 
     foreach ($settings['columns'] as $column_width) {
