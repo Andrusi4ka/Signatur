@@ -15,7 +15,7 @@ function signatur_register_admin_pages()
         'manage_options',
         'signatur-all-signatures',
         'signatur_render_all_signatures_page',
-        'dashicons-email-alt',
+        plugins_url('assets/icon.svg', SIGNATUR_PLUGIN_FILE),
         25
     );
 

@@ -49,6 +49,16 @@
     outline-offset: 1px;
 }
 
+/* The field's own colour / weight style the typed value; the placeholder
+   itself stays a plain light grey so it never looks like real content. */
+.signatur-field::placeholder {
+    color: #999999;
+    font-weight: normal;
+    font-style: normal;
+    text-decoration: none;
+    opacity: 1;
+}
+
 /* Blinking caret hint on an empty, unfocused field so a visitor sees where
    to type. Drawn as an inset left bar (the field's own border is off via
    inline style) in the field's own text colour; stops on focus (the real

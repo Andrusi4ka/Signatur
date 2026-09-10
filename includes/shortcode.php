@@ -338,7 +338,13 @@ function signatur_render_field_element($element, $context = 'front')
     }
 
     if ('front-static' === $context) {
-        return '<span class="signatur-field-static" style="' . esc_attr($text_style) . ';">'
+        // Just the placeholder - keep its font size to fit the layout, but
+        // a plain light grey (never the field's own colour / weight, which
+        // only style the value the visitor would type).
+        $static_style = 'font-family:' . signatur_get_default_font()
+            . '; font-size:' . (int) $element['size'] . 'pt; color:#999999';
+
+        return '<span class="signatur-field-static" style="' . esc_attr($static_style) . ';">'
             . esc_html($element['placeholder'])
             . '</span>';
     }
