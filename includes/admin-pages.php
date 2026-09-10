@@ -432,7 +432,7 @@ function signatur_render_add_signature_page()
                     <p style="margin:0 0 6px; font-size:11px; color:#646970;"><?php esc_html_e('Preview: how the copy button looks on the front end', 'signatur'); ?></p>
                     <div id="signatur_copy_button_wrap" style="display:inline-flex; align-items:center; gap:8px;" data-copy-button="<?php echo esc_attr(wp_json_encode($settings['copy_button'])); ?>">
                         <p class="signatur-copy" style="margin:0;">
-                            <button type="button" id="signatur_copy_button_preview" class="signatur-copy-button" style="<?php echo esc_attr(signatur_copy_button_style($settings['copy_button'])); ?>"><?php echo esc_html($settings['copy_button']['text']); ?></button>
+                            <button type="button" id="signatur_copy_button_preview" class="signatur-copy-button" style="<?php echo esc_attr(signatur_copy_button_style($settings['copy_button'], false)); ?>"><?php echo esc_html($settings['copy_button']['text']); ?></button>
                         </p>
                         <button type="button" id="signatur_copy_button_edit" class="signatur-icon-button" data-modal-title="<?php echo esc_attr__('Edit copy button', 'signatur'); ?>" data-modal-type="copy_button" title="<?php esc_attr_e('Edit copy button', 'signatur'); ?>" aria-label="<?php esc_attr_e('Edit copy button', 'signatur'); ?>">
                             <img src="<?php echo esc_url(plugins_url('assets/icon-edit.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
@@ -581,6 +581,14 @@ function signatur_render_add_signature_page()
                 <input type="number" id="signatur_copy_button_padding_right" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Right', 'signatur'); ?>" style="width:50px;">
             </p>
 
+            <p style="display:flex; align-items:center; gap:6px; margin:12px 0 0;">
+                <span style="font-weight:600;"><?php esc_html_e('Margin', 'signatur'); ?></span>
+                <input type="number" id="signatur_copy_button_margin_top" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Top', 'signatur'); ?>" style="width:50px;">
+                <input type="number" id="signatur_copy_button_margin_left" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Left', 'signatur'); ?>" style="width:50px;">
+                <input type="number" id="signatur_copy_button_margin_bottom" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Bottom', 'signatur'); ?>" style="width:50px;">
+                <input type="number" id="signatur_copy_button_margin_right" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Right', 'signatur'); ?>" style="width:50px;">
+            </p>
+
             <div class="signatur-text-controls" style="margin-top:12px;">
                 <label for="signatur_copy_button_font_size"><?php esc_html_e('Text size', 'signatur'); ?></label>
                 <input type="number" id="signatur_copy_button_font_size" class="small-text" min="8" max="72" step="1" style="width:56px;">
@@ -589,6 +597,11 @@ function signatur_render_add_signature_page()
                 <label for="signatur_copy_button_border_radius"><?php esc_html_e('Radius', 'signatur'); ?></label>
                 <input type="number" id="signatur_copy_button_border_radius" class="small-text" min="0" max="100" step="1" style="width:56px;">
                 <span><?php esc_html_e('px', 'signatur'); ?></span>
+
+                <label style="display:inline-flex; align-items:center; gap:6px;">
+                    <input type="checkbox" id="signatur_copy_button_bold">
+                    <?php esc_html_e('Bold', 'signatur'); ?>
+                </label>
             </div>
 
             <p style="display:flex; align-items:center; gap:6px; margin:12px 0 0;">

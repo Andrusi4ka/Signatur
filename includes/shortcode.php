@@ -372,10 +372,22 @@ function signatur_padding_css($padding)
  * button (signatur_render_shortcode()) and its static admin-editor preview,
  * so they always look identical.
  */
-function signatur_copy_button_style($copy_button)
+function signatur_copy_button_style($copy_button, $include_margin = true)
 {
-    return signatur_padding_css($copy_button['padding'])
+    $style = signatur_padding_css($copy_button['padding']);
+
+    // Margin is where the button sits on the page, not part of its look -
+    // the admin-editor preview passes false so it stays centred next to its
+    // edit button (mirrors how `align` is skipped there too).
+    if ($include_margin) {
+        $margin = isset($copy_button['margin']) ? $copy_button['margin'] : array('top' => 0, 'right' => 0, 'bottom' => 0, 'left' => 0);
+        $style .= '; margin:' . (int) $margin['top'] . 'px ' . (int) $margin['right'] . 'px '
+            . (int) $margin['bottom'] . 'px ' . (int) $margin['left'] . 'px';
+    }
+
+    return $style
         . '; font-size:' . (int) $copy_button['font_size'] . 'px'
+        . '; font-weight:' . (! empty($copy_button['bold']) ? 'bold' : 'normal')
         . '; color:' . $copy_button['text_color']
         . '; background-color:' . $copy_button['bg_color']
         . '; border-radius:' . (int) $copy_button['border_radius'] . 'px'

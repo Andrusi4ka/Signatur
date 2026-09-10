@@ -366,3 +366,7 @@ msgstr "Заповніть усі обов'язкові поля перед ко
 #: signatur.php
 msgid "Profile photo"
 msgstr "Фото профілю"
+
+#: signatur.php
+msgid "Margin"
+msgstr "Відступ"

@@ -128,6 +128,8 @@ function signatur_get_default_copy_button()
         'border_color'   => '#8c8f94',
         'border_radius'  => 4,
         'text_transform' => 'none',
+        'margin'         => array('top' => 12, 'right' => 0, 'bottom' => 0, 'left' => 0),
+        'bold'           => false,
     );
 }
 
@@ -180,6 +182,8 @@ function signatur_sanitize_copy_button($raw)
         ? $raw['text_transform']
         : $defaults['text_transform'];
 
+    $margin = signatur_sanitize_padding(isset($raw['margin']) ? $raw['margin'] : $defaults['margin']);
+
     return array(
         'text'           => $text,
         'align'          => $align,
@@ -192,6 +196,8 @@ function signatur_sanitize_copy_button($raw)
         'border_color'   => $border_color,
         'border_radius'  => $border_radius,
         'text_transform' => $text_transform,
+        'margin'         => $margin,
+        'bold'           => ! empty($raw['bold']),
     );
 }
 

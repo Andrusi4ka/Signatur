@@ -1,5 +1,7 @@
 .signatur-copy {
-    margin: 12px 0 0;
+    /* Spacing around the button is configurable (copy_button.margin) and
+       lives on the button itself - see signatur_copy_button_style(). */
+    margin: 0;
 }
 
 .signatur-copy-button {

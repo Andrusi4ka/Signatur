@@ -366,3 +366,7 @@ msgstr "Please fill in all required fields before copying."
 #: signatur.php
 msgid "Profile photo"
 msgstr "Profile photo"
+
+#: signatur.php
+msgid "Margin"
+msgstr "Margin"

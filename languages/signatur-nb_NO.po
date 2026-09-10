@@ -366,3 +366,7 @@ msgstr "Fyll ut alle påkrevde felt før du kopierer."
 #: signatur.php
 msgid "Profile photo"
 msgstr "Profilbilde"
+
+#: signatur.php
+msgid "Margin"
+msgstr "Marg"
