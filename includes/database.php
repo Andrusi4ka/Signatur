@@ -505,7 +505,7 @@ function signatur_sanitize_social_element($raw)
  */
 function signatur_get_field_element_types()
 {
-    return array('text', 'email', 'tel', 'url');
+    return array('text', 'email', 'tel');
 }
 
 /**

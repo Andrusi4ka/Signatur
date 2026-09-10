@@ -43,6 +43,18 @@
     border-color: transparent;
 }
 
+/* Field-type picker in the field modal - the same solid icon-buttons as
+   the "Add element" modal, with the current type highlighted. */
+.signatur-field-type-button img {
+    width: 24px;
+    height: 24px;
+}
+
+.signatur-field-type-button.is-active {
+    background: #d5e5f8;
+    border-color: #2271b1;
+}
+
 .signatur-element-button img {
     width: 24px;
     height: 24px;

@@ -167,9 +167,93 @@
 
     Array.prototype.forEach.call(document.querySelectorAll('.signatur-field'), markFieldEmpty);
 
+    /**
+     * A per-field validity marker (icon-ok.svg / icon-feil.svg) shown just
+     * outside the table, level with each fillable field. It lives on
+     * .signatur-signature (never inside the <table>), so it is a page-only
+     * affordance and is never copied.
+     */
+    var statusIcons = (window.signaturFrontend && signaturFrontend.statusIcons) || null;
+
+    function fieldIsValid(input) {
+        var value = input.value.trim();
+
+        if ('' === value) {
+            return false;
+        }
+
+        if ('tel' === input.getAttribute('type')) {
+            return /\d/.test(value);
+        }
+
+        return input.checkValidity();
+    }
+
+    function updateFieldStatus(input) {
+        var icon = input.signaturStatusIcon;
+
+        if (!icon || !statusIcons) {
+            return;
+        }
+
+        // An empty optional field gets no marker at all - the feil icon
+        // only shows for something the visitor still has to fix: an empty
+        // required field, or a filled-in but invalid one.
+        if ('' === input.value.trim() && '1' !== input.getAttribute('data-required')) {
+            icon.hidden = true;
+            return;
+        }
+
+        icon.hidden = false;
+        icon.src = fieldIsValid(input) ? statusIcons.ok : statusIcons.feil;
+    }
+
+    function positionFieldStatuses() {
+        Array.prototype.forEach.call(document.querySelectorAll('.signatur-signature'), function (sig) {
+            var table = sig.querySelector('table');
+
+            if (!table) {
+                return;
+            }
+
+            var sigRect = sig.getBoundingClientRect();
+            var tableRight = table.getBoundingClientRect().right - sigRect.left + 8;
+
+            Array.prototype.forEach.call(sig.querySelectorAll('input.signatur-field'), function (input) {
+                if (!input.signaturStatusIcon) {
+                    return;
+                }
+
+                var r = input.getBoundingClientRect();
+
+                input.signaturStatusIcon.style.left = tableRight + 'px';
+                input.signaturStatusIcon.style.top = (r.top - sigRect.top + (r.height - 18) / 2) + 'px';
+            });
+        });
+    }
+
+    if (statusIcons) {
+        Array.prototype.forEach.call(document.querySelectorAll('.signatur-signature'), function (sig) {
+            Array.prototype.forEach.call(sig.querySelectorAll('input.signatur-field'), function (input) {
+                var icon = document.createElement('img');
+
+                icon.className = 'signatur-field-status';
+                icon.alt = '';
+                input.signaturStatusIcon = icon;
+                sig.appendChild(icon);
+                updateFieldStatus(input);
+            });
+        });
+
+        positionFieldStatuses();
+        window.addEventListener('resize', positionFieldStatuses);
+        window.addEventListener('load', positionFieldStatuses);
+    }
+
     document.addEventListener('input', function (e) {
         if (e.target.classList && e.target.classList.contains('signatur-field')) {
             markFieldEmpty(e.target);
+            updateFieldStatus(e.target);
         }
     });
 

@@ -59,3 +59,17 @@
 .signatur-field-empty:not(:focus) {
     animation: signatur-field-caret 1.1s step-end infinite;
 }
+
+/* Per-field validity marker, placed by frontend.js just outside the table
+   to the right of its field. Never part of the copied signature (it lives
+   on .signatur-signature, not inside the <table>). */
+.signatur-signature {
+    position: relative;
+}
+
+.signatur-field-status {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    pointer-events: none;
+}

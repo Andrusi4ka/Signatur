@@ -757,13 +757,23 @@ function signatur_render_add_signature_page()
         </template>
 
         <template id="signatur_modal_template_field">
-            <p style="margin:0; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-                <img src="<?php echo esc_url(plugins_url('assets/icon-email.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="24" height="24">
+            <p style="margin:0; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <button type="button" class="signatur-icon-button signatur-field-type-button" data-type="text" title="<?php esc_attr_e('Text', 'signatur'); ?>" aria-label="<?php esc_attr_e('Text', 'signatur'); ?>">
+                    <img src="<?php echo esc_url(plugins_url('assets/icon-add-text.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="24" height="24">
+                </button>
+                <button type="button" class="signatur-icon-button signatur-field-type-button" data-type="email" title="<?php esc_attr_e('Email', 'signatur'); ?>" aria-label="<?php esc_attr_e('Email', 'signatur'); ?>">
+                    <img src="<?php echo esc_url(plugins_url('assets/icon-email.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="24" height="24">
+                </button>
+                <button type="button" class="signatur-icon-button signatur-field-type-button" data-type="tel" title="<?php esc_attr_e('Phone', 'signatur'); ?>" aria-label="<?php esc_attr_e('Phone', 'signatur'); ?>">
+                    <img src="<?php echo esc_url(plugins_url('assets/icon-phone.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="24" height="24">
+                </button>
+            </p>
+
+            <p style="margin:12px 0 0; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
                 <select id="signatur_field_type" aria-label="<?php esc_attr_e('Type', 'signatur'); ?>" style="min-width:150px;">
                     <option value="text"><?php esc_html_e('Text', 'signatur'); ?></option>
                     <option value="email"><?php esc_html_e('Email', 'signatur'); ?></option>
                     <option value="tel"><?php esc_html_e('Phone', 'signatur'); ?></option>
-                    <option value="url"><?php esc_html_e('URL', 'signatur'); ?></option>
                 </select>
                 <label style="display:inline-flex; align-items:center; gap:6px;">
                     <input type="checkbox" id="signatur_field_required">
@@ -801,10 +811,6 @@ function signatur_render_add_signature_page()
                     <option value="bottom"><?php esc_html_e('Bottom', 'signatur'); ?></option>
                 </select>
             </div>
-
-            <p style="margin:12px 0 0;">
-                <input type="text" id="signatur_field_preview" class="signatur-field signatur-field--editor" disabled style="width:100%;">
-            </p>
         </template>
     </div>
 

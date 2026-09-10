@@ -91,6 +91,10 @@ function signatur_render_shortcode($atts)
         'signatur-frontend',
         'signaturFrontend',
         array(
+            'statusIcons' => array(
+                'ok'   => plugins_url('assets/icon-ok.svg', SIGNATUR_PLUGIN_FILE),
+                'feil' => plugins_url('assets/icon-feil.svg', SIGNATUR_PLUGIN_FILE),
+            ),
             'i18n' => array(
                 'requiredFields' => __('Please fill in all required fields before copying.', 'signatur'),
             ),

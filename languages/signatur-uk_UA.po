@@ -360,9 +360,5 @@ msgid "Phone"
 msgstr "Телефон"
 
 #: signatur.php
-msgid "URL"
-msgstr "URL"
-
-#: signatur.php
 msgid "Please fill in all required fields before copying."
 msgstr "Заповніть усі обов'язкові поля перед копіюванням."

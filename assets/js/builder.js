@@ -220,7 +220,7 @@
      */
     function renderFieldEl(el) {
         var input = document.createElement('input');
-        var types = ['text', 'email', 'tel', 'url'];
+        var types = ['text', 'email', 'tel'];
         var style = textElementStyle(el)
             + '; display:inline-block; width:100%; box-sizing:border-box; background:transparent;'
             + ' border:0; padding:0; line-height:1.4; height:auto;'
@@ -817,6 +817,9 @@
             }
 
             var fieldTypeSelect = document.getElementById('signatur_field_type');
+            var fieldTypeButtons = Array.prototype.slice.call(
+                modalBody.querySelectorAll('.signatur-field-type-button')
+            );
             var fieldPlaceholderInput = document.getElementById('signatur_field_placeholder');
             var fieldRequiredInput = document.getElementById('signatur_field_required');
             var fieldLinkInput = document.getElementById('signatur_field_link');
@@ -824,7 +827,6 @@
             var fieldColorInput = document.getElementById('signatur_field_color');
             var fieldAlignSelect = document.getElementById('signatur_field_align');
             var fieldValignSelect = document.getElementById('signatur_field_valign');
-            var fieldPreview = document.getElementById('signatur_field_preview');
             var fieldToggles = ['bold', 'italic', 'underline'].map(function (name) {
                 return document.getElementById('signatur_field_' + name);
             });
@@ -842,29 +844,27 @@
             fieldToggles[1].classList.toggle('is-active', !!(fieldStored && fieldStored.italic));
             fieldToggles[2].classList.toggle('is-active', !!(fieldStored && fieldStored.underline));
 
-            function updateFieldPreview() {
-                fieldPreview.type = fieldTypeSelect.value;
-                fieldPreview.placeholder = fieldPlaceholderInput.value;
-                fieldPreview.style.fontFamily = DEFAULT_FONT;
-                fieldPreview.style.fontSize = (parseInt(fieldSizeInput.value, 10) || 11) + 'pt';
-                fieldPreview.style.color = fieldColorInput.value;
-                fieldPreview.style.fontWeight = fieldToggles[0].classList.contains('is-active') ? 'bold' : 'normal';
-                fieldPreview.style.fontStyle = fieldToggles[1].classList.contains('is-active') ? 'italic' : 'normal';
-                fieldPreview.style.textDecoration = fieldToggles[2].classList.contains('is-active') ? 'underline' : 'none';
-                fieldPreview.style.textAlign = fieldAlignSelect.value;
+            // Highlight the type button that matches the (hidden-ish) select.
+            function syncFieldTypeButtons() {
+                fieldTypeButtons.forEach(function (btn) {
+                    btn.classList.toggle('is-active', btn.getAttribute('data-type') === fieldTypeSelect.value);
+                });
             }
 
-            updateFieldPreview();
+            syncFieldTypeButtons();
 
-            [fieldTypeSelect, fieldPlaceholderInput, fieldSizeInput, fieldColorInput, fieldAlignSelect].forEach(function (control) {
-                control.addEventListener('input', updateFieldPreview);
-                control.addEventListener('change', updateFieldPreview);
+            fieldTypeButtons.forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    fieldTypeSelect.value = btn.getAttribute('data-type');
+                    syncFieldTypeButtons();
+                });
             });
+
+            fieldTypeSelect.addEventListener('change', syncFieldTypeButtons);
 
             fieldToggles.forEach(function (toggle) {
                 toggle.addEventListener('click', function () {
                     toggle.classList.toggle('is-active');
-                    updateFieldPreview();
                 });
             });
 
@@ -876,7 +876,6 @@
                 }
 
                 fieldSizeInput.value = Math.max(8, Math.min(72, value));
-                updateFieldPreview();
             });
         }
 
