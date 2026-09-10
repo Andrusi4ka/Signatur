@@ -219,6 +219,22 @@
      * version (live input / baked text) is built in PHP + frontend.js.
      */
     function renderFieldEl(el) {
+        // Padding is applied to the cell (readElementPadding / applyRowStyles),
+        // not the element - keeps the whole field family consistent.
+        // Profile-photo field: preview the placeholder icon. Mirror of the
+        // PHP 'photo' branch.
+        if ('photo' === el.field_type) {
+            var img = document.createElement('img');
+
+            img.setAttribute('src', (typeof signaturBuilder !== 'undefined' && signaturBuilder.fieldPhotoIcon) || '');
+            img.className = 'signatur-field-photo signatur-field--editor';
+            img.setAttribute('data-required', el.required ? '1' : '0');
+            img.setAttribute('style', 'display:inline-block; width:' + (parseInt(el.width, 10) || 80) + 'px; max-width:100%; height:auto; border:0;');
+            img.setAttribute('alt', '');
+
+            return img;
+        }
+
         var input = document.createElement('input');
         var types = ['text', 'email', 'tel'];
         var style = textElementStyle(el)
@@ -244,9 +260,19 @@
     /**
      * Put an element into a cell (or clear it when el is null / empty),
      * keeping the cell's data-element attribute, alignment and visible
-     * content in sync. This is the single place cell content is written.
+     * content in sync, then re-apply the row's styles so a text / field
+     * element's own padding (readElementPadding()) shows right away. This is
+     * the single place cell content is written.
      */
     function applyElementToCell(cell, el) {
+        writeElementToCell(cell, el);
+
+        if (cell.parentNode && 'TR' === cell.parentNode.tagName) {
+            applyRowStyles(cell.parentNode);
+        }
+    }
+
+    function writeElementToCell(cell, el) {
         cell.innerHTML = '';
 
         cell.classList.remove('signatur-field-cell');
@@ -372,6 +398,29 @@
     }
 
     /**
+     * A cell's own element padding (text / field elements only) - added on
+     * top of the row's padding. Zero for anything else.
+     */
+    function readElementPadding(td) {
+        try {
+            var el = JSON.parse(td.dataset.element || '');
+
+            if (el && ('text' === el.type || 'field' === el.type) && el.padding) {
+                return {
+                    top: parseInt(el.padding.top, 10) || 0,
+                    right: parseInt(el.padding.right, 10) || 0,
+                    bottom: parseInt(el.padding.bottom, 10) || 0,
+                    left: parseInt(el.padding.left, 10) || 0
+                };
+            }
+        } catch (err) {
+            // no / bad element - no extra padding
+        }
+
+        return { top: 0, right: 0, bottom: 0, left: 0 };
+    }
+
+    /**
      * Mirror a <tr>'s stored padding + border + background onto every <td>
      * it owns - styling <tr> directly is unreliable, so the row's settings
      * live on its cells (matches signatur_render_signature_table()).
@@ -380,12 +429,14 @@
         var p = readRowPadding(tr);
         var b = readRowBorder(tr);
         var background = readRowBackground(tr);
-        var padding = p.top + 'px ' + p.right + 'px ' + p.bottom + 'px ' + p.left + 'px';
         var hasBorder = 'none' !== b.sides && b.width > 0;
         var rule = hasBorder ? (b.width + 'px ' + b.style + ' ' + b.color) : '';
 
         Array.prototype.forEach.call(tr.children, function (td) {
-            td.style.padding = padding;
+            var ep = readElementPadding(td);
+
+            td.style.padding = (p.top + ep.top) + 'px ' + (p.right + ep.right) + 'px '
+                + (p.bottom + ep.bottom) + 'px ' + (p.left + ep.left) + 'px';
             td.style.borderTop = (hasBorder && ('top' === b.sides || 'both' === b.sides)) ? rule : '';
             td.style.borderBottom = (hasBorder && ('bottom' === b.sides || 'both' === b.sides)) ? rule : '';
             td.style.backgroundColor = background;
@@ -525,6 +576,8 @@
             alignSelect.value = stored ? stored.align : 'left';
             valignSelect.value = stored && stored.valign ? stored.valign : 'top';
             linkInput.value = stored && stored.link ? stored.link : '';
+
+            populatePaddingInputs('signatur_text_padding', stored && stored.padding ? stored.padding : ZERO_PADDING);
 
             toggles[0].classList.toggle('is-active', !!(stored && stored.bold));
             toggles[1].classList.toggle('is-active', !!(stored && stored.italic));
@@ -827,6 +880,12 @@
             var fieldColorInput = document.getElementById('signatur_field_color');
             var fieldAlignSelect = document.getElementById('signatur_field_align');
             var fieldValignSelect = document.getElementById('signatur_field_valign');
+            var fieldWidthInput = document.getElementById('signatur_field_width');
+            var fieldPlaceholderWrap = document.getElementById('signatur_field_placeholder_wrap');
+            var fieldLinkWrap = document.getElementById('signatur_field_link_wrap');
+            var fieldFontRow = document.getElementById('signatur_field_font_row');
+            var fieldWidthRow = document.getElementById('signatur_field_width_row');
+            var fieldPaddingRow = document.getElementById('signatur_field_padding_row');
             var fieldToggles = ['bold', 'italic', 'underline'].map(function (name) {
                 return document.getElementById('signatur_field_' + name);
             });
@@ -839,28 +898,42 @@
             fieldColorInput.value = fieldStored ? fieldStored.color : '#000000';
             fieldAlignSelect.value = fieldStored ? fieldStored.align : 'left';
             fieldValignSelect.value = fieldStored && fieldStored.valign ? fieldStored.valign : 'top';
+            fieldWidthInput.value = fieldStored && fieldStored.width ? fieldStored.width : 80;
+
+            populatePaddingInputs('signatur_field_padding', fieldStored && fieldStored.padding ? fieldStored.padding : ZERO_PADDING);
 
             fieldToggles[0].classList.toggle('is-active', !!(fieldStored && fieldStored.bold));
             fieldToggles[1].classList.toggle('is-active', !!(fieldStored && fieldStored.italic));
             fieldToggles[2].classList.toggle('is-active', !!(fieldStored && fieldStored.underline));
 
-            // Highlight the type button that matches the (hidden-ish) select.
-            function syncFieldTypeButtons() {
+            // Highlight the matching type button and show only the controls
+            // that apply: a "photo" field has no placeholder / font / link,
+            // but does get padding.
+            function updateFieldTypeUi() {
+                var isPhoto = 'photo' === fieldTypeSelect.value;
+
                 fieldTypeButtons.forEach(function (btn) {
                     btn.classList.toggle('is-active', btn.getAttribute('data-type') === fieldTypeSelect.value);
                 });
+
+                fieldPlaceholderWrap.hidden = isPhoto;
+                fieldLinkWrap.hidden = isPhoto;
+                fieldFontRow.hidden = isPhoto;
+                fieldWidthRow.hidden = ! isPhoto;
+                // Padding applies to every field type.
+                fieldPaddingRow.hidden = false;
             }
 
-            syncFieldTypeButtons();
+            updateFieldTypeUi();
 
             fieldTypeButtons.forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     fieldTypeSelect.value = btn.getAttribute('data-type');
-                    syncFieldTypeButtons();
+                    updateFieldTypeUi();
                 });
             });
 
-            fieldTypeSelect.addEventListener('change', syncFieldTypeButtons);
+            fieldTypeSelect.addEventListener('change', updateFieldTypeUi);
 
             fieldToggles.forEach(function (toggle) {
                 toggle.addEventListener('click', function () {
@@ -876,6 +949,16 @@
                 }
 
                 fieldSizeInput.value = Math.max(8, Math.min(72, value));
+            });
+
+            fieldWidthInput.addEventListener('blur', function () {
+                var value = parseInt(fieldWidthInput.value, 10);
+
+                if (isNaN(value)) {
+                    value = 80;
+                }
+
+                fieldWidthInput.value = Math.max(1, Math.min(1000, value));
             });
         }
 
@@ -2297,7 +2380,8 @@
                 underline: document.getElementById('signatur_text_underline').classList.contains('is-active'),
                 align: alignSelect.value,
                 valign: valignSelect.value,
-                link: document.getElementById('signatur_text_link').value.trim()
+                link: document.getElementById('signatur_text_link').value.trim(),
+                padding: readPaddingInputs('signatur_text_padding')
             };
 
             pushUndoSnapshot();
@@ -2373,7 +2457,9 @@
                 italic: document.getElementById('signatur_field_italic').classList.contains('is-active'),
                 underline: document.getElementById('signatur_field_underline').classList.contains('is-active'),
                 align: document.getElementById('signatur_field_align').value,
-                valign: document.getElementById('signatur_field_valign').value
+                valign: document.getElementById('signatur_field_valign').value,
+                width: Math.max(1, Math.min(1000, parseInt(document.getElementById('signatur_field_width').value, 10) || 80)),
+                padding: readPaddingInputs('signatur_field_padding')
             };
 
             pushUndoSnapshot();

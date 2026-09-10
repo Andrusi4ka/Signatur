@@ -2,18 +2,45 @@
     'use strict';
 
     /**
-     * Copy the signature's rendered markup to the clipboard so it can be
-     * pasted, with formatting intact, into an email client. Prefers the
-     * async Clipboard API (needs a secure context); falls back to a DOM
-     * range selection + execCommand('copy'), which also carries rich HTML
-     * and works on plain http.
+     * A "widget" is one fillable thing in a signature: a text/email/tel
+     * <input class="signatur-field">, or a profile-photo picker
+     * <label class="signatur-field-photo">.
      */
-    /**
-     * Turn every fillable field (<input class="signatur-field">) inside a
-     * cloned signature table into a plain <span> holding what the visitor
-     * typed, carrying over just the text styling. The email client only
-     * ever sees text, never a form control.
-     */
+    function isPhotoWidget(w) {
+        return !!(w.classList && w.classList.contains('signatur-field-photo'));
+    }
+
+    function photoImg(label) {
+        return label.querySelector('.signatur-field-photo-img');
+    }
+
+    function photoDataUrl(label) {
+        var img = photoImg(label);
+        var src = img ? (img.getAttribute('src') || '') : '';
+
+        return /^data:/i.test(src) ? src : '';
+    }
+
+    function widgetHasValue(w) {
+        return isPhotoWidget(w) ? '' !== photoDataUrl(w) : '' !== w.value.trim();
+    }
+
+    function widgetIsValid(w) {
+        if (!widgetHasValue(w)) {
+            return false;
+        }
+
+        if (isPhotoWidget(w)) {
+            return true;
+        }
+
+        if ('tel' === w.getAttribute('type')) {
+            return /\d/.test(w.value.trim());
+        }
+
+        return w.checkValidity();
+    }
+
     /**
      * The href for a linked field value, keyed off the input's type. Only
      * ever produces a mailto:, tel: or https:// URL.
@@ -34,6 +61,13 @@
         return 'https://' + value.replace(/^\/+/, '');
     }
 
+    /**
+     * Turn every fillable widget inside a cloned signature table into plain
+     * markup the email client can keep: a text field becomes a <span> (or
+     * <a> when linked); a photo field becomes a plain <img> with the chosen
+     * photo, or is dropped when no photo was added. The clone's parent
+     * cells also lose the page-only pale-yellow fill.
+     */
     function bakeFieldInputs(scope) {
         Array.prototype.forEach.call(scope.querySelectorAll('input.signatur-field'), function (input) {
             var value = input.value.trim();
@@ -56,37 +90,75 @@
                 node.style.textDecoration = input.style.textDecoration;
             }
 
-            // The cell carries a pale-yellow fill to flag it as fillable -
-            // that's a page-only hint, never part of the copied signature.
             if (input.parentNode && input.parentNode.style) {
                 input.parentNode.style.backgroundColor = '';
             }
 
             input.parentNode.replaceChild(node, input);
         });
+
+        Array.prototype.forEach.call(scope.querySelectorAll('.signatur-field-photo'), function (label) {
+            if (label.parentNode && label.parentNode.style) {
+                label.parentNode.style.backgroundColor = '';
+            }
+
+            var img = photoImg(label);
+            var src = img ? (img.getAttribute('src') || '') : '';
+
+            if (/^data:/i.test(src)) {
+                var out = img.cloneNode(true);
+                out.removeAttribute('class');
+                label.parentNode.replaceChild(out, label);
+            } else {
+                label.parentNode.removeChild(label);
+            }
+        });
     }
 
     /**
-     * True when every required fillable field has a value. Alerts and
+     * True when every required fillable widget has a value. Alerts and
      * returns false on the first empty one.
      */
     function requiredFieldsFilled(target) {
-        var required = target.querySelectorAll('input.signatur-field[data-required="1"]');
+        var widgets = target.querySelectorAll(
+            'input.signatur-field[data-required="1"], .signatur-field-photo[data-required="1"]'
+        );
+        var missing = false;
 
-        for (var i = 0; i < required.length; i++) {
-            if ('' === required[i].value.trim()) {
-                window.alert(
-                    (window.signaturFrontend && signaturFrontend.i18n && signaturFrontend.i18n.requiredFields)
-                        || 'Please fill in all required fields before copying.'
-                );
-
-                return false;
+        for (var i = 0; i < widgets.length; i++) {
+            if (!widgetHasValue(widgets[i])) {
+                missing = true;
+                break;
             }
+        }
+
+        if (missing) {
+            // A blocked copy is itself an interaction - light up the feil
+            // marker on every required widget that still needs filling.
+            Array.prototype.forEach.call(widgets, function (w) {
+                w.signaturTouched = true;
+                updateFieldStatus(w);
+            });
+            positionFieldStatuses();
+
+            window.alert(
+                (window.signaturFrontend && signaturFrontend.i18n && signaturFrontend.i18n.requiredFields)
+                    || 'Please fill in all required fields before copying.'
+            );
+
+            return false;
         }
 
         return true;
     }
 
+    /**
+     * Copy the signature's rendered markup to the clipboard so it can be
+     * pasted, with formatting intact, into an email client. Prefers the
+     * async Clipboard API (needs a secure context); falls back to a DOM
+     * range selection + execCommand('copy'), which also carries rich HTML
+     * and works on plain http.
+     */
     function copySignature(target, onDone) {
         if (!requiredFieldsFilled(target)) {
             return;
@@ -97,7 +169,7 @@
         // `source` to `target` and use innerHTML / selectNodeContents to go
         // back to copying the whole signature block.
         var source = target.querySelector('table') || target;
-        // Work on a detached clone so baking the field inputs into text
+        // Work on a detached clone so baking the widgets into plain markup
         // never touches what the visitor sees on the page.
         var scope = source.cloneNode(true);
 
@@ -157,55 +229,137 @@
     }
 
     /**
-     * Mark empty fillable fields so frontend.css can show a blinking caret
-     * hint on them (see .signatur-field-empty). Toggled on load and on
-     * every keystroke.
+     * Mark empty text fields so frontend.css can show a blinking caret hint
+     * on them (see .signatur-field-empty). Toggled on load and on every
+     * keystroke.
      */
     function markFieldEmpty(input) {
         input.classList.toggle('signatur-field-empty', '' === input.value.trim());
     }
 
-    Array.prototype.forEach.call(document.querySelectorAll('.signatur-field'), markFieldEmpty);
+    Array.prototype.forEach.call(document.querySelectorAll('input.signatur-field'), markFieldEmpty);
 
     /**
-     * A per-field validity marker (icon-ok.svg / icon-feil.svg) shown just
-     * outside the table, level with each fillable field. It lives on
+     * Read a picked photo file into a label's preview <img>, downscaling
+     * anything wider/taller than 512px so the copied signature stays a
+     * sane size.
+     */
+    function loadPhotoIntoLabel(label, file) {
+        var preview = photoImg(label);
+
+        if (!preview) {
+            return;
+        }
+
+        var reader = new FileReader();
+
+        reader.onload = function () {
+            var probe = new Image();
+
+            var apply = function (src) {
+                preview.src = src;
+                label.classList.add('signatur-field-photo--has-photo');
+                label.signaturTouched = true;
+                refreshWidgetStatus(label);
+            };
+
+            probe.onload = function () {
+                apply(downscaleDataUrl(probe, reader.result, 'image/png' === file.type ? 'image/png' : 'image/jpeg'));
+            };
+
+            probe.onerror = function () {
+                apply(reader.result);
+            };
+
+            probe.src = reader.result;
+        };
+
+        reader.readAsDataURL(file);
+    }
+
+    function downscaleDataUrl(img, original, mime) {
+        var max = 512;
+        var w = img.naturalWidth || img.width;
+        var h = img.naturalHeight || img.height;
+
+        if (!w || !h || (w <= max && h <= max)) {
+            return original;
+        }
+
+        var scale = max / Math.max(w, h);
+        var canvas = document.createElement('canvas');
+
+        canvas.width = Math.round(w * scale);
+        canvas.height = Math.round(h * scale);
+
+        try {
+            canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            return canvas.toDataURL(mime, 0.85);
+        } catch (err) {
+            return original;
+        }
+    }
+
+    document.addEventListener('change', function (e) {
+        var input = e.target;
+
+        if (!input || 'file' !== input.type || !input.files || !input.files[0]) {
+            return;
+        }
+
+        var label = input.closest && input.closest('.signatur-field-photo');
+
+        if (label) {
+            loadPhotoIntoLabel(label, input.files[0]);
+        }
+    });
+
+    /**
+     * A per-widget validity marker (icon-ok.svg / icon-feil.svg) shown just
+     * outside the table, level with each fillable widget. It lives on
      * .signatur-signature (never inside the <table>), so it is a page-only
      * affordance and is never copied.
      */
     var statusIcons = (window.signaturFrontend && signaturFrontend.statusIcons) || null;
 
-    function fieldIsValid(input) {
-        var value = input.value.trim();
-
-        if ('' === value) {
-            return false;
-        }
-
-        if ('tel' === input.getAttribute('type')) {
-            return /\d/.test(value);
-        }
-
-        return input.checkValidity();
-    }
-
-    function updateFieldStatus(input) {
-        var icon = input.signaturStatusIcon;
+    function updateFieldStatus(w) {
+        var icon = w.signaturStatusIcon;
 
         if (!icon || !statusIcons) {
             return;
         }
 
-        // An empty optional field gets no marker at all - the feil icon
-        // only shows for something the visitor still has to fix: an empty
-        // required field, or a filled-in but invalid one.
-        if ('' === input.value.trim() && '1' !== input.getAttribute('data-required')) {
+        var required = '1' === w.getAttribute('data-required');
+
+        // No marker until there is something to say: a value (ok / feil by
+        // validity), or an empty required widget the visitor has already
+        // interacted with (see markWidgetTouched()). An untouched empty
+        // field - required or not - stays unmarked on load.
+        if (!widgetHasValue(w) && !(required && w.signaturTouched)) {
             icon.hidden = true;
             return;
         }
 
         icon.hidden = false;
-        icon.src = fieldIsValid(input) ? statusIcons.ok : statusIcons.feil;
+        icon.src = widgetIsValid(w) ? statusIcons.ok : statusIcons.feil;
+    }
+
+    function markWidgetTouched(w) {
+        w.signaturTouched = true;
+        updateFieldStatus(w);
+    }
+
+    function refreshWidgetStatus(w) {
+        updateFieldStatus(w);
+        positionFieldStatuses();
+    }
+
+    function forEachWidget(root, fn) {
+        Array.prototype.forEach.call(
+            root.querySelectorAll('input.signatur-field, .signatur-field-photo'),
+            fn
+        );
     }
 
     function positionFieldStatuses() {
@@ -219,29 +373,29 @@
             var sigRect = sig.getBoundingClientRect();
             var tableRight = table.getBoundingClientRect().right - sigRect.left + 8;
 
-            Array.prototype.forEach.call(sig.querySelectorAll('input.signatur-field'), function (input) {
-                if (!input.signaturStatusIcon) {
+            forEachWidget(sig, function (w) {
+                if (!w.signaturStatusIcon) {
                     return;
                 }
 
-                var r = input.getBoundingClientRect();
+                var r = w.getBoundingClientRect();
 
-                input.signaturStatusIcon.style.left = tableRight + 'px';
-                input.signaturStatusIcon.style.top = (r.top - sigRect.top + (r.height - 18) / 2) + 'px';
+                w.signaturStatusIcon.style.left = tableRight + 'px';
+                w.signaturStatusIcon.style.top = (r.top - sigRect.top + (r.height - 18) / 2) + 'px';
             });
         });
     }
 
     if (statusIcons) {
         Array.prototype.forEach.call(document.querySelectorAll('.signatur-signature'), function (sig) {
-            Array.prototype.forEach.call(sig.querySelectorAll('input.signatur-field'), function (input) {
+            forEachWidget(sig, function (w) {
                 var icon = document.createElement('img');
 
                 icon.className = 'signatur-field-status';
                 icon.alt = '';
-                input.signaturStatusIcon = icon;
+                w.signaturStatusIcon = icon;
                 sig.appendChild(icon);
-                updateFieldStatus(input);
+                updateFieldStatus(w);
             });
         });
 
@@ -252,8 +406,26 @@
 
     document.addEventListener('input', function (e) {
         if (e.target.classList && e.target.classList.contains('signatur-field')) {
+            e.target.signaturTouched = true;
             markFieldEmpty(e.target);
             updateFieldStatus(e.target);
+        }
+    });
+
+    // Leaving a field (even empty) counts as an interaction, so its feil
+    // marker may then appear.
+    document.addEventListener('focusout', function (e) {
+        if (e.target.classList && e.target.classList.contains('signatur-field')) {
+            markWidgetTouched(e.target);
+        }
+    });
+
+    // Opening the file picker for a photo field is an interaction too.
+    document.addEventListener('click', function (e) {
+        var label = e.target.closest && e.target.closest('.signatur-field-photo');
+
+        if (label) {
+            markWidgetTouched(label);
         }
     });
 
@@ -271,9 +443,9 @@
         }
 
         copySignature(target, function () {
-            // Visual-only feedback (dimmed + outlined via .is-copied in
-            // frontend.css) - the label text never changes, so the button
-            // doesn't resize/jump when copying succeeds.
+            // Visual-only feedback (dimmed via .is-copied in frontend.css) -
+            // the label text never changes, so the button doesn't
+            // resize/jump when copying succeeds.
             button.classList.add('is-copied');
 
             window.setTimeout(function () {

@@ -64,7 +64,7 @@
    yellow ground - on its picker button and on the disabled preview input
    shown in the grid and the field modal. */
 .signatur-element-button--field {
-    background: #fdf6d8;
+    background: #fff9ec;
 }
 
 .signatur-element-button--field:hover,
@@ -93,7 +93,7 @@
    !important because applyRowStyles() writes the row background onto every
    <td> as an inline style. */
 #signatur_field_table td.signatur-field-cell {
-    background: #fdf6d8 !important;
+    background: #fff9ec !important;
 }
 
 #signatur_row_actions {
@@ -120,6 +120,12 @@
     width: 100%;
     max-width: 460px;
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* [hidden] would otherwise lose to the author display:flex on
+   .signatur-text-controls - the modal toggles rows per field type. */
+#signatur_modal_body [hidden] {
+    display: none !important;
 }
 
 #signatur_modal_footer {
@@ -230,16 +236,16 @@
    table, so the "active row" outline is applied to its <td> cells instead -
    top/bottom on every cell, left/right only on the first/last so it reads
    as one rectangle around the row rather than a grid of individual cells. */
-#signatur_field_table tr.signatur-row-active > td {
+#signatur_field_table tr.signatur-row-active>td {
     border-top: 2px solid #2271b1;
     border-bottom: 2px solid #2271b1;
 }
 
-#signatur_field_table tr.signatur-row-active > td:first-child {
+#signatur_field_table tr.signatur-row-active>td:first-child {
     border-left: 2px solid #2271b1;
 }
 
-#signatur_field_table tr.signatur-row-active > td:last-child {
+#signatur_field_table tr.signatur-row-active>td:last-child {
     border-right: 2px solid #2271b1;
 }
 

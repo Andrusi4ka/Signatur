@@ -108,6 +108,7 @@ function signatur_enqueue_builder_assets($hook_suffix)
                     signatur_get_social_networks()
                 )
             ),
+            'fieldPhotoIcon' => plugins_url('assets/icon-profil.svg', SIGNATUR_PLUGIN_FILE),
             'i18n'        => array(
                 'uploadFailed' => __('Image upload failed.', 'signatur'),
             ),
@@ -368,6 +369,7 @@ function signatur_render_add_signature_page()
                                         }
 
                                         if ($element && 'text' === $element['type']) {
+                                            $style .= ' ' . signatur_padding_css(signatur_sum_padding($row_padding, isset($element['padding']) ? $element['padding'] : array())) . ';';
                                             $style .= ' text-align:' . $element['align'] . '; vertical-align:' . $element['valign'] . ';';
                                             $attrs .= ' data-element="' . esc_attr(wp_json_encode($element)) . '"';
                                         } elseif ($element && 'image' === $element['type']) {
@@ -377,6 +379,7 @@ function signatur_render_add_signature_page()
                                             $style .= ' text-align:' . $element['align'] . '; vertical-align:' . $element['valign'] . ';';
                                             $attrs .= ' data-element="' . esc_attr(wp_json_encode($element)) . '"';
                                         } elseif ($element && 'field' === $element['type']) {
+                                            $style .= ' ' . signatur_padding_css(signatur_sum_padding($row_padding, isset($element['padding']) ? $element['padding'] : array())) . ';';
                                             $style .= ' text-align:' . $element['align'] . '; vertical-align:' . $element['valign'] . ';';
                                             $attrs .= ' data-element="' . esc_attr(wp_json_encode($element)) . '"';
                                             $attrs .= ' class="signatur-field-cell"';
@@ -658,6 +661,14 @@ function signatur_render_add_signature_page()
             <p style="margin:12px 0 0;">
                 <input type="url" id="signatur_text_link" class="regular-text" style="width:100%;" placeholder="<?php echo esc_attr__('https://example.com', 'signatur'); ?>" aria-label="<?php echo esc_attr__('https://example.com', 'signatur'); ?>">
             </p>
+
+            <p class="signatur-text-controls" style="margin-top:12px;">
+                <span style="font-weight:600;">Padding</span>
+                <input type="number" id="signatur_text_padding_top" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Top', 'signatur'); ?>" style="width:50px;">
+                <input type="number" id="signatur_text_padding_left" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Left', 'signatur'); ?>" style="width:50px;">
+                <input type="number" id="signatur_text_padding_bottom" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Bottom', 'signatur'); ?>" style="width:50px;">
+                <input type="number" id="signatur_text_padding_right" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Right', 'signatur'); ?>" style="width:50px;">
+            </p>
         </template>
 
         <template id="signatur_modal_template_image">
@@ -767,6 +778,9 @@ function signatur_render_add_signature_page()
                 <button type="button" class="signatur-icon-button signatur-field-type-button" data-type="tel" title="<?php esc_attr_e('Phone', 'signatur'); ?>" aria-label="<?php esc_attr_e('Phone', 'signatur'); ?>">
                     <img src="<?php echo esc_url(plugins_url('assets/icon-phone.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="24" height="24">
                 </button>
+                <button type="button" class="signatur-icon-button signatur-field-type-button" data-type="photo" title="<?php esc_attr_e('Profile photo', 'signatur'); ?>" aria-label="<?php esc_attr_e('Profile photo', 'signatur'); ?>">
+                    <img src="<?php echo esc_url(plugins_url('assets/icon-add-profil.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="24" height="24">
+                </button>
             </p>
 
             <p style="margin:12px 0 0; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
@@ -774,22 +788,23 @@ function signatur_render_add_signature_page()
                     <option value="text"><?php esc_html_e('Text', 'signatur'); ?></option>
                     <option value="email"><?php esc_html_e('Email', 'signatur'); ?></option>
                     <option value="tel"><?php esc_html_e('Phone', 'signatur'); ?></option>
+                    <option value="photo"><?php esc_html_e('Profile photo', 'signatur'); ?></option>
                 </select>
                 <label style="display:inline-flex; align-items:center; gap:6px;">
                     <input type="checkbox" id="signatur_field_required">
                     <?php esc_html_e('Required', 'signatur'); ?>
                 </label>
-                <label style="display:inline-flex; align-items:center; gap:6px;">
+                <label id="signatur_field_link_wrap" style="display:inline-flex; align-items:center; gap:6px;">
                     <input type="checkbox" id="signatur_field_link">
                     <?php esc_html_e('Link', 'signatur'); ?>
                 </label>
             </p>
 
-            <p style="margin:12px 0 0;">
+            <p id="signatur_field_placeholder_wrap" style="margin:12px 0 0;">
                 <input type="text" id="signatur_field_placeholder" class="regular-text" style="width:100%;" placeholder="<?php esc_attr_e('Placeholder', 'signatur'); ?>" aria-label="<?php esc_attr_e('Placeholder', 'signatur'); ?>">
             </p>
 
-            <div class="signatur-text-controls" style="margin-top:12px;">
+            <div id="signatur_field_font_row" class="signatur-text-controls" style="margin-top:12px;">
                 <input type="number" id="signatur_field_size" class="small-text" min="8" max="72" step="1" style="width:56px;">
                 <span><?php esc_html_e('pt', 'signatur'); ?></span>
 
@@ -798,7 +813,15 @@ function signatur_render_add_signature_page()
                 <button type="button" id="signatur_field_bold" class="button signatur-text-toggle" title="<?php esc_attr_e('Bold', 'signatur'); ?>" aria-label="<?php esc_attr_e('Bold', 'signatur'); ?>" style="font-weight:700;">B</button>
                 <button type="button" id="signatur_field_italic" class="button signatur-text-toggle" title="<?php esc_attr_e('Italic', 'signatur'); ?>" aria-label="<?php esc_attr_e('Italic', 'signatur'); ?>" style="font-style:italic;">I</button>
                 <button type="button" id="signatur_field_underline" class="button signatur-text-toggle" title="<?php esc_attr_e('Underline', 'signatur'); ?>" aria-label="<?php esc_attr_e('Underline', 'signatur'); ?>" style="text-decoration:underline;">U</button>
+            </div>
 
+            <p id="signatur_field_width_row" class="signatur-text-controls" hidden>
+                <label for="signatur_field_width"><?php esc_html_e('Width', 'signatur'); ?></label>
+                <input type="number" id="signatur_field_width" class="small-text" min="1" max="1000" step="1" style="width:70px;">
+                <span><?php esc_html_e('px', 'signatur'); ?></span>
+            </p>
+
+            <div id="signatur_field_align_row" class="signatur-text-controls">
                 <select id="signatur_field_align" aria-label="<?php esc_attr_e('Horizontal alignment', 'signatur'); ?>">
                     <option value="left"><?php esc_html_e('Left', 'signatur'); ?></option>
                     <option value="center"><?php esc_html_e('Center', 'signatur'); ?></option>
@@ -811,6 +834,14 @@ function signatur_render_add_signature_page()
                     <option value="bottom"><?php esc_html_e('Bottom', 'signatur'); ?></option>
                 </select>
             </div>
+
+            <p id="signatur_field_padding_row" class="signatur-text-controls" hidden>
+                <span style="font-weight:600;">Padding</span>
+                <input type="number" id="signatur_field_padding_top" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Top', 'signatur'); ?>" style="width:50px;">
+                <input type="number" id="signatur_field_padding_left" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Left', 'signatur'); ?>" style="width:50px;">
+                <input type="number" id="signatur_field_padding_bottom" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Bottom', 'signatur'); ?>" style="width:50px;">
+                <input type="number" id="signatur_field_padding_right" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Right', 'signatur'); ?>" style="width:50px;">
+            </p>
         </template>
     </div>
 

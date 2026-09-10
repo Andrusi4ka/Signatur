@@ -362,3 +362,7 @@ msgstr "Telefon"
 #: signatur.php
 msgid "Please fill in all required fields before copying."
 msgstr "Fyll ut alle påkrevde felt før du kopierer."
+
+#: signatur.php
+msgid "Profile photo"
+msgstr "Profilbilde"

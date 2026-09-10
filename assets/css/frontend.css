@@ -73,3 +73,37 @@
     height: 18px;
     pointer-events: none;
 }
+
+/* Profile-photo picker: the whole label is the click target for the file
+   input it wraps. */
+.signatur-field-photo {
+    cursor: pointer;
+    display: inline-block;
+    position: relative;
+}
+
+.signatur-field-photo:hover {
+    filter: brightness(0.95);
+}
+
+/* Centered "+" that appears on hover while the field still shows the
+   placeholder (JS adds --has-photo once a photo is picked). */
+.signatur-field-photo-plus {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.55);
+    pointer-events: none;
+}
+
+.signatur-field-photo:not(.signatur-field-photo--has-photo):hover .signatur-field-photo-plus {
+    display: flex;
+}
+
+.signatur-field-photo-plus img {
+    width: 45%;
+    max-width: 32px;
+    height: auto;
+}

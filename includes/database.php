@@ -212,6 +212,23 @@ function signatur_sanitize_padding($raw)
 }
 
 /**
+ * Side-by-side sum of two {top,right,bottom,left} padding arrays. Used to
+ * add an element's own padding on top of its row's.
+ */
+function signatur_sum_padding($a, $b)
+{
+    $a = signatur_sanitize_padding($a);
+    $b = signatur_sanitize_padding($b);
+
+    return array(
+        'top'    => $a['top'] + $b['top'],
+        'right'  => $a['right'] + $b['right'],
+        'bottom' => $a['bottom'] + $b['bottom'],
+        'left'   => $a['left'] + $b['left'],
+    );
+}
+
+/**
  * Normalize a row border {style,width,color,sides}. `sides` is which edges
  * to draw it on: none | top | bottom | both.
  */
@@ -286,6 +303,7 @@ function signatur_get_default_text_element()
         'align'     => 'left',
         'valign'    => 'top',
         'link'      => '',
+        'padding'   => signatur_sanitize_padding(array()),
     );
 }
 
@@ -336,6 +354,7 @@ function signatur_sanitize_text_element($raw)
         'align'     => $align,
         'valign'    => $valign,
         'link'      => $link,
+        'padding'   => signatur_sanitize_padding(isset($raw['padding']) ? $raw['padding'] : array()),
     );
 }
 
@@ -505,7 +524,7 @@ function signatur_sanitize_social_element($raw)
  */
 function signatur_get_field_element_types()
 {
-    return array('text', 'email', 'tel');
+    return array('text', 'email', 'tel', 'photo');
 }
 
 /**
@@ -531,6 +550,8 @@ function signatur_get_default_field_element()
         'underline'  => false,
         'align'      => 'left',
         'valign'     => 'top',
+        'width'      => 80,
+        'padding'    => signatur_sanitize_padding(array()),
     );
 }
 
@@ -579,6 +600,8 @@ function signatur_sanitize_field_element($raw)
         'underline'   => ! empty($raw['underline']),
         'align'       => $align,
         'valign'      => $valign,
+        'width'       => max(1, min(1000, isset($raw['width']) ? absint($raw['width']) : $defaults['width'])),
+        'padding'     => signatur_sanitize_padding(isset($raw['padding']) ? $raw['padding'] : array()),
     );
 }
 

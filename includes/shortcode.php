@@ -282,15 +282,53 @@ function signatur_render_field_element($element, $context = 'front')
 {
     $text_style = signatur_text_style_string($element);
 
+    $field_type = in_array($element['field_type'], signatur_get_field_element_types(), true)
+        ? $element['field_type']
+        : 'text';
+
+    if ('photo' === $field_type) {
+        // Profile photo the visitor adds on the front end. Alignment and
+        // padding come from the <td> (set by the caller); width is the
+        // element's own, capped to the cell.
+        $icon_url  = esc_url(plugins_url('assets/icon-profil.svg', SIGNATUR_PLUGIN_FILE));
+        $required  = ! empty($element['required']) ? '1' : '0';
+        $width     = isset($element['width']) ? max(1, min(1000, (int) $element['width'])) : 80;
+        // Padding is on the cell (see signatur_render_signature_table()), not
+        // the image - keeps the whole "field" family consistent.
+        $img_style = 'display:inline-block; width:' . $width . 'px; max-width:100%; height:auto; border:0;';
+
+        // 'front' is an interactive widget: click the label to pick a file,
+        // frontend.js swaps the preview <img> to the chosen photo and bakes
+        // it into a plain <img> on copy. 'editor' / 'front-static' are just
+        // the placeholder icon.
+        if ('front' === $context) {
+            return '<label class="signatur-field-photo" data-required="' . $required . '">'
+                . '<input type="file" accept="image/*" hidden>'
+                . '<img class="signatur-field-photo-img" src="' . $icon_url . '" style="' . esc_attr($img_style) . '" alt="">'
+                . '<span class="signatur-field-photo-plus" aria-hidden="true">'
+                . '<img src="' . esc_url(plugins_url('assets/icon-plus.svg', SIGNATUR_PLUGIN_FILE)) . '" alt="">'
+                . '</span>'
+                . '</label>';
+        }
+
+        $photo_class = 'signatur-field-photo';
+
+        if ('editor' === $context) {
+            $photo_class .= ' signatur-field--editor';
+        }
+
+        return '<img src="' . $icon_url . '"'
+            . ' class="' . esc_attr($photo_class) . '"'
+            . ' data-required="' . $required . '"'
+            . ' style="' . esc_attr($img_style) . '"'
+            . ' alt="">';
+    }
+
     if ('front-static' === $context) {
         return '<span class="signatur-field-static" style="' . esc_attr($text_style) . ';">'
             . esc_html($element['placeholder'])
             . '</span>';
     }
-
-    $field_type = in_array($element['field_type'], signatur_get_field_element_types(), true)
-        ? $element['field_type']
-        : 'text';
 
     $style = $text_style
         . '; display:inline-block; width:100%; box-sizing:border-box; background:transparent;'
@@ -466,6 +504,9 @@ function signatur_render_signature_table($settings, $interactive = true)
             }
 
             if ($element && 'text' === $element['type']) {
+                // The element's own padding adds on top of the row's, on the
+                // cell (a later "padding:" wins over the row one above).
+                $cell_style .= ' ' . signatur_padding_css(signatur_sum_padding($row_padding, isset($element['padding']) ? $element['padding'] : array())) . ';';
                 $cell_style .= ' ' . signatur_text_base_style($element) . ';';
                 $cell_style .= ' text-align:' . $element['align'] . '; vertical-align:' . $element['valign'] . ';';
                 $html       .= '<td' . $attrs . ' style="' . esc_attr($cell_style) . '">' . signatur_render_text_span($element) . '</td>';
@@ -477,6 +518,7 @@ function signatur_render_signature_table($settings, $interactive = true)
                 $cell_style .= ' text-align:' . $element['align'] . '; vertical-align:' . $element['valign'] . ';';
                 $html       .= '<td' . $attrs . ' style="' . esc_attr($cell_style) . '">' . signatur_render_social_element($element) . '</td>';
             } elseif ($element && 'field' === $element['type']) {
+                $cell_style .= ' ' . signatur_padding_css(signatur_sum_padding($row_padding, isset($element['padding']) ? $element['padding'] : array())) . ';';
                 $cell_style .= ' ' . signatur_text_base_style($element) . ';';
                 $cell_style .= ' text-align:' . $element['align'] . '; vertical-align:' . $element['valign'] . ';';
 
@@ -484,7 +526,7 @@ function signatur_render_signature_table($settings, $interactive = true)
                 // last, so it wins over any row background. frontend.js
                 // strips it from the copied signature (bakeFieldInputs()).
                 if ($interactive) {
-                    $cell_style .= ' background-color:#fdf6d8;';
+                    $cell_style .= ' background-color:#fff9ec;';
                 }
 
                 $html .= '<td' . $attrs . ' style="' . esc_attr($cell_style) . '">' . signatur_render_field_element($element, $interactive ? 'front' : 'front-static') . '</td>';
