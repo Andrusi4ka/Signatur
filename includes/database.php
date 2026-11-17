@@ -423,19 +423,19 @@ function signatur_get_social_networks()
     return array(
         'facebook'  => array(
             'label' => __('Facebook', 'signatur'),
-            'icon'  => 'icon-facebook.svg',
+            'icon'  => 'icon-facebook.png',
         ),
         'instagram' => array(
             'label' => __('Instagram', 'signatur'),
-            'icon'  => 'icon-instagram.svg',
+            'icon'  => 'icon-instagram.png',
         ),
         'linkedin'  => array(
             'label' => __('LinkedIn', 'signatur'),
-            'icon'  => 'icon-linkedin.svg',
+            'icon'  => 'icon-linkedin.png',
         ),
         'telegram'  => array(
             'label' => __('Telegram', 'signatur'),
-            'icon'  => 'icon-telegram.svg',
+            'icon'  => 'icon-telegram.png',
         ),
     );
 }

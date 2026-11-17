@@ -442,3 +442,16 @@
     align-self: center;
     justify-self: center;
 }
+
+/* An image or icon uploaded as SVG before 1.8.0 (builder.js showSvgWarning()). */
+.signatur-svg-warning {
+    margin: 12px 0 0;
+    padding: 8px 12px;
+    border-left: 4px solid #dba617;
+    background: #fcf9e8;
+    color: #1d2327;
+}
+
+.signatur-svg-warning[hidden] {
+    display: none;
+}

@@ -469,6 +469,18 @@
     };
     var COPY_BUTTON_RADIUS = { square: 0, rounded: 5, round: 35 };
 
+    /**
+     * An image or icon uploaded as SVG before 1.8.0: email clients do not
+     * show it, so its modal says so (signatur_svg_message()).
+     */
+    function showSvgWarning(id, url) {
+        var warning = document.getElementById(id);
+
+        if (warning) {
+            warning.hidden = !/\.svgz?(?:$|[?#])/i.test(url || '');
+        }
+    }
+
     function readCopyButtonSettings() {
         var stored = {};
 
@@ -718,6 +730,8 @@
             function updateImagePreview() {
                 var url = imageUrlInput.value.trim();
 
+                showSvgWarning('signatur_image_svg_warning', url);
+
                 if ('' === url) {
                     imagePreview.style.display = 'none';
                     imagePreview.removeAttribute('src');
@@ -768,7 +782,8 @@
                         imageUrlInput.value = json.data.url;
                         updateImagePreview();
                     } else {
-                        window.alert(signaturBuilder.i18n.uploadFailed);
+                        // The server's reason where it gives one (an SVG, too large).
+                        window.alert(json && json.data && json.data.message ? json.data.message : signaturBuilder.i18n.uploadFailed);
                     }
                 }).catch(function () {
                     window.alert(signaturBuilder.i18n.uploadFailed);
@@ -854,6 +869,7 @@
 
                 socialPreview.src = url || networkIcon;
                 socialPreview.style.display = 'block';
+                showSvgWarning('signatur_social_svg_warning', url);
             }
 
             updateSocialPreview();
@@ -895,7 +911,8 @@
                         socialIconUrlInput.value = json.data.url;
                         updateSocialPreview();
                     } else {
-                        window.alert(signaturBuilder.i18n.uploadFailed);
+                        // The server's reason where it gives one (an SVG, too large).
+                        window.alert(json && json.data && json.data.message ? json.data.message : signaturBuilder.i18n.uploadFailed);
                     }
                 }).catch(function () {
                     window.alert(signaturBuilder.i18n.uploadFailed);

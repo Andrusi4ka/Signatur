@@ -559,3 +559,9 @@ msgstr "Fyll-/kantfarge"
 
 msgid "Text color"
 msgstr "Tekstfarge"
+
+msgid "Email clients (Gmail, Outlook) do not show SVG images. Upload a PNG or JPG instead."
+msgstr "E-postprogrammer (Gmail, Outlook) viser ikke SVG-bilder. Last opp en PNG eller JPG i stedet."
+
+msgid "The photo is copied inside the signature. Some email programs, Gmail among them, may not show it after pasting."
+msgstr "Bildet kopieres inn i signaturen. Noen e-postprogrammer, blant dem Gmail, viser det kanskje ikke etter innliming."

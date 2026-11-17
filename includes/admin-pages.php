@@ -824,6 +824,8 @@ function signatur_render_add_signature_page()
                 <?php signatur_render_spacing_box(array('padding' => 'signatur_image_padding')); ?>
             </div>
 
+            <p id="signatur_image_svg_warning" class="signatur-svg-warning" hidden><?php echo esc_html(signatur_svg_message()); ?></p>
+
             <p style="margin:12px 0 0;">
                 <img id="signatur_image_preview" src="" alt="" style="max-width:100%; display:none;">
             </p>
@@ -844,11 +846,13 @@ function signatur_render_add_signature_page()
                 </span>
                 <span>
                     <button type="button" id="signatur_social_upload" class="button"><?php esc_html_e('Upload icon', 'signatur'); ?></button>
-                    <input type="file" id="signatur_social_file" accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml" style="display:none;">
+                    <input type="file" id="signatur_social_file" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none;">
                     <input type="hidden" id="signatur_social_icon_url">
                     <input type="hidden" id="signatur_social_network" value="facebook">
                 </span>
             </p>
+
+            <p id="signatur_social_svg_warning" class="signatur-svg-warning" hidden><?php echo esc_html(signatur_svg_message()); ?></p>
 
             <p style="margin:12px 0 0;">
                 <label for="signatur_social_link" style="display:block; margin-bottom:4px;"><?php esc_html_e('Link', 'signatur'); ?></label>

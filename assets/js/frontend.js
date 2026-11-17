@@ -164,10 +164,9 @@
             return;
         }
 
-        // TEMP: while testing Outlook rendering, copy only the <table> so
-        // the paste is a clean table with no wrapper / title block. Revert
-        // `source` to `target` and use innerHTML / selectNodeContents to go
-        // back to copying the whole signature block.
+        // Only the signature's <table>: the paste is a clean table, without
+        // the page's frame, status markers or notes around it (the way it
+        // pastes best into Outlook).
         var source = target.querySelector('table') || target;
         // Work on a detached clone so baking the widgets into plain markup
         // never touches what the visitor sees on the page.

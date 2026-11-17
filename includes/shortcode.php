@@ -126,7 +126,34 @@ function signatur_render_shortcode($atts)
         . esc_html($copy_button['text'])
         . '</button></p>';
 
-    return '<div class="signatur-signature-wrap">' . $signature_html . $button . '</div>';
+    // A photo the visitor adds is copied inside the signature (a data: image,
+    // the user's choice in 1.8.0: nothing is uploaded), which some email
+    // programs drop: the page says so, under the button. Never copied.
+    $note = '';
+
+    if (signatur_settings_have_photo($settings)) {
+        $note = '<p class="signatur-photo-note" style="width:' . (int) $settings['width'] . 'px; margin:8px 0 0; font-size:12px; line-height:1.4; color:#646970;">'
+            . esc_html__('The photo is copied inside the signature. Some email programs, Gmail among them, may not show it after pasting.', 'signatur')
+            . '</p>';
+    }
+
+    return '<div class="signatur-signature-wrap">' . $signature_html . $button . $note . '</div>';
+}
+
+/**
+ * Whether a signature has a "Profile photo" field.
+ */
+function signatur_settings_have_photo($settings)
+{
+    foreach ($settings['rows'] as $row) {
+        foreach ($row as $cell) {
+            if (isset($cell[2]['type'], $cell[2]['field_type']) && 'field' === $cell[2]['type'] && 'photo' === $cell[2]['field_type']) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 /**

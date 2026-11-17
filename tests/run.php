@@ -102,6 +102,7 @@ require SIGNATUR_PLUGIN_DIR . 'includes/database.php';
 require SIGNATUR_PLUGIN_DIR . 'includes/shortcode.php';
 require SIGNATUR_PLUGIN_DIR . 'includes/roles.php';
 require SIGNATUR_PLUGIN_DIR . 'includes/wpbakery.php';
+require SIGNATUR_PLUGIN_DIR . 'includes/actions.php';
 
 // --- A tiny runner -----------------------------------------------------------
 
@@ -215,6 +216,27 @@ check(false === strpos($html, '<script'), 'no script in the signature');
 $GLOBALS['enqueued'] = array();
 $html = signatur_render_shortcode(array('id' => 7, 'copy' => 'no'));
 check(false === strpos($html, 'signatur-copy-button') && ! $GLOBALS['enqueued'], 'copy="no": no button, no script');
+check(false === strpos(signatur_render_shortcode(array('id' => 7)), 'signatur-photo-note'), 'no photo field: no photo note');
+
+// A "Profile photo" field: the page says some email programs may not show it (1.8.0, the user's choice: no upload).
+$GLOBALS['rows'][8] = array('Photo', json_encode(array(
+    'columns' => array(300),
+    'rows'    => array(array(array(1, 1, array('type' => 'field', 'field_type' => 'photo')))),
+)));
+check(false !== strpos(signatur_render_shortcode(array('id' => 8)), 'signatur-photo-note'), 'a photo field: the photo note under the button');
+check(false === strpos(signatur_render_shortcode(array('id' => 8, 'copy' => 'no')), 'signatur-photo-note'), 'copy="no": no photo note (nothing to copy)');
+
+// --- Images in email: no SVG (1.8.0) -----------------------------------------
+
+foreach (signatur_get_social_networks() as $key => $network) {
+    check('.png' === substr($network['icon'], -4) && is_file(SIGNATUR_PLUGIN_DIR . 'assets/' . $network['icon']), "the built-in $key icon is a PNG");
+}
+
+$social = signatur_render_social_element(array('network' => 'linkedin', 'icon' => '', 'link' => 'https://example.test', 'height' => 32, 'padding' => signatur_sanitize_padding(array())));
+check(false !== strpos($social, 'icon-linkedin.png'), 'a Social element shows its network\'s PNG');
+check(! in_array('image/svg+xml', signatur_upload_mimes(), true), 'SVG is not an image type that can be uploaded');
+check(signatur_is_svg_name('logo.SVG') && signatur_is_svg_name('https://x.test/a.svg?v=2') && signatur_is_svg_name('a.svgz'), 'SVG names are found');
+check(! signatur_is_svg_name('photo.png') && ! signatur_is_svg_name('my.svg.png'), 'other names are not SVG');
 
 // --- Roles -------------------------------------------------------------------
 

@@ -141,15 +141,13 @@ function signatur_handle_upload_image()
         wp_send_json_error(array('message' => __('Image upload failed.', 'signatur')));
     }
 
-    $allowed = array(
-        'jpg|jpeg|jpe' => 'image/jpeg',
-        'png'          => 'image/png',
-        'gif'          => 'image/gif',
-        'webp'         => 'image/webp',
-        'svg'          => 'image/svg+xml',
-    );
+    // No SVG (since 1.8.0): Gmail and Outlook do not show it in a signature.
+    $allowed = signatur_upload_mimes();
+    $file    = $_FILES['file'];
 
-    $file = $_FILES['file'];
+    if (signatur_is_svg_name(isset($file['name']) ? $file['name'] : '')) {
+        wp_send_json_error(array('message' => signatur_svg_message()));
+    }
 
     if (! empty($file['size']) && $file['size'] > 5 * 1024 * 1024) {
         wp_send_json_error(array('message' => __('Image upload failed.', 'signatur')));
@@ -157,12 +155,6 @@ function signatur_handle_upload_image()
 
     require_once ABSPATH . 'wp-admin/includes/file.php';
 
-    // WordPress's real-MIME sniff (finfo) does not reliably recognize SVG -
-    // an XML format, not a binary one - and would otherwise reject a
-    // legitimate upload even though its extension is allowed above. Trust
-    // the .svg extension instead; the upload is already admin-only and
-    // nonce-checked.
-    add_filter('wp_check_filetype_and_ext', 'signatur_allow_svg_filetype', 10, 4);
     add_filter('upload_dir', 'signatur_upload_dir');
     $result = wp_handle_upload(
         $file,
@@ -172,60 +164,41 @@ function signatur_handle_upload_image()
         )
     );
     remove_filter('upload_dir', 'signatur_upload_dir');
-    remove_filter('wp_check_filetype_and_ext', 'signatur_allow_svg_filetype');
 
     if (isset($result['error']) || empty($result['url'])) {
         wp_send_json_error(array('message' => __('Image upload failed.', 'signatur')));
-    }
-
-    // An SVG is served straight back as an <img src="...">, but it is still
-    // a same-origin file that could carry active content (<script>, event
-    // handler attributes, javascript: URIs) if opened directly - strip that
-    // out before it is kept.
-    if (! empty($result['type']) && 'image/svg+xml' === $result['type'] && ! empty($result['file'])) {
-        signatur_sanitize_svg_file($result['file']);
     }
 
     wp_send_json_success(array('url' => $result['url']));
 }
 
 /**
- * `wp_check_filetype_and_ext` filter: trust the .svg extension instead of
- * WordPress's finfo-based real-MIME sniff, which does not reliably detect
- * SVG. See signatur_handle_upload_image().
+ * The images a signature may use: what Gmail and Outlook show. Not SVG.
  */
-function signatur_allow_svg_filetype($data, $file, $filename, $mimes)
+function signatur_upload_mimes()
 {
-    if (empty($data['ext']) || empty($data['type'])) {
-        $filetype = wp_check_filetype($filename, $mimes);
-
-        if ('svg' === $filetype['ext']) {
-            $data['ext']             = 'svg';
-            $data['type']            = 'image/svg+xml';
-            $data['proper_filename'] = $filename;
-        }
-    }
-
-    return $data;
+    return array(
+        'jpg|jpeg|jpe' => 'image/jpeg',
+        'png'          => 'image/png',
+        'gif'          => 'image/gif',
+        'webp'         => 'image/webp',
+    );
 }
 
 /**
- * Strip <script> tags, on*="" event-handler attributes and javascript:
- * URIs from an uploaded SVG file, in place. A minimal defusal against the
- * common script-injection vectors, not a full XML sanitizer.
+ * Whether a file name or URL is an SVG (by its extension, a query or
+ * #fragment after it ignored).
  */
-function signatur_sanitize_svg_file($path)
+function signatur_is_svg_name($name)
 {
-    $contents = file_get_contents($path);
-
-    if (false === $contents) {
-        return;
-    }
-
-    $contents = preg_replace('#<script\b[^>]*>.*?</script>#is', '', $contents);
-    $contents = preg_replace('/\son\w+\s*=\s*"[^"]*"/i', '', $contents);
-    $contents = preg_replace("/\son\w+\s*=\s*'[^']*'/i", '', $contents);
-    $contents = preg_replace('#((?:xlink:)?href)\s*=\s*("|\')\s*javascript:[^"\']*("|\')#i', '', $contents);
-
-    file_put_contents($path, $contents);
+    return (bool) preg_match('/\.svgz?(?:$|[?#])/i', (string) $name);
 }
+
+/**
+ * Why an SVG is refused, and what to upload instead.
+ */
+function signatur_svg_message()
+{
+    return __('Email clients (Gmail, Outlook) do not show SVG images. Upload a PNG or JPG instead.', 'signatur');
+}
+

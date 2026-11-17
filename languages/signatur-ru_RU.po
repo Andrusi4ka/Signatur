@@ -559,3 +559,9 @@ msgstr "Цвет заливки / рамки"
 
 msgid "Text color"
 msgstr "Цвет текста"
+
+msgid "Email clients (Gmail, Outlook) do not show SVG images. Upload a PNG or JPG instead."
+msgstr "Почтовые программы (Gmail, Outlook) не показывают SVG-изображения. Загрузите PNG или JPG."
+
+msgid "The photo is copied inside the signature. Some email programs, Gmail among them, may not show it after pasting."
+msgstr "Фото копируется внутри подписи. Некоторые почтовые программы, в том числе Gmail, могут не показать его после вставки."

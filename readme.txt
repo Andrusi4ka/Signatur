@@ -4,7 +4,7 @@ Tags: email signature, signature, gmail, outlook
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.7.0
+Stable tag: 1.8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -27,6 +27,11 @@ Signatures adds a "Signatures" menu (for administrators, and the roles they allo
 2. Activate it. Updates then come from the plugin's GitHub releases under Plugins, like any other update.
 
 == Changelog ==
+
+= 1.8.0 =
+* The built-in Facebook, Instagram, LinkedIn and Telegram icons are PNG: email clients do not show SVG.
+* SVG can no longer be uploaded for images and icons; one uploaded before is pointed out in its window.
+* With a "Profile photo" field, the page notes that some email programs (Gmail) may not show the photo after pasting.
 
 = 1.7.0 =
 * Padding and Margin in a box as WP Banner's: a field on each side, the link in the middle sets the four sides together.
