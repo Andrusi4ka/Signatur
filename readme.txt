@@ -32,6 +32,7 @@ Signatures adds a "Signatures" menu (for administrators, and the roles they allo
 * A preview at the right of the editor, as WP Swiper's (without the devices' frames): the signature as on the site, unsaved changes included, at Desktop (1280), Tablet (820) or Phone (390) width; it changes on Update.
 * Developer mode in the preview: each cell's size, its padding (green) and the copy button's margin (orange), in px, and the signature's width.
 * Help buttons: the icon centred beside the text.
+* The buttons on the plugin's screens in #2271b1, whatever the admin colour scheme.
 
 = 1.9.0 =
 * Help for whoever builds a signature: an "i" beside the fields of every window with what it does, and a fuller tip on the editor's icon buttons.

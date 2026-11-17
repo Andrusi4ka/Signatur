@@ -71,6 +71,34 @@ function signatur_menu_icon_style()
 }
 
 /**
+ * The buttons' main colour on the plugin's own screens (the list, the
+ * editor, Settings, and their modals): #2271b1, the user's choice, instead
+ * of WordPress's admin colour (#007cba in WordPress 7). WordPress's buttons
+ * take it from these variables; the rest of the admin keeps its own.
+ */
+function signatur_admin_colors()
+{
+    $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+
+    if (! $screen || false === strpos((string) $screen->id, 'signatur')) {
+        return;
+    }
+?>
+    <?php // Stronger than WordPress's own body.admin-color-<scheme>, whatever the scheme. ?>
+    <style id="signatur-admin-colors">
+        body.wp-admin.wp-core-ui {
+            --wp-admin-theme-color: #2271b1;
+            --wp-admin-theme-color--rgb: 34, 113, 177;
+            --wp-admin-theme-color-darker-10: #135e96;
+            --wp-admin-theme-color-darker-10--rgb: 19, 94, 150;
+            --wp-admin-theme-color-darker-20: #0a4b78;
+            --wp-admin-theme-color-darker-20--rgb: 10, 75, 120;
+        }
+    </style>
+<?php
+}
+
+/**
  * The Padding (and Margin) box of a modal, as WP Banner's: a field on each
  * side of a frame, the link in the middle setting the four together
  * (assets/js/spacing.js). The fields keep the ids builder.js reads and

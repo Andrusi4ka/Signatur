@@ -41,6 +41,7 @@ add_action('plugins_loaded', 'signatur_maybe_upgrade_database');
 add_action('admin_menu', 'signatur_register_admin_pages');
 add_action('admin_menu', 'signatur_register_settings_page', 20);
 add_action('admin_head', 'signatur_menu_icon_style');
+add_action('admin_head', 'signatur_admin_colors');
 add_action('admin_init', 'signatur_register_roles_setting');
 add_action('admin_enqueue_scripts', 'signatur_enqueue_settings_assets');
 add_filter('user_has_cap', 'signatur_grant_caps', 10, 4);
