@@ -4,7 +4,7 @@ Tags: email signature, signature, gmail, outlook
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.8.0
+Stable tag: 1.9.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -27,6 +27,9 @@ Signatures adds a "Signatures" menu (for administrators, and the roles they allo
 2. Activate it. Updates then come from the plugin's GitHub releases under Plugins, like any other update.
 
 == Changelog ==
+
+= 1.9.0 =
+* Help for whoever builds a signature: an "i" beside the fields of every window with what it does, a fuller tip on the editor's icon buttons, "Getting started" above the editor (stays closed once closed) and "How to put the signature into Gmail / Outlook" under the button preview.
 
 = 1.8.0 =
 * The built-in Facebook, Instagram, LinkedIn and Telegram icons are PNG: email clients do not show SVG.

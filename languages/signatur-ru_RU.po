@@ -565,3 +565,222 @@ msgstr "Почтовые программы (Gmail, Outlook) не показыв
 
 msgid "The photo is copied inside the signature. Some email programs, Gmail among them, may not show it after pasting."
 msgstr "Фото копируется внутри подписи. Некоторые почтовые программы, в том числе Gmail, могут не показать его после вставки."
+
+msgid "How wide the whole signature is in the email. 450–600 px suits most emails; the columns share this width."
+msgstr "Ширина всей подписи в письме. Для большинства писем подходит 450–600 px; колонки делят эту ширину между собой."
+
+msgid "A thin grey line around every cell, handy to see the grid while building. It is copied with the signature too: turn it off if you do not want it in emails."
+msgstr "Тонкая серая линия вокруг каждой ячейки, чтобы видеть сетку во время работы. Она копируется вместе с подписью: выключите её, если не хотите видеть её в письмах."
+
+msgid "Space inside every cell of this row, around its content, in px. The link sets the four sides together."
+msgstr "Отступ внутри каждой ячейки этой строки вокруг её содержимого, в px. Цепочка задаёт все четыре стороны вместе."
+
+msgid "A line above, below or on both sides of this row: its style, width in px, colour and where. E.g. a divider between the name and the contacts."
+msgstr "Линия над, под или с обеих сторон этой строки: её стиль, толщина в px, цвет и где она. Например, разделитель между именем и контактами."
+
+msgid "The row's background colour. Clear: none, the email's own background shows."
+msgstr "Цвет фона строки. «Очистить»: без фона, виден фон самого письма."
+
+msgid "The button's label on the page. Visitors click it to copy the signature with what they filled in."
+msgstr "Надпись на кнопке на странице. Посетители нажимают её, чтобы скопировать подпись с тем, что они заполнили."
+
+msgid "Filled: a button in its colour. Border: only its outline. Underline: a line under the text."
+msgstr "Заливка: кнопка своего цвета. Рамка: только её контур. Подчёркивание: линия под текстом."
+
+msgid "How round the button's corners are. Not for Underline."
+msgstr "Насколько скруглены углы кнопки. Не для «Подчёркивания»."
+
+msgid "Where the button sits under the signature on the page: left, centre or right."
+msgstr "Где кнопка стоит под подписью на странице: слева, по центру или справа."
+
+msgid "Space around the button on the page, in px, e.g. its distance from the signature above it."
+msgstr "Отступ вокруг кнопки на странице, в px, например, её расстояние от подписи над ней."
+
+msgid "The text as it shows in the email, e.g. a name or a job title. Enter starts a new line. Everyone who copies the signature gets the same text: for what each person writes, use a Field."
+msgstr "Текст так, как он будет в письме, например, имя или должность. Enter начинает новую строку. Все, кто копирует подпись, получают один и тот же текст: для того, что каждый пишет сам, используйте Поле."
+
+msgid "Font size in points, as email programs use; 9–11 pt is usual for signatures. The font is Arial, the one that looks the same in every email program."
+msgstr "Размер шрифта в пунктах, как в почтовых программах; для подписей обычно 9–11 pt. Шрифт Arial: он выглядит одинаково во всех почтовых программах."
+
+msgid "Optional: makes the text a link. A web address (https://…), mailto:name@example.com for an email or tel:+4712345678 for a phone."
+msgstr "Необязательно: делает текст ссылкой. Адрес сайта (https://…), mailto:name@example.com для почты или tel:+4712345678 для телефона."
+
+msgid "Extra space around this text, in px, added to its row's."
+msgstr "Дополнительный отступ вокруг этого текста, в px, к отступу строки."
+
+msgid "PNG or JPG, the same for everyone (a logo, a banner). For a sharp image, upload one about twice as wide as its Width below."
+msgstr "PNG или JPG, одинаковое для всех (логотип, баннер). Чтобы изображение было чётким, загрузите примерно вдвое шире его Ширины ниже."
+
+msgid "Optional: the page that opens when the image is clicked in the email, e.g. your website."
+msgstr "Необязательно: страница, которая открывается при нажатии на изображение в письме, например, ваш сайт."
+
+msgid "How wide the image shows in the email, in px; its height follows. It never gets wider than its cell."
+msgstr "Ширина изображения в письме, в px; высота подстраивается сама. Оно никогда не будет шире своей ячейки."
+
+msgid "Space around the image, in px."
+msgstr "Отступ вокруг изображения, в px."
+
+msgid "Choose the network: its icon is used. For another network, upload its icon below."
+msgstr "Выберите сеть: будет использована её иконка. Для другой сети загрузите её иконку ниже."
+
+msgid "Optional: your own icon instead of the network's, a square PNG or JPG."
+msgstr "Необязательно: ваша собственная иконка вместо иконки сети, квадратный PNG или JPG."
+
+msgid "Required: the profile page the icon opens, e.g. https://www.linkedin.com/company/…"
+msgstr "Обязательно: страница профиля, которую открывает иконка, например, https://www.linkedin.com/company/…"
+
+msgid "The icon's height in px; 20–32 px is usual."
+msgstr "Высота иконки в px; обычно 20–32 px."
+
+msgid "Space around the icon, in px, e.g. between icons in cells side by side."
+msgstr "Отступ вокруг иконки, в px, например, между иконками в соседних ячейках."
+
+msgid "What the visitor fills in on the page before copying: text (a name, a job title), an email, a phone number or their photo. It shows as a yellow cell on the page."
+msgstr "Что посетитель заполняет на странице перед копированием: текст (имя, должность), email, номер телефона или своё фото. На странице это жёлтая ячейка."
+
+msgid "Required: the visitor cannot copy the signature until this is filled in."
+msgstr "Обязательное: посетитель не сможет скопировать подпись, пока не заполнит это поле."
+
+msgid "Link: in the copied signature an email becomes a mailto: link, a phone number a tel: link (a tap calls it), a text a web link."
+msgstr "Ссылка: в скопированной подписи email становится ссылкой mailto:, телефон — ссылкой tel: (нажатие звонит), текст — ссылкой на сайт."
+
+msgid "The hint shown in the empty field on the page, e.g. \"Your name\". It is not copied."
+msgstr "Подсказка в пустом поле на странице, например, «Ваше имя». Она не копируется."
+
+msgid "The look of what the visitor types, in the signature: size in points, colour, bold, italic, underline."
+msgstr "Вид того, что вписывает посетитель, в подписи: размер в пунктах, цвет, жирный, курсив, подчёркивание."
+
+msgid "How wide the visitor's photo shows in the signature, in px."
+msgstr "Ширина фото посетителя в подписи, в px."
+
+msgid "Extra space around what the visitor fills in, in px, added to its row's."
+msgstr "Дополнительный отступ вокруг того, что заполняет посетитель, в px, к отступу строки."
+
+msgid "Signature width and border: how wide the signature is in the email."
+msgstr "Ширина и рамка подписи: насколько широкой будет подпись в письме."
+
+msgid "Undo the last change."
+msgstr "Отменить последнее изменение."
+
+msgid "Redo the change you undid."
+msgstr "Повторить отменённое изменение."
+
+msgid "Add a column at the right end of the table."
+msgstr "Добавить колонку в правом конце таблицы."
+
+msgid "Add a row at the bottom of the table."
+msgstr "Добавить строку внизу таблицы."
+
+msgid "Put something in this cell: text, an image, a social icon or a field for visitors to fill in."
+msgstr "Добавить что-то в эту ячейку: текст, изображение, иконку соцсети или поле, которое заполнят посетители."
+
+msgid "Change what is in this cell."
+msgstr "Изменить содержимое этой ячейки."
+
+msgid "Empty this cell (the cell itself stays)."
+msgstr "Очистить эту ячейку (сама ячейка остаётся)."
+
+msgid "Copy what is in this cell, to paste it into another cell."
+msgstr "Скопировать содержимое этой ячейки, чтобы вставить его в другую."
+
+msgid "Paste the copied content into this cell."
+msgstr "Вставить скопированное содержимое в эту ячейку."
+
+msgid "Split this merged cell back into separate cells."
+msgstr "Разделить эту объединённую ячейку обратно на отдельные."
+
+msgid "Add a column next to this one."
+msgstr "Добавить колонку рядом с этой."
+
+msgid "Delete this column and everything in it."
+msgstr "Удалить эту колонку со всем содержимым."
+
+msgid "Merge the selected cells into one, e.g. for a logo or a photo beside several lines."
+msgstr "Объединить выделенные ячейки в одну, например, для логотипа или фото рядом с несколькими строками."
+
+msgid "Row settings: the space inside its cells, a line above or below it, its background."
+msgstr "Настройки строки: отступы в её ячейках, линия над или под ней, её фон."
+
+msgid "Delete this row and everything in it."
+msgstr "Удалить эту строку со всем содержимым."
+
+msgid "The look of the \"Copy signature\" button that visitors click on the page."
+msgstr "Вид кнопки «Скопировать подпись», которую посетители нажимают на странице."
+
+msgid "Text: a name, a job title, a company, any line."
+msgstr "Текст: имя, должность, компания, любая строка."
+
+msgid "Image: a logo or a photo, the same for everyone."
+msgstr "Изображение: логотип или фото, одинаковое для всех."
+
+msgid "Social: a clickable icon that opens a profile page."
+msgstr "Соцсеть: иконка-ссылка на страницу профиля."
+
+msgid "Field: something each visitor fills in on the page before copying (their name, phone, photo)."
+msgstr "Поле: то, что каждый посетитель заполняет на странице перед копированием (имя, телефон, фото)."
+
+msgid "Drag to change the width of the columns on either side."
+msgstr "Перетащите, чтобы изменить ширину колонок с обеих сторон."
+
+msgid "Width: click the pencil above the table and set how wide the signature is (450–600 px suits most emails)."
+msgstr "Ширина: нажмите карандаш над таблицей и задайте ширину подписи (для большинства писем подходит 450–600 px)."
+
+msgid "Grid: add rows with the + under the table and columns with the + above it. Drag a column's edge to change its width. Drag across cells to select them and merge them, e.g. for a logo beside several lines."
+msgstr "Сетка: добавляйте строки кнопкой + под таблицей, а колонки кнопкой + над ней. Перетащите край колонки, чтобы изменить её ширину. Протяните мышью по ячейкам, чтобы выделить и объединить их, например, для логотипа рядом с несколькими строками."
+
+msgid "Content: click a cell, then + to put text, an image or a social icon in it. Use a Field for what each person fills in themselves (name, phone, photo)."
+msgstr "Содержимое: нажмите на ячейку, затем +, чтобы добавить текст, изображение или иконку соцсети. Для того, что каждый заполняет сам (имя, телефон, фото), используйте Поле."
+
+msgid "Look: the pencil beside a row sets its spacing, lines and background; the pencil beside the button below sets the \"Copy signature\" button."
+msgstr "Вид: карандаш возле строки задаёт её отступы, линии и фон; карандаш возле кнопки внизу настраивает кнопку «Скопировать подпись»."
+
+msgid "Give the signature a title and click Save."
+msgstr "Дайте подписи название и нажмите «Сохранить»."
+
+msgid "Put it on a page: the shortcode from All signatures, or the \"Signatures\" element in WPBakery (WoodMart's Theme elements). Then open the page, fill it in, copy it and paste it into your email to check it."
+msgstr "Добавьте на страницу: шорткод из списка «Все подписи» или элемент «Signatures» в WPBakery (Theme elements WoodMart). Затем откройте страницу, заполните, скопируйте и вставьте в свою почту, чтобы проверить."
+
+msgid "Getting started"
+msgstr "С чего начать"
+
+msgid "Hover over an \"i\" or a button for what it does."
+msgstr "Наведите курсор на «i» или кнопку, чтобы узнать, что она делает."
+
+msgid "On the page, fill in the fields and click \"Copy signature\"."
+msgstr "На странице заполните поля и нажмите «Скопировать подпись»."
+
+msgid "In Gmail: the gear → See all settings → General → Signature → Create new."
+msgstr "В Gmail: шестерёнка → Все настройки → Общие → Подпись → Создать."
+
+msgid "Paste into the signature box (Ctrl+V, on a Mac Cmd+V)."
+msgstr "Вставьте в поле подписи (Ctrl+V, на Mac Cmd+V)."
+
+msgid "Scroll down and click Save Changes."
+msgstr "Прокрутите вниз и нажмите «Сохранить изменения»."
+
+msgid "Outlook (new, and on the web)"
+msgstr "Outlook (новый и в браузере)"
+
+msgid "Copy the signature on the page as above."
+msgstr "Скопируйте подпись на странице, как описано выше."
+
+msgid "In Outlook: Settings → Account → Signatures → New signature."
+msgstr "В Outlook: Параметры → Учетная запись → Подписи → Новая подпись."
+
+msgid "Paste into the box and click Save."
+msgstr "Вставьте в поле и нажмите «Сохранить»."
+
+msgid "Outlook (classic, on Windows)"
+msgstr "Outlook (классический, на Windows)"
+
+msgid "In Outlook: File → Options → Mail → Signatures… → New."
+msgstr "В Outlook: Файл → Параметры → Почта → Подписи… → Создать."
+
+msgid "Paste into the box and click OK."
+msgstr "Вставьте в поле и нажмите «OK»."
+
+msgid "How to put the signature into Gmail / Outlook"
+msgstr "Как вставить подпись в Gmail / Outlook"
+
+msgid "Paste it as it is, not as plain text: the layout, colours and links come with it."
+msgstr "Вставляйте как есть, не как обычный текст: тогда сохранятся разметка, цвета и ссылки."

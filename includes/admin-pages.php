@@ -77,9 +77,9 @@ function signatur_menu_icon_style()
  * fills (`<prefix>_top`, `_right`, `_bottom`, `_left`).
  *
  * @param array  $prefixes kind (padding | margin) => the fields' id prefix.
- * @param string $id       The box's own id (builder.js shows / hides some).
+ * @param string $tip      What the spaces do, in an "i" in the box's corner.
  */
-function signatur_render_spacing_box($prefixes, $id = '')
+function signatur_render_spacing_box($prefixes, $tip = '')
 {
     $names = array(
         'padding' => __('Padding', 'signatur'),
@@ -95,7 +95,10 @@ function signatur_render_spacing_box($prefixes, $id = '')
     // Both: Margin's ring around Padding's (5 x 5); one of them: 3 x 3.
     $classes   = 'signatur-spacing ' . (count($prefixes) > 1 ? 'signatur-spacing--margin' : 'signatur-spacing--single');
 ?>
-    <div class="<?php echo esc_attr($classes); ?>"<?php echo $id ? ' id="' . esc_attr($id) . '"' : ''; ?>>
+    <div class="<?php echo esc_attr($classes); ?>">
+        <?php if ($tip) : ?>
+            <span class="signatur-spacing__tip"><?php echo signatur_tip($tip); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in signatur_tip(). ?></span>
+        <?php endif; ?>
         <?php foreach (array('margin', 'padding') as $kind) : ?>
             <?php if (isset($prefixes[$kind])) : ?>
                 <span class="signatur-spacing__ring signatur-spacing__ring--<?php echo esc_attr($kind); ?>" aria-hidden="true"></span>
@@ -191,10 +194,15 @@ function signatur_enqueue_builder_assets($hook_suffix)
         )
     );
 
+    // The help: "i" tips, the icon buttons' tips, "Getting started" kept closed.
+    wp_enqueue_style('dashicons');
+    wp_enqueue_script('signatur-tips', plugins_url('assets/js/tips.js', SIGNATUR_PLUGIN_FILE), array(), SIGNATUR_VERSION, true);
+    wp_localize_script('signatur-tips', 'signaturTips', array('buttons' => signatur_button_tips()));
+
     wp_enqueue_script(
         'signatur-builder',
         plugins_url('assets/js/builder.js', SIGNATUR_PLUGIN_FILE),
-        array('signatur-spacing', 'signatur-colors'),
+        array('signatur-spacing', 'signatur-colors', 'signatur-tips'),
         SIGNATUR_VERSION,
         true
     );
@@ -388,6 +396,8 @@ function signatur_render_add_signature_page()
             </div>
         <?php endif; ?>
 
+        <?php signatur_render_getting_started(); ?>
+
         <form id="signatur_form" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
             <?php wp_nonce_field('signatur_save_signature'); ?>
             <input type="hidden" name="action" value="signatur_save_signature">
@@ -556,6 +566,10 @@ function signatur_render_add_signature_page()
                 </div>
             </div>
 
+            <div class="signatur-editor-only" style="max-width:600px; margin:16px auto 0;">
+                <?php signatur_render_email_help(); ?>
+            </div>
+
             <?php submit_button(__('Save', 'signatur')); ?>
         </form>
 
@@ -626,23 +640,25 @@ function signatur_render_add_signature_page()
                 <input type="number" id="signatur_width_input" class="small-text" min="200" step="1" style="width:70px;">
                 <span><?php esc_html_e('px', 'signatur'); ?></span>
                 <span style="font-size:11px; color:#646970;"><?php esc_html_e('min. 200px', 'signatur'); ?></span>
+                <?php echo signatur_tip(__('How wide the whole signature is in the email. 450–600 px suits most emails; the columns share this width.', 'signatur')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             </p>
 
-            <p style="margin:12px 0 0;">
+            <p style="display:flex; align-items:center; gap:6px; margin:12px 0 0;">
                 <label for="signatur_border_toggle" style="display:flex; align-items:center; gap:6px;">
                     <input type="checkbox" id="signatur_border_toggle">
                     <?php esc_html_e('Border', 'signatur'); ?>
                 </label>
+                <?php echo signatur_tip(__('A thin grey line around every cell, handy to see the grid while building. It is copied with the signature too: turn it off if you do not want it in emails.', 'signatur')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             </p>
         </template>
 
         <template id="signatur_modal_template_row">
             <div class="signatur-spacing-field">
-                <?php signatur_render_spacing_box(array('padding' => 'signatur_row_padding')); ?>
+                <?php signatur_render_spacing_box(array('padding' => 'signatur_row_padding'), __('Space inside every cell of this row, around its content, in px. The link sets the four sides together.', 'signatur')); ?>
             </div>
 
             <p style="display:flex; align-items:center; gap:6px; margin:12px 0 0;">
-                <span style="font-weight:600;">Border</span>
+                <span style="font-weight:600;"><?php esc_html_e('Border', 'signatur'); ?></span>
                 <select id="signatur_row_border_style">
                     <option value="solid">solid</option>
                     <option value="dashed">dashed</option>
@@ -656,18 +672,21 @@ function signatur_render_add_signature_page()
                     <option value="bottom"><?php esc_html_e('Bottom', 'signatur'); ?></option>
                     <option value="both"><?php esc_html_e('Both', 'signatur'); ?></option>
                 </select>
+                <?php echo signatur_tip(__('A line above, below or on both sides of this row: its style, width in px, colour and where. E.g. a divider between the name and the contacts.', 'signatur')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             </p>
 
             <p style="display:flex; align-items:center; gap:6px; margin:12px 0 0;">
                 <span style="font-weight:600;"><?php esc_html_e('Background', 'signatur'); ?></span>
                 <input type="color" id="signatur_row_background_color" value="#ffffff">
                 <button type="button" id="signatur_row_background_clear" class="button"><?php esc_html_e('Clear', 'signatur'); ?></button>
+                <?php echo signatur_tip(__('The row\'s background colour. Clear: none, the email\'s own background shows.', 'signatur')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             </p>
         </template>
 
         <template id="signatur_modal_template_copy_button">
-            <p style="margin:0;">
-                <input type="text" id="signatur_copy_button_text" class="regular-text" style="width:100%;" aria-label="<?php esc_attr_e('Button text', 'signatur'); ?>">
+            <p style="display:flex; align-items:center; gap:6px; margin:0;">
+                <input type="text" id="signatur_copy_button_text" class="regular-text" style="flex:1 1 auto; width:auto;" aria-label="<?php esc_attr_e('Button text', 'signatur'); ?>">
+                <?php echo signatur_tip(__('The button\'s label on the page. Visitors click it to copy the signature with what they filled in.', 'signatur')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             </p>
 
             <?php
@@ -681,6 +700,7 @@ function signatur_render_add_signature_page()
                         'bordered'  => __('Border', 'signatur'),
                         'underline' => __('Underline', 'signatur'),
                     ),
+                    __('Filled: a button in its colour. Border: only its outline. Underline: a line under the text.', 'signatur'),
                 ),
                 'shape' => array(
                     __('Corners', 'signatur'),
@@ -689,12 +709,13 @@ function signatur_render_add_signature_page()
                         'rounded' => __('Rounded', 'signatur'),
                         'round'   => __('Round', 'signatur'),
                     ),
+                    __('How round the button\'s corners are. Not for Underline.', 'signatur'),
                 ),
             );
             ?>
             <?php foreach ($signatur_choices as $signatur_key => $signatur_choice) : ?>
                 <div class="signatur-choice-field" id="signatur_copy_button_<?php echo esc_attr($signatur_key); ?>_field">
-                    <span class="signatur-choice-field__label"><?php echo esc_html($signatur_choice[0]); ?></span>
+                    <span class="signatur-choice-field__label signatur-label-tip"><?php echo esc_html($signatur_choice[0]); ?> <?php echo signatur_tip($signatur_choice[2]); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
                     <input type="hidden" id="signatur_copy_button_<?php echo esc_attr($signatur_key); ?>">
                     <div class="signatur-button-choices" role="group" aria-label="<?php echo esc_attr($signatur_choice[0]); ?>">
                         <?php foreach ($signatur_choice[1] as $signatur_value => $signatur_name) : ?>
@@ -708,31 +729,34 @@ function signatur_render_add_signature_page()
 
             <div class="signatur-text-controls" style="margin-top:12px;">
                 <label for="signatur_copy_button_size"><?php esc_html_e('Size', 'signatur'); ?></label>
-                <select id="signatur_copy_button_size" title="<?php esc_attr_e('Preset sizes: padding, height and font size together.', 'signatur'); ?>">
+                <select id="signatur_copy_button_size">
                     <option value="extra-small"><?php esc_html_e('Extra Small', 'signatur'); ?></option>
                     <option value="small"><?php esc_html_e('Small', 'signatur'); ?></option>
                     <option value="default"><?php esc_html_e('Default', 'signatur'); ?></option>
                     <option value="large"><?php esc_html_e('Large', 'signatur'); ?></option>
                     <option value="extra-large"><?php esc_html_e('Extra Large', 'signatur'); ?></option>
                 </select>
+                <?php echo signatur_tip(__('Preset sizes: padding, height and font size together.', 'signatur')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 
                 <select id="signatur_copy_button_align" aria-label="<?php esc_attr_e('Horizontal alignment', 'signatur'); ?>">
                     <option value="left"><?php esc_html_e('Left', 'signatur'); ?></option>
                     <option value="center"><?php esc_html_e('Center', 'signatur'); ?></option>
                     <option value="right"><?php esc_html_e('Right', 'signatur'); ?></option>
                 </select>
+                <?php echo signatur_tip(__('Where the button sits under the signature on the page: left, centre or right.', 'signatur')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             </div>
 
             <div class="signatur-text-controls" style="margin-top:12px;">
-                <label for="signatur_copy_button_color" title="<?php esc_attr_e('Filled: the button\'s color; Border and Underline: their line\'s.', 'signatur'); ?>"><?php esc_html_e('Fill / border color', 'signatur'); ?></label>
+                <label for="signatur_copy_button_color"><?php esc_html_e('Fill / border color', 'signatur'); ?></label>
                 <input type="color" id="signatur_copy_button_color" value="#2271b1">
+                <?php echo signatur_tip(__('Filled: the button\'s color; Border and Underline: their line\'s.', 'signatur')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 
                 <label for="signatur_copy_button_text_color"><?php esc_html_e('Text color', 'signatur'); ?></label>
                 <input type="color" id="signatur_copy_button_text_color" value="#ffffff">
             </div>
 
             <div class="signatur-spacing-field">
-                <?php signatur_render_spacing_box(array('margin' => 'signatur_copy_button_margin')); ?>
+                <?php signatur_render_spacing_box(array('margin' => 'signatur_copy_button_margin'), __('Space around the button on the page, in px, e.g. its distance from the signature above it.', 'signatur')); ?>
             </div>
         </template>
 
@@ -754,13 +778,15 @@ function signatur_render_add_signature_page()
         </template>
 
         <template id="signatur_modal_template_text">
-            <p style="margin:0;">
-                <textarea id="signatur_text_input" rows="3" class="large-text" style="width:100%;"></textarea>
+            <p style="display:flex; align-items:flex-start; gap:6px; margin:0;">
+                <textarea id="signatur_text_input" rows="3" class="large-text" style="flex:1 1 auto; width:auto;"></textarea>
+                <?php echo signatur_tip(__('The text as it shows in the email, e.g. a name or a job title. Enter starts a new line. Everyone who copies the signature gets the same text: for what each person writes, use a Field.', 'signatur')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             </p>
 
             <div class="signatur-text-controls">
                 <input type="number" id="signatur_text_size" class="small-text" min="8" max="72" step="1" style="width:56px;">
                 <span><?php esc_html_e('pt', 'signatur'); ?></span>
+                <?php echo signatur_tip(__('Font size in points, as email programs use; 9–11 pt is usual for signatures. The font is Arial, the one that looks the same in every email program.', 'signatur')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 
                 <input type="color" id="signatur_text_color" value="#000000">
 
@@ -781,24 +807,26 @@ function signatur_render_add_signature_page()
                 </select>
             </div>
 
-            <p style="margin:12px 0 0;">
-                <input type="url" id="signatur_text_link" class="regular-text" style="width:100%;" placeholder="<?php echo esc_attr__('https://example.com', 'signatur'); ?>" aria-label="<?php echo esc_attr__('https://example.com', 'signatur'); ?>">
+            <p style="display:flex; align-items:center; gap:6px; margin:12px 0 0;">
+                <input type="url" id="signatur_text_link" class="regular-text" style="flex:1 1 auto; width:auto;" placeholder="<?php echo esc_attr__('https://example.com', 'signatur'); ?>" aria-label="<?php echo esc_attr__('https://example.com', 'signatur'); ?>">
+                <?php echo signatur_tip(__('Optional: makes the text a link. A web address (https://…), mailto:name@example.com for an email or tel:+4712345678 for a phone.', 'signatur')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             </p>
 
             <div class="signatur-spacing-field">
-                <?php signatur_render_spacing_box(array('padding' => 'signatur_text_padding')); ?>
+                <?php signatur_render_spacing_box(array('padding' => 'signatur_text_padding'), __('Extra space around this text, in px, added to its row\'s.', 'signatur')); ?>
             </div>
         </template>
 
         <template id="signatur_modal_template_image">
-            <p style="margin:0;">
+            <p style="display:flex; align-items:center; gap:6px; margin:0;">
                 <button type="button" id="signatur_image_upload" class="button"><?php esc_html_e('Upload image', 'signatur'); ?></button>
                 <input type="file" id="signatur_image_file" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none;">
                 <input type="hidden" id="signatur_image_url">
+                <?php echo signatur_tip(__('PNG or JPG, the same for everyone (a logo, a banner). For a sharp image, upload one about twice as wide as its Width below.', 'signatur')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             </p>
 
             <p style="margin:12px 0 0;">
-                <label for="signatur_image_link" style="display:block; margin-bottom:4px;"><?php esc_html_e('Link', 'signatur'); ?></label>
+                <label for="signatur_image_link" class="signatur-label-tip" style="margin-bottom:4px;"><?php esc_html_e('Link', 'signatur'); ?> <?php echo signatur_tip(__('Optional: the page that opens when the image is clicked in the email, e.g. your website.', 'signatur')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></label>
                 <input type="url" id="signatur_image_link" class="regular-text" style="width:100%;" placeholder="<?php echo esc_attr__('https://example.com', 'signatur'); ?>">
             </p>
 
@@ -806,6 +834,7 @@ function signatur_render_add_signature_page()
                 <label for="signatur_image_width"><?php esc_html_e('Width', 'signatur'); ?></label>
                 <input type="number" id="signatur_image_width" class="small-text" min="1" max="1000" step="1" style="width:70px;">
                 <span><?php esc_html_e('px', 'signatur'); ?></span>
+                <?php echo signatur_tip(__('How wide the image shows in the email, in px; its height follows. It never gets wider than its cell.', 'signatur')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 
                 <select id="signatur_image_align" aria-label="<?php esc_attr_e('Horizontal alignment', 'signatur'); ?>">
                     <option value="left"><?php esc_html_e('Left', 'signatur'); ?></option>
@@ -821,7 +850,7 @@ function signatur_render_add_signature_page()
             </div>
 
             <div class="signatur-spacing-field">
-                <?php signatur_render_spacing_box(array('padding' => 'signatur_image_padding')); ?>
+                <?php signatur_render_spacing_box(array('padding' => 'signatur_image_padding'), __('Space around the image, in px.', 'signatur')); ?>
             </div>
 
             <p id="signatur_image_svg_warning" class="signatur-svg-warning" hidden><?php echo esc_html(signatur_svg_message()); ?></p>
@@ -838,6 +867,7 @@ function signatur_render_add_signature_page()
                         <img src="<?php echo esc_url(plugins_url('assets/' . $network['icon'], SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="20" height="20">
                     </button>
                 <?php endforeach; ?>
+                <?php echo signatur_tip(__('Choose the network: its icon is used. For another network, upload its icon below.', 'signatur')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             </p>
 
             <p style="margin:12px 0 0; display:flex; align-items:center; gap:10px;">
@@ -850,12 +880,13 @@ function signatur_render_add_signature_page()
                     <input type="hidden" id="signatur_social_icon_url">
                     <input type="hidden" id="signatur_social_network" value="facebook">
                 </span>
+                <?php echo signatur_tip(__('Optional: your own icon instead of the network\'s, a square PNG or JPG.', 'signatur')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             </p>
 
             <p id="signatur_social_svg_warning" class="signatur-svg-warning" hidden><?php echo esc_html(signatur_svg_message()); ?></p>
 
             <p style="margin:12px 0 0;">
-                <label for="signatur_social_link" style="display:block; margin-bottom:4px;"><?php esc_html_e('Link', 'signatur'); ?></label>
+                <label for="signatur_social_link" class="signatur-label-tip" style="margin-bottom:4px;"><?php esc_html_e('Link', 'signatur'); ?> <?php echo signatur_tip(__('Required: the profile page the icon opens, e.g. https://www.linkedin.com/company/…', 'signatur')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></label>
                 <input type="url" id="signatur_social_link" class="regular-text" style="width:100%;" placeholder="<?php echo esc_attr__('https://example.com', 'signatur'); ?>" required>
             </p>
 
@@ -863,6 +894,7 @@ function signatur_render_add_signature_page()
                 <label for="signatur_social_height"><?php esc_html_e('Height', 'signatur'); ?></label>
                 <input type="number" id="signatur_social_height" class="small-text" min="8" max="200" step="1" style="width:70px;">
                 <span><?php esc_html_e('px', 'signatur'); ?></span>
+                <?php echo signatur_tip(__('The icon\'s height in px; 20–32 px is usual.', 'signatur')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 
                 <select id="signatur_social_align" aria-label="<?php esc_attr_e('Horizontal alignment', 'signatur'); ?>">
                     <option value="left"><?php esc_html_e('Left', 'signatur'); ?></option>
@@ -878,7 +910,7 @@ function signatur_render_add_signature_page()
             </div>
 
             <div class="signatur-spacing-field">
-                <?php signatur_render_spacing_box(array('padding' => 'signatur_social_padding')); ?>
+                <?php signatur_render_spacing_box(array('padding' => 'signatur_social_padding'), __('Space around the icon, in px, e.g. between icons in cells side by side.', 'signatur')); ?>
             </div>
         </template>
 
@@ -896,6 +928,7 @@ function signatur_render_add_signature_page()
                 <button type="button" class="signatur-icon-button signatur-field-type-button" data-type="photo" title="<?php esc_attr_e('Profile photo', 'signatur'); ?>" aria-label="<?php esc_attr_e('Profile photo', 'signatur'); ?>">
                     <img src="<?php echo esc_url(plugins_url('assets/icon-add-profil.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="24" height="24">
                 </button>
+                <?php echo signatur_tip(__('What the visitor fills in on the page before copying: text (a name, a job title), an email, a phone number or their photo. It shows as a yellow cell on the page.', 'signatur')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             </p>
 
             <p style="margin:12px 0 0; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
@@ -909,19 +942,23 @@ function signatur_render_add_signature_page()
                     <input type="checkbox" id="signatur_field_required">
                     <?php esc_html_e('Required', 'signatur'); ?>
                 </label>
+                <?php echo signatur_tip(__('Required: the visitor cannot copy the signature until this is filled in.', 'signatur')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                 <label id="signatur_field_link_wrap" style="display:inline-flex; align-items:center; gap:6px;">
                     <input type="checkbox" id="signatur_field_link">
                     <?php esc_html_e('Link', 'signatur'); ?>
+                    <?php echo signatur_tip(__('Link: in the copied signature an email becomes a mailto: link, a phone number a tel: link (a tap calls it), a text a web link.', 'signatur')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                 </label>
             </p>
 
-            <p id="signatur_field_placeholder_wrap" style="margin:12px 0 0;">
-                <input type="text" id="signatur_field_placeholder" class="regular-text" style="width:100%;" placeholder="<?php esc_attr_e('Placeholder', 'signatur'); ?>" aria-label="<?php esc_attr_e('Placeholder', 'signatur'); ?>">
+            <p id="signatur_field_placeholder_wrap" style="display:flex; align-items:center; gap:6px; margin:12px 0 0;">
+                <input type="text" id="signatur_field_placeholder" class="regular-text" style="flex:1 1 auto; width:auto;" placeholder="<?php esc_attr_e('Placeholder', 'signatur'); ?>" aria-label="<?php esc_attr_e('Placeholder', 'signatur'); ?>">
+                <?php echo signatur_tip(__('The hint shown in the empty field on the page, e.g. "Your name". It is not copied.', 'signatur')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             </p>
 
             <div id="signatur_field_font_row" class="signatur-text-controls" style="margin-top:12px;">
                 <input type="number" id="signatur_field_size" class="small-text" min="8" max="72" step="1" style="width:56px;">
                 <span><?php esc_html_e('pt', 'signatur'); ?></span>
+                <?php echo signatur_tip(__('The look of what the visitor types, in the signature: size in points, colour, bold, italic, underline.', 'signatur')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 
                 <input type="color" id="signatur_field_color" value="#000000">
 
@@ -934,6 +971,7 @@ function signatur_render_add_signature_page()
                 <label for="signatur_field_width"><?php esc_html_e('Width', 'signatur'); ?></label>
                 <input type="number" id="signatur_field_width" class="small-text" min="1" max="1000" step="1" style="width:70px;">
                 <span><?php esc_html_e('px', 'signatur'); ?></span>
+                <?php echo signatur_tip(__('How wide the visitor\'s photo shows in the signature, in px.', 'signatur')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             </p>
 
             <div id="signatur_field_align_row" class="signatur-text-controls">
@@ -951,7 +989,7 @@ function signatur_render_add_signature_page()
             </div>
 
             <div class="signatur-spacing-field" id="signatur_field_padding_row" hidden>
-                <?php signatur_render_spacing_box(array('padding' => 'signatur_field_padding')); ?>
+                <?php signatur_render_spacing_box(array('padding' => 'signatur_field_padding'), __('Extra space around what the visitor fills in, in px, added to its row\'s.', 'signatur')); ?>
             </div>
         </template>
     </div>

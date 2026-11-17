@@ -455,3 +455,109 @@
 .signatur-svg-warning[hidden] {
     display: none;
 }
+
+/* --- Help (includes/help.php, assets/js/tips.js) ------------------------ */
+
+/* An "i" beside a field, as WP Banner's. */
+.signatur-tip {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    vertical-align: middle;
+    color: #a7aaad;
+    cursor: help;
+}
+
+.signatur-tip .dashicons {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+}
+
+.signatur-tip:hover,
+.signatur-tip:focus-visible {
+    color: #2271b1;
+    outline: none;
+}
+
+/* The one floating tip, above the modal and the picker. */
+.signatur-tip-bubble {
+    position: absolute;
+    z-index: 100100;
+    display: none;
+    box-sizing: border-box;
+    width: max-content;
+    max-width: 260px;
+    padding: 8px 10px;
+    border-radius: 4px;
+    background: #1d2327;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.45;
+    white-space: normal;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .2);
+    pointer-events: none;
+}
+
+/* "Getting started" and "How to put it into Gmail / Outlook". */
+.signatur-guide {
+    max-width: 760px;
+    margin: 16px 0;
+    padding: 0 16px;
+    border: 1px solid #c3c4c7;
+    border-left: 4px solid #2271b1;
+    background: #fff;
+}
+
+.signatur-guide > summary {
+    padding: 10px 0;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.signatur-guide ol {
+    margin: 0 0 8px 20px;
+}
+
+.signatur-guide li {
+    margin: 0 0 6px;
+}
+
+.signatur-guide .description {
+    margin: 0 0 12px;
+}
+
+.signatur-guide--email {
+    max-width: none;
+    margin: 12px 0 0;
+    text-align: left;
+    font-size: 13px;
+}
+
+.signatur-guide__client {
+    margin: 8px 0 4px;
+    font-weight: 600;
+}
+
+/* A label with its "i". */
+.signatur-label-tip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* The box's "i": in a corner the fields leave free. */
+.signatur-spacing__tip {
+    z-index: 1;
+    grid-area: 1 / 3;
+    align-self: start;
+    justify-self: end;
+    margin: -6px -6px 0 0;
+}
+
+.signatur-spacing--margin .signatur-spacing__tip {
+    grid-area: 5 / 5;
+    align-self: end;
+    margin: 0 -6px -6px 0;
+}

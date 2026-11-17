@@ -565,3 +565,222 @@ msgstr "Поштові програми (Gmail, Outlook) не показують
 
 msgid "The photo is copied inside the signature. Some email programs, Gmail among them, may not show it after pasting."
 msgstr "Фото копіюється всередині підпису. Деякі поштові програми, зокрема Gmail, можуть не показати його після вставлення."
+
+msgid "How wide the whole signature is in the email. 450–600 px suits most emails; the columns share this width."
+msgstr "Ширина всього підпису в листі. Для більшості листів підходить 450–600 px; колонки ділять цю ширину між собою."
+
+msgid "A thin grey line around every cell, handy to see the grid while building. It is copied with the signature too: turn it off if you do not want it in emails."
+msgstr "Тонка сіра лінія навколо кожної клітинки, щоб бачити сітку під час роботи. Вона копіюється разом із підписом: вимкніть її, якщо не хочете бачити її в листах."
+
+msgid "Space inside every cell of this row, around its content, in px. The link sets the four sides together."
+msgstr "Відступ усередині кожної клітинки цього рядка навколо її вмісту, у px. Ланцюжок задає всі чотири сторони разом."
+
+msgid "A line above, below or on both sides of this row: its style, width in px, colour and where. E.g. a divider between the name and the contacts."
+msgstr "Лінія над, під або з обох боків цього рядка: її стиль, товщина в px, колір і де вона. Наприклад, роздільник між ім'ям і контактами."
+
+msgid "The row's background colour. Clear: none, the email's own background shows."
+msgstr "Колір фону рядка. «Очистити»: без фону, видно фон самого листа."
+
+msgid "The button's label on the page. Visitors click it to copy the signature with what they filled in."
+msgstr "Напис на кнопці на сторінці. Відвідувачі натискають її, щоб скопіювати підпис із тим, що вони заповнили."
+
+msgid "Filled: a button in its colour. Border: only its outline. Underline: a line under the text."
+msgstr "Заливка: кнопка свого кольору. Рамка: лише її контур. Підкреслення: лінія під текстом."
+
+msgid "How round the button's corners are. Not for Underline."
+msgstr "Наскільки заокруглені кути кнопки. Не для «Підкреслення»."
+
+msgid "Where the button sits under the signature on the page: left, centre or right."
+msgstr "Де кнопка стоїть під підписом на сторінці: ліворуч, по центру чи праворуч."
+
+msgid "Space around the button on the page, in px, e.g. its distance from the signature above it."
+msgstr "Відступ навколо кнопки на сторінці, у px, наприклад, її відстань від підпису над нею."
+
+msgid "The text as it shows in the email, e.g. a name or a job title. Enter starts a new line. Everyone who copies the signature gets the same text: for what each person writes, use a Field."
+msgstr "Текст так, як він буде в листі, наприклад, ім'я чи посада. Enter починає новий рядок. Усі, хто копіює підпис, отримують той самий текст: для того, що кожен пише сам, використайте Поле."
+
+msgid "Font size in points, as email programs use; 9–11 pt is usual for signatures. The font is Arial, the one that looks the same in every email program."
+msgstr "Розмір шрифту в пунктах, як у поштових програмах; для підписів звично 9–11 pt. Шрифт Arial: він виглядає однаково в усіх поштових програмах."
+
+msgid "Optional: makes the text a link. A web address (https://…), mailto:name@example.com for an email or tel:+4712345678 for a phone."
+msgstr "Необов'язково: робить текст посиланням. Адреса сайту (https://…), mailto:name@example.com для пошти або tel:+4712345678 для телефону."
+
+msgid "Extra space around this text, in px, added to its row's."
+msgstr "Додатковий відступ навколо цього тексту, у px, до відступу рядка."
+
+msgid "PNG or JPG, the same for everyone (a logo, a banner). For a sharp image, upload one about twice as wide as its Width below."
+msgstr "PNG або JPG, однакове для всіх (логотип, банер). Щоб зображення було чітким, завантажте приблизно вдвічі ширше за його Ширину нижче."
+
+msgid "Optional: the page that opens when the image is clicked in the email, e.g. your website."
+msgstr "Необов'язково: сторінка, що відкривається, коли натиснути на зображення в листі, наприклад, ваш сайт."
+
+msgid "How wide the image shows in the email, in px; its height follows. It never gets wider than its cell."
+msgstr "Ширина зображення в листі, у px; висота підлаштовується сама. Воно ніколи не буде ширшим за свою клітинку."
+
+msgid "Space around the image, in px."
+msgstr "Відступ навколо зображення, у px."
+
+msgid "Choose the network: its icon is used. For another network, upload its icon below."
+msgstr "Оберіть мережу: буде використано її іконку. Для іншої мережі завантажте її іконку нижче."
+
+msgid "Optional: your own icon instead of the network's, a square PNG or JPG."
+msgstr "Необов'язково: ваша власна іконка замість іконки мережі, квадратний PNG або JPG."
+
+msgid "Required: the profile page the icon opens, e.g. https://www.linkedin.com/company/…"
+msgstr "Обов'язково: сторінка профілю, яку відкриває іконка, наприклад, https://www.linkedin.com/company/…"
+
+msgid "The icon's height in px; 20–32 px is usual."
+msgstr "Висота іконки в px; звично 20–32 px."
+
+msgid "Space around the icon, in px, e.g. between icons in cells side by side."
+msgstr "Відступ навколо іконки, у px, наприклад, між іконками в сусідніх клітинках."
+
+msgid "What the visitor fills in on the page before copying: text (a name, a job title), an email, a phone number or their photo. It shows as a yellow cell on the page."
+msgstr "Що відвідувач заповнює на сторінці перед копіюванням: текст (ім'я, посада), email, номер телефону або своє фото. На сторінці це жовта клітинка."
+
+msgid "Required: the visitor cannot copy the signature until this is filled in."
+msgstr "Обов'язкове: відвідувач не зможе скопіювати підпис, поки не заповнить це поле."
+
+msgid "Link: in the copied signature an email becomes a mailto: link, a phone number a tel: link (a tap calls it), a text a web link."
+msgstr "Посилання: у скопійованому підписі email стає посиланням mailto:, телефон — посиланням tel: (натискання дзвонить), текст — посиланням на сайт."
+
+msgid "The hint shown in the empty field on the page, e.g. \"Your name\". It is not copied."
+msgstr "Підказка в порожньому полі на сторінці, наприклад, «Ваше ім'я». Вона не копіюється."
+
+msgid "The look of what the visitor types, in the signature: size in points, colour, bold, italic, underline."
+msgstr "Вигляд того, що вписує відвідувач, у підписі: розмір у пунктах, колір, жирний, курсив, підкреслення."
+
+msgid "How wide the visitor's photo shows in the signature, in px."
+msgstr "Ширина фото відвідувача в підписі, у px."
+
+msgid "Extra space around what the visitor fills in, in px, added to its row's."
+msgstr "Додатковий відступ навколо того, що заповнює відвідувач, у px, до відступу рядка."
+
+msgid "Signature width and border: how wide the signature is in the email."
+msgstr "Ширина і рамка підпису: наскільки широким буде підпис у листі."
+
+msgid "Undo the last change."
+msgstr "Скасувати останню зміну."
+
+msgid "Redo the change you undid."
+msgstr "Повторити скасовану зміну."
+
+msgid "Add a column at the right end of the table."
+msgstr "Додати колонку в правому кінці таблиці."
+
+msgid "Add a row at the bottom of the table."
+msgstr "Додати рядок унизу таблиці."
+
+msgid "Put something in this cell: text, an image, a social icon or a field for visitors to fill in."
+msgstr "Додати щось у цю клітинку: текст, зображення, іконку соцмережі або поле, яке заповнять відвідувачі."
+
+msgid "Change what is in this cell."
+msgstr "Змінити вміст цієї клітинки."
+
+msgid "Empty this cell (the cell itself stays)."
+msgstr "Очистити цю клітинку (сама клітинка лишається)."
+
+msgid "Copy what is in this cell, to paste it into another cell."
+msgstr "Скопіювати вміст цієї клітинки, щоб вставити його в іншу."
+
+msgid "Paste the copied content into this cell."
+msgstr "Вставити скопійований вміст у цю клітинку."
+
+msgid "Split this merged cell back into separate cells."
+msgstr "Розділити цю об'єднану клітинку назад на окремі."
+
+msgid "Add a column next to this one."
+msgstr "Додати колонку поруч із цією."
+
+msgid "Delete this column and everything in it."
+msgstr "Видалити цю колонку з усім вмістом."
+
+msgid "Merge the selected cells into one, e.g. for a logo or a photo beside several lines."
+msgstr "Об'єднати виділені клітинки в одну, наприклад, для логотипа чи фото поруч із кількома рядками."
+
+msgid "Row settings: the space inside its cells, a line above or below it, its background."
+msgstr "Налаштування рядка: відступи в його клітинках, лінія над чи під ним, його фон."
+
+msgid "Delete this row and everything in it."
+msgstr "Видалити цей рядок з усім вмістом."
+
+msgid "The look of the \"Copy signature\" button that visitors click on the page."
+msgstr "Вигляд кнопки «Скопіювати підпис», яку відвідувачі натискають на сторінці."
+
+msgid "Text: a name, a job title, a company, any line."
+msgstr "Текст: ім'я, посада, компанія, будь-який рядок."
+
+msgid "Image: a logo or a photo, the same for everyone."
+msgstr "Зображення: логотип або фото, однакове для всіх."
+
+msgid "Social: a clickable icon that opens a profile page."
+msgstr "Соцмережа: іконка-посилання на сторінку профілю."
+
+msgid "Field: something each visitor fills in on the page before copying (their name, phone, photo)."
+msgstr "Поле: те, що кожен відвідувач заповнює на сторінці перед копіюванням (ім'я, телефон, фото)."
+
+msgid "Drag to change the width of the columns on either side."
+msgstr "Перетягніть, щоб змінити ширину колонок з обох боків."
+
+msgid "Width: click the pencil above the table and set how wide the signature is (450–600 px suits most emails)."
+msgstr "Ширина: натисніть олівець над таблицею і задайте ширину підпису (для більшості листів підходить 450–600 px)."
+
+msgid "Grid: add rows with the + under the table and columns with the + above it. Drag a column's edge to change its width. Drag across cells to select them and merge them, e.g. for a logo beside several lines."
+msgstr "Сітка: додавайте рядки кнопкою + під таблицею, а колонки кнопкою + над нею. Перетягніть край колонки, щоб змінити її ширину. Протягніть мишею по клітинках, щоб виділити й об'єднати їх, наприклад, для логотипа поруч із кількома рядками."
+
+msgid "Content: click a cell, then + to put text, an image or a social icon in it. Use a Field for what each person fills in themselves (name, phone, photo)."
+msgstr "Вміст: натисніть на клітинку, потім +, щоб додати текст, зображення чи іконку соцмережі. Для того, що кожен заповнює сам (ім'я, телефон, фото), використайте Поле."
+
+msgid "Look: the pencil beside a row sets its spacing, lines and background; the pencil beside the button below sets the \"Copy signature\" button."
+msgstr "Вигляд: олівець біля рядка задає його відступи, лінії й фон; олівець біля кнопки внизу налаштовує кнопку «Скопіювати підпис»."
+
+msgid "Give the signature a title and click Save."
+msgstr "Дайте підпису назву і натисніть «Зберегти»."
+
+msgid "Put it on a page: the shortcode from All signatures, or the \"Signatures\" element in WPBakery (WoodMart's Theme elements). Then open the page, fill it in, copy it and paste it into your email to check it."
+msgstr "Додайте на сторінку: шорткод зі списку «Усі підписи» або елемент «Signatures» у WPBakery (Theme elements WoodMart). Потім відкрийте сторінку, заповніть, скопіюйте і вставте у свою пошту, щоб перевірити."
+
+msgid "Getting started"
+msgstr "З чого почати"
+
+msgid "Hover over an \"i\" or a button for what it does."
+msgstr "Наведіть курсор на «i» або кнопку, щоб дізнатися, що вона робить."
+
+msgid "On the page, fill in the fields and click \"Copy signature\"."
+msgstr "На сторінці заповніть поля і натисніть «Скопіювати підпис»."
+
+msgid "In Gmail: the gear → See all settings → General → Signature → Create new."
+msgstr "У Gmail: шестірня → Переглянути всі налаштування → Загальні → Підпис → Створити."
+
+msgid "Paste into the signature box (Ctrl+V, on a Mac Cmd+V)."
+msgstr "Вставте в поле підпису (Ctrl+V, на Mac Cmd+V)."
+
+msgid "Scroll down and click Save Changes."
+msgstr "Прокрутіть униз і натисніть «Зберегти зміни»."
+
+msgid "Outlook (new, and on the web)"
+msgstr "Outlook (новий і в браузері)"
+
+msgid "Copy the signature on the page as above."
+msgstr "Скопіюйте підпис на сторінці, як описано вище."
+
+msgid "In Outlook: Settings → Account → Signatures → New signature."
+msgstr "В Outlook: Настройки → Обліковий запис → Підписи → Новий підпис."
+
+msgid "Paste into the box and click Save."
+msgstr "Вставте в поле і натисніть «Зберегти»."
+
+msgid "Outlook (classic, on Windows)"
+msgstr "Outlook (класичний, на Windows)"
+
+msgid "In Outlook: File → Options → Mail → Signatures… → New."
+msgstr "В Outlook: Файл → Параметри → Пошта → Підписи… → Створити."
+
+msgid "Paste into the box and click OK."
+msgstr "Вставте в поле і натисніть «OK»."
+
+msgid "How to put the signature into Gmail / Outlook"
+msgstr "Як вставити підпис у Gmail / Outlook"
+
+msgid "Paste it as it is, not as plain text: the layout, colours and links come with it."
+msgstr "Вставляйте як є, не як звичайний текст: тоді збережуться розмітка, кольори й посилання."

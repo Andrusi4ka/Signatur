@@ -565,3 +565,222 @@ msgstr "E-postprogrammer (Gmail, Outlook) viser ikke SVG-bilder. Last opp en PNG
 
 msgid "The photo is copied inside the signature. Some email programs, Gmail among them, may not show it after pasting."
 msgstr "Bildet kopieres inn i signaturen. Noen e-postprogrammer, blant dem Gmail, viser det kanskje ikke etter innliming."
+
+msgid "How wide the whole signature is in the email. 450–600 px suits most emails; the columns share this width."
+msgstr "Hvor bred hele signaturen er i e-posten. 450–600 px passer for de fleste e-poster; kolonnene deler denne bredden."
+
+msgid "A thin grey line around every cell, handy to see the grid while building. It is copied with the signature too: turn it off if you do not want it in emails."
+msgstr "En tynn grå linje rundt hver celle, nyttig for å se rutenettet mens du bygger. Den kopieres også med signaturen: slå den av hvis du ikke vil ha den i e-poster."
+
+msgid "Space inside every cell of this row, around its content, in px. The link sets the four sides together."
+msgstr "Avstand inne i hver celle i denne raden, rundt innholdet, i px. Lenken angir alle fire sidene samtidig."
+
+msgid "A line above, below or on both sides of this row: its style, width in px, colour and where. E.g. a divider between the name and the contacts."
+msgstr "En linje over, under eller på begge sider av denne raden: stil, bredde i px, farge og plassering. F.eks. et skille mellom navnet og kontaktinfoen."
+
+msgid "The row's background colour. Clear: none, the email's own background shows."
+msgstr "Radens bakgrunnsfarge. Fjern: ingen, e-postens egen bakgrunn vises."
+
+msgid "The button's label on the page. Visitors click it to copy the signature with what they filled in."
+msgstr "Knappens tekst på siden. Besøkende klikker på den for å kopiere signaturen med det de har fylt ut."
+
+msgid "Filled: a button in its colour. Border: only its outline. Underline: a line under the text."
+msgstr "Fylt: en knapp i sin farge. Kantlinje: bare omrisset. Understreking: en linje under teksten."
+
+msgid "How round the button's corners are. Not for Underline."
+msgstr "Hvor runde knappens hjørner er. Ikke for Understreking."
+
+msgid "Where the button sits under the signature on the page: left, centre or right."
+msgstr "Hvor knappen står under signaturen på siden: venstre, midten eller høyre."
+
+msgid "Space around the button on the page, in px, e.g. its distance from the signature above it."
+msgstr "Avstand rundt knappen på siden, i px, f.eks. avstanden til signaturen over den."
+
+msgid "The text as it shows in the email, e.g. a name or a job title. Enter starts a new line. Everyone who copies the signature gets the same text: for what each person writes, use a Field."
+msgstr "Teksten slik den vises i e-posten, f.eks. et navn eller en stillingstittel. Enter gir ny linje. Alle som kopierer signaturen får den samme teksten: bruk et Felt for det hver person skriver selv."
+
+msgid "Font size in points, as email programs use; 9–11 pt is usual for signatures. The font is Arial, the one that looks the same in every email program."
+msgstr "Skriftstørrelse i punkter, slik e-postprogrammer bruker; 9–11 pt er vanlig for signaturer. Skriften er Arial, som ser lik ut i alle e-postprogrammer."
+
+msgid "Optional: makes the text a link. A web address (https://…), mailto:name@example.com for an email or tel:+4712345678 for a phone."
+msgstr "Valgfritt: gjør teksten til en lenke. En nettadresse (https://…), mailto:navn@example.com for e-post eller tel:+4712345678 for telefon."
+
+msgid "Extra space around this text, in px, added to its row's."
+msgstr "Ekstra avstand rundt denne teksten, i px, i tillegg til radens."
+
+msgid "PNG or JPG, the same for everyone (a logo, a banner). For a sharp image, upload one about twice as wide as its Width below."
+msgstr "PNG eller JPG, likt for alle (en logo, et banner). For et skarpt bilde, last opp et som er omtrent dobbelt så bredt som Bredde nedenfor."
+
+msgid "Optional: the page that opens when the image is clicked in the email, e.g. your website."
+msgstr "Valgfritt: siden som åpnes når bildet klikkes i e-posten, f.eks. nettstedet ditt."
+
+msgid "How wide the image shows in the email, in px; its height follows. It never gets wider than its cell."
+msgstr "Hvor bredt bildet vises i e-posten, i px; høyden følger. Det blir aldri bredere enn cellen."
+
+msgid "Space around the image, in px."
+msgstr "Avstand rundt bildet, i px."
+
+msgid "Choose the network: its icon is used. For another network, upload its icon below."
+msgstr "Velg nettverket: ikonet brukes. For et annet nettverk, last opp ikonet nedenfor."
+
+msgid "Optional: your own icon instead of the network's, a square PNG or JPG."
+msgstr "Valgfritt: ditt eget ikon i stedet for nettverkets, en kvadratisk PNG eller JPG."
+
+msgid "Required: the profile page the icon opens, e.g. https://www.linkedin.com/company/…"
+msgstr "Påkrevd: profilsiden ikonet åpner, f.eks. https://www.linkedin.com/company/…"
+
+msgid "The icon's height in px; 20–32 px is usual."
+msgstr "Ikonets høyde i px; 20–32 px er vanlig."
+
+msgid "Space around the icon, in px, e.g. between icons in cells side by side."
+msgstr "Avstand rundt ikonet, i px, f.eks. mellom ikoner i celler ved siden av hverandre."
+
+msgid "What the visitor fills in on the page before copying: text (a name, a job title), an email, a phone number or their photo. It shows as a yellow cell on the page."
+msgstr "Det den besøkende fyller ut på siden før kopiering: tekst (navn, stillingstittel), e-post, telefonnummer eller sitt bilde. Det vises som en gul celle på siden."
+
+msgid "Required: the visitor cannot copy the signature until this is filled in."
+msgstr "Påkrevd: den besøkende kan ikke kopiere signaturen før dette er fylt ut."
+
+msgid "Link: in the copied signature an email becomes a mailto: link, a phone number a tel: link (a tap calls it), a text a web link."
+msgstr "Lenke: i den kopierte signaturen blir en e-post en mailto:-lenke, et telefonnummer en tel:-lenke (et trykk ringer), en tekst en nettlenke."
+
+msgid "The hint shown in the empty field on the page, e.g. \"Your name\". It is not copied."
+msgstr "Hintet som vises i det tomme feltet på siden, f.eks. «Ditt navn». Det kopieres ikke."
+
+msgid "The look of what the visitor types, in the signature: size in points, colour, bold, italic, underline."
+msgstr "Utseendet på det den besøkende skriver, i signaturen: størrelse i punkter, farge, fet, kursiv, understreking."
+
+msgid "How wide the visitor's photo shows in the signature, in px."
+msgstr "Hvor bredt den besøkendes bilde vises i signaturen, i px."
+
+msgid "Extra space around what the visitor fills in, in px, added to its row's."
+msgstr "Ekstra avstand rundt det den besøkende fyller ut, i px, i tillegg til radens."
+
+msgid "Signature width and border: how wide the signature is in the email."
+msgstr "Signaturens bredde og kantlinje: hvor bred signaturen er i e-posten."
+
+msgid "Undo the last change."
+msgstr "Angre siste endring."
+
+msgid "Redo the change you undid."
+msgstr "Gjør om endringen du angret."
+
+msgid "Add a column at the right end of the table."
+msgstr "Legg til en kolonne helt til høyre i tabellen."
+
+msgid "Add a row at the bottom of the table."
+msgstr "Legg til en rad nederst i tabellen."
+
+msgid "Put something in this cell: text, an image, a social icon or a field for visitors to fill in."
+msgstr "Sett inn noe i denne cellen: tekst, et bilde, et sosialt ikon eller et felt de besøkende fyller ut."
+
+msgid "Change what is in this cell."
+msgstr "Endre innholdet i denne cellen."
+
+msgid "Empty this cell (the cell itself stays)."
+msgstr "Tøm denne cellen (selve cellen blir stående)."
+
+msgid "Copy what is in this cell, to paste it into another cell."
+msgstr "Kopier innholdet i denne cellen for å lime det inn i en annen celle."
+
+msgid "Paste the copied content into this cell."
+msgstr "Lim inn det kopierte innholdet i denne cellen."
+
+msgid "Split this merged cell back into separate cells."
+msgstr "Del denne sammenslåtte cellen tilbake i separate celler."
+
+msgid "Add a column next to this one."
+msgstr "Legg til en kolonne ved siden av denne."
+
+msgid "Delete this column and everything in it."
+msgstr "Slett denne kolonnen og alt i den."
+
+msgid "Merge the selected cells into one, e.g. for a logo or a photo beside several lines."
+msgstr "Slå sammen de valgte cellene til én, f.eks. for en logo eller et bilde ved siden av flere linjer."
+
+msgid "Row settings: the space inside its cells, a line above or below it, its background."
+msgstr "Radinnstillinger: avstanden inne i cellene, en linje over eller under, bakgrunnen."
+
+msgid "Delete this row and everything in it."
+msgstr "Slett denne raden og alt i den."
+
+msgid "The look of the \"Copy signature\" button that visitors click on the page."
+msgstr "Utseendet på knappen «Kopier signatur» som besøkende klikker på siden."
+
+msgid "Text: a name, a job title, a company, any line."
+msgstr "Tekst: et navn, en stillingstittel, et firma, hvilken som helst linje."
+
+msgid "Image: a logo or a photo, the same for everyone."
+msgstr "Bilde: en logo eller et bilde, likt for alle."
+
+msgid "Social: a clickable icon that opens a profile page."
+msgstr "Sosialt: et klikkbart ikon som åpner en profilside."
+
+msgid "Field: something each visitor fills in on the page before copying (their name, phone, photo)."
+msgstr "Felt: noe hver besøkende fyller ut på siden før kopiering (navn, telefon, bilde)."
+
+msgid "Drag to change the width of the columns on either side."
+msgstr "Dra for å endre bredden på kolonnene på hver side."
+
+msgid "Width: click the pencil above the table and set how wide the signature is (450–600 px suits most emails)."
+msgstr "Bredde: klikk på blyanten over tabellen og angi hvor bred signaturen er (450–600 px passer for de fleste e-poster)."
+
+msgid "Grid: add rows with the + under the table and columns with the + above it. Drag a column's edge to change its width. Drag across cells to select them and merge them, e.g. for a logo beside several lines."
+msgstr "Rutenett: legg til rader med + under tabellen og kolonner med + over den. Dra kanten på en kolonne for å endre bredden. Dra over celler for å velge dem og slå dem sammen, f.eks. for en logo ved siden av flere linjer."
+
+msgid "Content: click a cell, then + to put text, an image or a social icon in it. Use a Field for what each person fills in themselves (name, phone, photo)."
+msgstr "Innhold: klikk på en celle, deretter + for å sette inn tekst, et bilde eller et sosialt ikon. Bruk et Felt for det hver person fyller ut selv (navn, telefon, bilde)."
+
+msgid "Look: the pencil beside a row sets its spacing, lines and background; the pencil beside the button below sets the \"Copy signature\" button."
+msgstr "Utseende: blyanten ved en rad angir avstand, linjer og bakgrunn; blyanten ved knappen nedenfor angir knappen «Kopier signatur»."
+
+msgid "Give the signature a title and click Save."
+msgstr "Gi signaturen en tittel og klikk Lagre."
+
+msgid "Put it on a page: the shortcode from All signatures, or the \"Signatures\" element in WPBakery (WoodMart's Theme elements). Then open the page, fill it in, copy it and paste it into your email to check it."
+msgstr "Sett den inn på en side: kortkoden fra Alle signaturer, eller elementet «Signatures» i WPBakery (WoodMarts Theme elements). Åpne så siden, fyll ut, kopier og lim inn i e-posten din for å sjekke."
+
+msgid "Getting started"
+msgstr "Kom i gang"
+
+msgid "Hover over an \"i\" or a button for what it does."
+msgstr "Hold pekeren over en «i» eller en knapp for å se hva den gjør."
+
+msgid "On the page, fill in the fields and click \"Copy signature\"."
+msgstr "Fyll ut feltene på siden og klikk «Kopier signatur»."
+
+msgid "In Gmail: the gear → See all settings → General → Signature → Create new."
+msgstr "I Gmail: tannhjulet → Se alle innstillingene → Generelt → Signatur → Opprett ny."
+
+msgid "Paste into the signature box (Ctrl+V, on a Mac Cmd+V)."
+msgstr "Lim inn i signaturfeltet (Ctrl+V, på Mac Cmd+V)."
+
+msgid "Scroll down and click Save Changes."
+msgstr "Rull ned og klikk Lagre endringer."
+
+msgid "Outlook (new, and on the web)"
+msgstr "Outlook (nye, og på nett)"
+
+msgid "Copy the signature on the page as above."
+msgstr "Kopier signaturen på siden som over."
+
+msgid "In Outlook: Settings → Account → Signatures → New signature."
+msgstr "I Outlook: Innstillinger → Konto → Signaturer → Ny signatur."
+
+msgid "Paste into the box and click Save."
+msgstr "Lim inn i feltet og klikk Lagre."
+
+msgid "Outlook (classic, on Windows)"
+msgstr "Outlook (klassisk, på Windows)"
+
+msgid "In Outlook: File → Options → Mail → Signatures… → New."
+msgstr "I Outlook: Fil → Alternativer → E-post → Signaturer… → Ny."
+
+msgid "Paste into the box and click OK."
+msgstr "Lim inn i feltet og klikk OK."
+
+msgid "How to put the signature into Gmail / Outlook"
+msgstr "Slik legger du signaturen inn i Gmail / Outlook"
+
+msgid "Paste it as it is, not as plain text: the layout, colours and links come with it."
+msgstr "Lim den inn som den er, ikke som ren tekst: oppsett, farger og lenker blir med."

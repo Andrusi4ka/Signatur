@@ -565,3 +565,222 @@ msgstr "Email clients (Gmail, Outlook) do not show SVG images. Upload a PNG or J
 
 msgid "The photo is copied inside the signature. Some email programs, Gmail among them, may not show it after pasting."
 msgstr "The photo is copied inside the signature. Some email programs, Gmail among them, may not show it after pasting."
+
+msgid "How wide the whole signature is in the email. 450–600 px suits most emails; the columns share this width."
+msgstr "How wide the whole signature is in the email. 450–600 px suits most emails; the columns share this width."
+
+msgid "A thin grey line around every cell, handy to see the grid while building. It is copied with the signature too: turn it off if you do not want it in emails."
+msgstr "A thin grey line around every cell, handy to see the grid while building. It is copied with the signature too: turn it off if you do not want it in emails."
+
+msgid "Space inside every cell of this row, around its content, in px. The link sets the four sides together."
+msgstr "Space inside every cell of this row, around its content, in px. The link sets the four sides together."
+
+msgid "A line above, below or on both sides of this row: its style, width in px, colour and where. E.g. a divider between the name and the contacts."
+msgstr "A line above, below or on both sides of this row: its style, width in px, colour and where. E.g. a divider between the name and the contacts."
+
+msgid "The row's background colour. Clear: none, the email's own background shows."
+msgstr "The row's background colour. Clear: none, the email's own background shows."
+
+msgid "The button's label on the page. Visitors click it to copy the signature with what they filled in."
+msgstr "The button's label on the page. Visitors click it to copy the signature with what they filled in."
+
+msgid "Filled: a button in its colour. Border: only its outline. Underline: a line under the text."
+msgstr "Filled: a button in its colour. Border: only its outline. Underline: a line under the text."
+
+msgid "How round the button's corners are. Not for Underline."
+msgstr "How round the button's corners are. Not for Underline."
+
+msgid "Where the button sits under the signature on the page: left, centre or right."
+msgstr "Where the button sits under the signature on the page: left, centre or right."
+
+msgid "Space around the button on the page, in px, e.g. its distance from the signature above it."
+msgstr "Space around the button on the page, in px, e.g. its distance from the signature above it."
+
+msgid "The text as it shows in the email, e.g. a name or a job title. Enter starts a new line. Everyone who copies the signature gets the same text: for what each person writes, use a Field."
+msgstr "The text as it shows in the email, e.g. a name or a job title. Enter starts a new line. Everyone who copies the signature gets the same text: for what each person writes, use a Field."
+
+msgid "Font size in points, as email programs use; 9–11 pt is usual for signatures. The font is Arial, the one that looks the same in every email program."
+msgstr "Font size in points, as email programs use; 9–11 pt is usual for signatures. The font is Arial, the one that looks the same in every email program."
+
+msgid "Optional: makes the text a link. A web address (https://…), mailto:name@example.com for an email or tel:+4712345678 for a phone."
+msgstr "Optional: makes the text a link. A web address (https://…), mailto:name@example.com for an email or tel:+4712345678 for a phone."
+
+msgid "Extra space around this text, in px, added to its row's."
+msgstr "Extra space around this text, in px, added to its row's."
+
+msgid "PNG or JPG, the same for everyone (a logo, a banner). For a sharp image, upload one about twice as wide as its Width below."
+msgstr "PNG or JPG, the same for everyone (a logo, a banner). For a sharp image, upload one about twice as wide as its Width below."
+
+msgid "Optional: the page that opens when the image is clicked in the email, e.g. your website."
+msgstr "Optional: the page that opens when the image is clicked in the email, e.g. your website."
+
+msgid "How wide the image shows in the email, in px; its height follows. It never gets wider than its cell."
+msgstr "How wide the image shows in the email, in px; its height follows. It never gets wider than its cell."
+
+msgid "Space around the image, in px."
+msgstr "Space around the image, in px."
+
+msgid "Choose the network: its icon is used. For another network, upload its icon below."
+msgstr "Choose the network: its icon is used. For another network, upload its icon below."
+
+msgid "Optional: your own icon instead of the network's, a square PNG or JPG."
+msgstr "Optional: your own icon instead of the network's, a square PNG or JPG."
+
+msgid "Required: the profile page the icon opens, e.g. https://www.linkedin.com/company/…"
+msgstr "Required: the profile page the icon opens, e.g. https://www.linkedin.com/company/…"
+
+msgid "The icon's height in px; 20–32 px is usual."
+msgstr "The icon's height in px; 20–32 px is usual."
+
+msgid "Space around the icon, in px, e.g. between icons in cells side by side."
+msgstr "Space around the icon, in px, e.g. between icons in cells side by side."
+
+msgid "What the visitor fills in on the page before copying: text (a name, a job title), an email, a phone number or their photo. It shows as a yellow cell on the page."
+msgstr "What the visitor fills in on the page before copying: text (a name, a job title), an email, a phone number or their photo. It shows as a yellow cell on the page."
+
+msgid "Required: the visitor cannot copy the signature until this is filled in."
+msgstr "Required: the visitor cannot copy the signature until this is filled in."
+
+msgid "Link: in the copied signature an email becomes a mailto: link, a phone number a tel: link (a tap calls it), a text a web link."
+msgstr "Link: in the copied signature an email becomes a mailto: link, a phone number a tel: link (a tap calls it), a text a web link."
+
+msgid "The hint shown in the empty field on the page, e.g. \"Your name\". It is not copied."
+msgstr "The hint shown in the empty field on the page, e.g. \"Your name\". It is not copied."
+
+msgid "The look of what the visitor types, in the signature: size in points, colour, bold, italic, underline."
+msgstr "The look of what the visitor types, in the signature: size in points, colour, bold, italic, underline."
+
+msgid "How wide the visitor's photo shows in the signature, in px."
+msgstr "How wide the visitor's photo shows in the signature, in px."
+
+msgid "Extra space around what the visitor fills in, in px, added to its row's."
+msgstr "Extra space around what the visitor fills in, in px, added to its row's."
+
+msgid "Signature width and border: how wide the signature is in the email."
+msgstr "Signature width and border: how wide the signature is in the email."
+
+msgid "Undo the last change."
+msgstr "Undo the last change."
+
+msgid "Redo the change you undid."
+msgstr "Redo the change you undid."
+
+msgid "Add a column at the right end of the table."
+msgstr "Add a column at the right end of the table."
+
+msgid "Add a row at the bottom of the table."
+msgstr "Add a row at the bottom of the table."
+
+msgid "Put something in this cell: text, an image, a social icon or a field for visitors to fill in."
+msgstr "Put something in this cell: text, an image, a social icon or a field for visitors to fill in."
+
+msgid "Change what is in this cell."
+msgstr "Change what is in this cell."
+
+msgid "Empty this cell (the cell itself stays)."
+msgstr "Empty this cell (the cell itself stays)."
+
+msgid "Copy what is in this cell, to paste it into another cell."
+msgstr "Copy what is in this cell, to paste it into another cell."
+
+msgid "Paste the copied content into this cell."
+msgstr "Paste the copied content into this cell."
+
+msgid "Split this merged cell back into separate cells."
+msgstr "Split this merged cell back into separate cells."
+
+msgid "Add a column next to this one."
+msgstr "Add a column next to this one."
+
+msgid "Delete this column and everything in it."
+msgstr "Delete this column and everything in it."
+
+msgid "Merge the selected cells into one, e.g. for a logo or a photo beside several lines."
+msgstr "Merge the selected cells into one, e.g. for a logo or a photo beside several lines."
+
+msgid "Row settings: the space inside its cells, a line above or below it, its background."
+msgstr "Row settings: the space inside its cells, a line above or below it, its background."
+
+msgid "Delete this row and everything in it."
+msgstr "Delete this row and everything in it."
+
+msgid "The look of the \"Copy signature\" button that visitors click on the page."
+msgstr "The look of the \"Copy signature\" button that visitors click on the page."
+
+msgid "Text: a name, a job title, a company, any line."
+msgstr "Text: a name, a job title, a company, any line."
+
+msgid "Image: a logo or a photo, the same for everyone."
+msgstr "Image: a logo or a photo, the same for everyone."
+
+msgid "Social: a clickable icon that opens a profile page."
+msgstr "Social: a clickable icon that opens a profile page."
+
+msgid "Field: something each visitor fills in on the page before copying (their name, phone, photo)."
+msgstr "Field: something each visitor fills in on the page before copying (their name, phone, photo)."
+
+msgid "Drag to change the width of the columns on either side."
+msgstr "Drag to change the width of the columns on either side."
+
+msgid "Width: click the pencil above the table and set how wide the signature is (450–600 px suits most emails)."
+msgstr "Width: click the pencil above the table and set how wide the signature is (450–600 px suits most emails)."
+
+msgid "Grid: add rows with the + under the table and columns with the + above it. Drag a column's edge to change its width. Drag across cells to select them and merge them, e.g. for a logo beside several lines."
+msgstr "Grid: add rows with the + under the table and columns with the + above it. Drag a column's edge to change its width. Drag across cells to select them and merge them, e.g. for a logo beside several lines."
+
+msgid "Content: click a cell, then + to put text, an image or a social icon in it. Use a Field for what each person fills in themselves (name, phone, photo)."
+msgstr "Content: click a cell, then + to put text, an image or a social icon in it. Use a Field for what each person fills in themselves (name, phone, photo)."
+
+msgid "Look: the pencil beside a row sets its spacing, lines and background; the pencil beside the button below sets the \"Copy signature\" button."
+msgstr "Look: the pencil beside a row sets its spacing, lines and background; the pencil beside the button below sets the \"Copy signature\" button."
+
+msgid "Give the signature a title and click Save."
+msgstr "Give the signature a title and click Save."
+
+msgid "Put it on a page: the shortcode from All signatures, or the \"Signatures\" element in WPBakery (WoodMart's Theme elements). Then open the page, fill it in, copy it and paste it into your email to check it."
+msgstr "Put it on a page: the shortcode from All signatures, or the \"Signatures\" element in WPBakery (WoodMart's Theme elements). Then open the page, fill it in, copy it and paste it into your email to check it."
+
+msgid "Getting started"
+msgstr "Getting started"
+
+msgid "Hover over an \"i\" or a button for what it does."
+msgstr "Hover over an \"i\" or a button for what it does."
+
+msgid "On the page, fill in the fields and click \"Copy signature\"."
+msgstr "On the page, fill in the fields and click \"Copy signature\"."
+
+msgid "In Gmail: the gear → See all settings → General → Signature → Create new."
+msgstr "In Gmail: the gear → See all settings → General → Signature → Create new."
+
+msgid "Paste into the signature box (Ctrl+V, on a Mac Cmd+V)."
+msgstr "Paste into the signature box (Ctrl+V, on a Mac Cmd+V)."
+
+msgid "Scroll down and click Save Changes."
+msgstr "Scroll down and click Save Changes."
+
+msgid "Outlook (new, and on the web)"
+msgstr "Outlook (new, and on the web)"
+
+msgid "Copy the signature on the page as above."
+msgstr "Copy the signature on the page as above."
+
+msgid "In Outlook: Settings → Account → Signatures → New signature."
+msgstr "In Outlook: Settings → Account → Signatures → New signature."
+
+msgid "Paste into the box and click Save."
+msgstr "Paste into the box and click Save."
+
+msgid "Outlook (classic, on Windows)"
+msgstr "Outlook (classic, on Windows)"
+
+msgid "In Outlook: File → Options → Mail → Signatures… → New."
+msgstr "In Outlook: File → Options → Mail → Signatures… → New."
+
+msgid "Paste into the box and click OK."
+msgstr "Paste into the box and click OK."
+
+msgid "How to put the signature into Gmail / Outlook"
+msgstr "How to put the signature into Gmail / Outlook"
+
+msgid "Paste it as it is, not as plain text: the layout, colours and links come with it."
+msgstr "Paste it as it is, not as plain text: the layout, colours and links come with it."
