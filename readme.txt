@@ -4,7 +4,7 @@ Tags: email signature, signature, gmail, outlook
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.9.0
+Stable tag: 1.10.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -27,6 +27,11 @@ Signatures adds a "Signatures" menu (for administrators, and the roles they allo
 2. Activate it. Updates then come from the plugin's GitHub releases under Plugins, like any other update.
 
 == Changelog ==
+
+= 1.10.0 =
+* A preview at the right of the editor, as WP Swiper's (without the devices' frames): the signature as on the site, unsaved changes included, at Desktop (1280), Tablet (820) or Phone (390) width; it changes on Update.
+* Developer mode in the preview: each cell's size, its padding (green) and the copy button's margin (orange), in px, and the signature's width.
+* Help buttons: the icon centred beside the text.
 
 = 1.9.0 =
 * Help for whoever builds a signature: an "i" beside the fields of every window with what it does, and a fuller tip on the editor's icon buttons.

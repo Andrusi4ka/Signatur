@@ -805,3 +805,30 @@ msgstr "Kopiert"
 
 msgid "Copy"
 msgstr "Kopier"
+
+msgid "The preview could not be loaded. Try Update again."
+msgstr "Forhåndsvisningen kunne ikke lastes. Prøv Oppdater igjen."
+
+msgid "Desktop"
+msgstr "Desktop"
+
+msgid "Tablet"
+msgstr "Nettbrett"
+
+msgid "Preview"
+msgstr "Forhåndsvisning"
+
+msgid "Screen size"
+msgstr "Skjermstørrelse"
+
+msgid "Developer mode: each cell's size, its padding (green) and the button's margin (orange), in px."
+msgstr "Developer mode: størrelsen på hver celle, padding (grønn) og knappens margin (oransje), i px."
+
+msgid "Developer"
+msgstr "Developer"
+
+msgid "Update"
+msgstr "Oppdater"
+
+msgid "The signature as on the site, unsaved changes included. Update shows the latest changes."
+msgstr "Signaturen slik den vises på nettsiden, også med endringer som ikke er lagret. Oppdater viser de siste endringene."

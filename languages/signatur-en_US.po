@@ -805,3 +805,30 @@ msgstr "Copied"
 
 msgid "Copy"
 msgstr "Copy"
+
+msgid "The preview could not be loaded. Try Update again."
+msgstr "The preview could not be loaded. Try Update again."
+
+msgid "Desktop"
+msgstr "Desktop"
+
+msgid "Tablet"
+msgstr "Tablet"
+
+msgid "Preview"
+msgstr "Preview"
+
+msgid "Screen size"
+msgstr "Screen size"
+
+msgid "Developer mode: each cell's size, its padding (green) and the button's margin (orange), in px."
+msgstr "Developer mode: each cell's size, its padding (green) and the button's margin (orange), in px."
+
+msgid "Developer"
+msgstr "Developer"
+
+msgid "Update"
+msgstr "Update"
+
+msgid "The signature as on the site, unsaved changes included. Update shows the latest changes."
+msgstr "The signature as on the site, unsaved changes included. Update shows the latest changes."

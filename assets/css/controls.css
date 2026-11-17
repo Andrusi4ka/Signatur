@@ -601,3 +601,128 @@
     align-self: end;
     margin: 0 -6px -6px 0;
 }
+
+/* --- The editor and its preview (includes/preview.php) ------------------ */
+
+/* The editor at the left, the preview at the right; one under the other on narrow screens. */
+.signatur-workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 44%);
+    gap: 24px;
+    align-items: start;
+}
+
+.signatur-workspace__editor {
+    min-width: 0;
+    overflow-x: auto;
+}
+
+@media (max-width: 1279px) {
+    .signatur-workspace {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.signatur-preview {
+    position: sticky;
+    top: 46px;
+    margin: 16px 0 0;
+    padding: 12px;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    background: #fff;
+}
+
+.signatur-preview__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.signatur-preview__devices {
+    display: inline-flex;
+}
+
+.wrap .signatur-preview__bar .button {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.wp-core-ui .wrap .signatur-preview__bar .button .dashicons {
+    display: block;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    font-size: 18px;
+    line-height: 18px;
+}
+
+/* The screens as one segmented control. */
+.wrap .signatur-preview__devices .button {
+    border-radius: 0;
+    margin: 0 -1px 0 0;
+}
+
+.wrap .signatur-preview__devices .button:first-child {
+    border-radius: 4px 0 0 4px;
+}
+
+.wrap .signatur-preview__devices .button:last-child {
+    border-radius: 0 4px 4px 0;
+}
+
+.wrap .signatur-preview__devices .button[aria-pressed="true"],
+.wrap .signatur-preview__dev[aria-pressed="true"] {
+    position: relative;
+    z-index: 1;
+    background: #f0f6fc;
+    border-color: #2271b1;
+    color: #2271b1;
+}
+
+.signatur-preview__device-width {
+    color: #646970;
+    font-size: 11px;
+}
+
+.signatur-preview__update {
+    margin-left: auto !important;
+}
+
+.signatur-preview.is-loading .signatur-preview__update .dashicons {
+    animation: signatur-spin 1s linear infinite;
+}
+
+@keyframes signatur-spin {
+    to { transform: rotate(360deg); }
+}
+
+.signatur-preview__note {
+    margin: 8px 0;
+    color: #646970;
+    font-size: 12px;
+}
+
+.signatur-preview__note.is-error {
+    color: #d63638;
+}
+
+/* The frame at the screen's width, scaled down to the column (preview.js fit()). */
+.signatur-preview__stage {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #dcdcde;
+    background: #fff;
+}
+
+.signatur-preview__frame {
+    display: block;
+    border: 0;
+    transform-origin: 0 0;
+}
+
+.signatur-preview.is-loading .signatur-preview__stage {
+    opacity: .6;
+}

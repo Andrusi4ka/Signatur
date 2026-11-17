@@ -194,7 +194,19 @@ function signatur_enqueue_builder_assets($hook_suffix)
         )
     );
 
-    // The help: "i" tips, the icon buttons' tips, "Getting started" kept closed.
+    // The preview at the right (includes/preview.php): after builder.js, whose state it posts.
+    wp_enqueue_script('signatur-preview', plugins_url('assets/js/preview.js', SIGNATUR_PLUGIN_FILE), array('signatur-builder'), SIGNATUR_VERSION, true);
+    wp_localize_script(
+        'signatur-preview',
+        'signaturPreview',
+        array(
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'nonce'   => wp_create_nonce('signatur_preview'),
+            'failed'  => __('The preview could not be loaded. Try Update again.', 'signatur'),
+        )
+    );
+
+    // The help: "i" tips, the icon buttons' tips and the instructions' modals.
     wp_enqueue_style('dashicons');
     wp_enqueue_script('signatur-tips', plugins_url('assets/js/tips.js', SIGNATUR_PLUGIN_FILE), array(), SIGNATUR_VERSION, true);
     wp_localize_script('signatur-tips', 'signaturTips', array('buttons' => signatur_button_tips()));
@@ -412,6 +424,9 @@ function signatur_render_add_signature_page()
 
             <input type="hidden" name="signatur_settings" id="signatur_settings_input" value="<?php echo esc_attr(wp_json_encode($settings)); ?>">
 
+            <?php // The editor at the left, the preview at the right (includes/preview.php). ?>
+            <div class="signatur-workspace">
+            <div class="signatur-workspace__editor">
             <div id="signatur_row_group" style="width:<?php echo esc_attr($group_width); ?>px; margin:16px auto 0;">
                 <div id="signatur_row_top_wrap" class="signatur-editor-only" style="width:<?php echo esc_attr($settings['width']); ?>px; display:flex; justify-content:center; gap:8px;">
                     <button type="button" id="signatur_edit_signature_button" class="signatur-icon-button" data-modal-title="<?php echo esc_attr__('Edit signature', 'signatur'); ?>" data-modal-type="width" title="<?php esc_attr_e('Edit signature', 'signatur'); ?>" aria-label="<?php esc_attr_e('Edit signature', 'signatur'); ?>">
@@ -564,6 +579,9 @@ function signatur_render_add_signature_page()
                         </button>
                     </div>
                 </div>
+            </div>
+            </div>
+            <?php signatur_render_preview_panel(); ?>
             </div>
 
             <?php submit_button(__('Save', 'signatur')); ?>

@@ -2755,4 +2755,7 @@
     form.addEventListener('submit', function () {
         settingsInput.value = JSON.stringify(serializeSettings());
     });
+
+    // The preview (assets/js/preview.js) posts the editor's state, saved or not.
+    window.signaturSerializeSettings = serializeSettings;
 })();

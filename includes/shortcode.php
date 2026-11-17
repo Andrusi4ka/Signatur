@@ -73,12 +73,44 @@ function signatur_render_shortcode($atts)
     $settings  = json_decode(signatur_sanitize_settings($signature->settings), true);
     $show_copy = ! in_array(strtolower((string) $atts['copy']), array('no', 'false', '0', ''), true);
 
+    if ($show_copy) {
+        wp_enqueue_style('signatur-frontend');
+        wp_enqueue_script('signatur-frontend');
+        wp_localize_script('signatur-frontend', 'signaturFrontend', signatur_frontend_data());
+    }
+
+    return signatur_render_signature($settings, 'signatur-signature-' . $id, $show_copy);
+}
+
+/**
+ * What frontend.js is given (signaturFrontend): the status icons and texts.
+ */
+function signatur_frontend_data()
+{
+    return array(
+        'statusIcons' => array(
+            'ok'   => plugins_url('assets/icon-ok.svg', SIGNATUR_PLUGIN_FILE),
+            'feil' => plugins_url('assets/icon-feil.svg', SIGNATUR_PLUGIN_FILE),
+        ),
+        'i18n' => array(
+            'requiredFields' => __('Please fill in all required fields before copying.', 'signatur'),
+        ),
+    );
+}
+
+/**
+ * A signature's markup as on a page: its frame, the table, and with
+ * $show_copy the "Copy signature" button (and the photo note). Shared by
+ * the shortcode and the editor's preview (includes/preview.php); the
+ * caller loads frontend.css / frontend.js.
+ */
+function signatur_render_signature($settings, $dom_id, $show_copy)
+{
     // Fillable "field" elements only render as live <input>s when the copy
     // button is there to turn them into text - otherwise they show as their
     // placeholder text (see signatur_render_field_element()).
     $output = signatur_render_signature_table($settings, $show_copy);
 
-    $dom_id         = 'signatur-signature-' . $id;
     $signature_html = '<div class="signatur-signature" id="' . esc_attr($dom_id) . '">' . $output . '</div>';
 
     // Static decorative frame - a page-only wrapper, so it is never part of
@@ -97,22 +129,6 @@ function signatur_render_shortcode($atts)
     if (! $show_copy) {
         return $signature_html;
     }
-
-    wp_enqueue_style('signatur-frontend');
-    wp_enqueue_script('signatur-frontend');
-    wp_localize_script(
-        'signatur-frontend',
-        'signaturFrontend',
-        array(
-            'statusIcons' => array(
-                'ok'   => plugins_url('assets/icon-ok.svg', SIGNATUR_PLUGIN_FILE),
-                'feil' => plugins_url('assets/icon-feil.svg', SIGNATUR_PLUGIN_FILE),
-            ),
-            'i18n' => array(
-                'requiredFields' => __('Please fill in all required fields before copying.', 'signatur'),
-            ),
-        )
-    );
 
     $copy_button = $settings['copy_button'];
 

@@ -103,6 +103,7 @@ require SIGNATUR_PLUGIN_DIR . 'includes/shortcode.php';
 require SIGNATUR_PLUGIN_DIR . 'includes/roles.php';
 require SIGNATUR_PLUGIN_DIR . 'includes/wpbakery.php';
 require SIGNATUR_PLUGIN_DIR . 'includes/actions.php';
+require SIGNATUR_PLUGIN_DIR . 'includes/preview.php';
 
 // --- A tiny runner -----------------------------------------------------------
 
@@ -225,6 +226,22 @@ $GLOBALS['rows'][8] = array('Photo', json_encode(array(
 )));
 check(false !== strpos(signatur_render_shortcode(array('id' => 8)), 'signatur-photo-note'), 'a photo field: the photo note under the button');
 check(false === strpos(signatur_render_shortcode(array('id' => 8, 'copy' => 'no')), 'signatur-photo-note'), 'copy="no": no photo note (nothing to copy)');
+
+// --- The editor's preview (1.10.0) --------------------------------------------
+
+$page = signatur_preview_page(json_decode(signatur_sanitize_settings($GLOBALS['rows'][8][1]), true));
+check(0 === strpos($page, '<!doctype html>') && false !== strpos($page, '</html>'), 'the preview is a whole page');
+check(false !== strpos($page, 'class="signatur-copy-button"') && false !== strpos($page, 'data-target="signatur-signature-preview"'), 'the preview has the copy button, aimed at its signature');
+check(false !== strpos($page, 'assets/js/frontend.js') && false !== strpos($page, 'var signaturFrontend = '), 'the preview runs frontend.js with its data, as a page does');
+check(false !== strpos($page, 'assets/js/preview-dev.js') && false !== strpos($page, 'assets/css/preview-dev.css'), 'the preview has Developer mode');
+check(false !== strpos($page, 'signatur-photo-note'), 'the preview shows what the page shows (the photo note)');
+check(array(1280, 820, 390) === array_column(signatur_preview_devices(), 1), 'the screens: 1280, 820 and 390 px');
+
+// The shortcode and the preview draw the same signature.
+$GLOBALS['enqueued'] = array();
+$from_shortcode = signatur_render_shortcode(array('id' => 8));
+$from_preview   = signatur_render_signature(json_decode(signatur_sanitize_settings($GLOBALS['rows'][8][1]), true), 'signatur-signature-8', true);
+check($from_shortcode === $from_preview, 'the shortcode and the preview draw the same markup');
 
 // --- Images in email: no SVG (1.8.0) -----------------------------------------
 
