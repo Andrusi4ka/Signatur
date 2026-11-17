@@ -370,3 +370,84 @@ msgstr "Profilbilde"
 #: signatur.php
 msgid "Margin"
 msgstr "Marg"
+
+msgid "Edit signatures"
+msgstr "Redigere signaturer"
+
+msgid "Signatures in the menu: open any signature and change it."
+msgstr "Signaturer i menyen: åpne en hvilken som helst signatur og endre den."
+
+msgid "Add"
+msgstr "Legge til"
+
+msgid "New signatures. With Edit signatures only."
+msgstr "Nye signaturer. Bare sammen med «Redigere signaturer»."
+
+msgid "Delete signatures. With Edit signatures only."
+msgstr "Slette signaturer. Bare sammen med «Redigere signaturer»."
+
+msgid "WPBakery element"
+msgstr "WPBakery-element"
+
+msgid "Put a signature on a page with the WPBakery element. With Edit signatures only. Pages show the signatures to everyone anyway."
+msgstr "Sette inn en signatur på en side med WPBakery-elementet. Bare sammen med «Redigere signaturer». Sidene viser signaturene til alle uansett."
+
+msgid "Signatures settings"
+msgstr "Innstillinger for signaturer"
+
+msgid "Settings"
+msgstr "Innstillinger"
+
+msgid "Roles"
+msgstr "Roller"
+
+msgid "What each role may do with the signatures. Roles that manage the site (Administrators) may do all of it, and only they open this page. Visitors see the signatures on the pages whatever is set here."
+msgstr "Hva hver rolle kan gjøre med signaturene. Roller som administrerer nettstedet (administratorer) kan gjøre alt, og bare de åpner denne siden. Besøkende ser signaturene på sidene uansett hva som er valgt her."
+
+msgid "Role"
+msgstr "Rolle"
+
+msgid "always all"
+msgstr "alltid alt"
+
+msgid "%1$s: %2$s"
+msgstr "%1$s: %2$s"
+
+msgid "Content"
+msgstr "Innhold"
+
+msgid "Email signature created in Signatures"
+msgstr "E-postsignatur laget i Signaturer"
+
+msgid "Signature"
+msgstr "Signatur"
+
+msgid "Create and edit signatures under %s."
+msgstr "Opprett og rediger signaturer under %s."
+
+msgid "\"Copy signature\" button"
+msgstr "Knappen «Kopier signatur»"
+
+msgid "Show"
+msgstr "Vis"
+
+msgid "Hide"
+msgstr "Skjul"
+
+msgid "Hidden, visitors only see the signature and cannot fill in its fields."
+msgstr "Når den er skjult, ser besøkende bare signaturen og kan ikke fylle ut feltene."
+
+msgid "Opens in a new tab. Back here, a signature saved there is in the list, chosen."
+msgstr "Åpnes i en ny fane. Når du kommer tilbake hit, står signaturen som ble lagret der i listen, valgt."
+
+msgid "(no title)"
+msgstr "(uten tittel)"
+
+msgid "— Select signature —"
+msgstr "— Velg signatur —"
+
+msgid "Type"
+msgstr "Type"
+
+msgid "Placeholder"
+msgstr "Plassholder"

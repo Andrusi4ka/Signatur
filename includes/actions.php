@@ -9,11 +9,16 @@ if (! defined('ABSPATH')) {
  */
 function signatur_handle_save_signature()
 {
-    if (! current_user_can('manage_options')) {
+    if (! current_user_can(SIGNATUR_CAP_EDIT)) {
         wp_die(esc_html__('You are not allowed to perform this action.', 'signatur'));
     }
 
     check_admin_referer('signatur_save_signature');
+
+    // A new signature needs Add (Signatures → Settings).
+    if (empty($_POST['signatur_id']) && ! current_user_can(SIGNATUR_CAP_CREATE)) {
+        wp_die(esc_html__('You are not allowed to perform this action.', 'signatur'));
+    }
 
     global $wpdb;
 
@@ -77,7 +82,7 @@ function signatur_handle_save_signature()
  */
 function signatur_handle_delete_signature()
 {
-    if (! current_user_can('manage_options')) {
+    if (! current_user_can(SIGNATUR_CAP_DELETE)) {
         wp_die(esc_html__('You are not allowed to perform this action.', 'signatur'));
     }
 
@@ -121,11 +126,12 @@ function signatur_upload_dir($dirs)
 
 /**
  * AJAX handler: upload an image for an image element. Stores the file in
- * wp-content/uploads/signatur/ and returns its URL. Admin-only.
+ * wp-content/uploads/signatur/ and returns its URL. For those who may edit
+ * signatures (Signatures → Settings).
  */
 function signatur_handle_upload_image()
 {
-    if (! current_user_can('manage_options')) {
+    if (! current_user_can(SIGNATUR_CAP_EDIT)) {
         wp_send_json_error(array('message' => __('You are not allowed to perform this action.', 'signatur')));
     }
 

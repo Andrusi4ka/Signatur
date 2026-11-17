@@ -370,3 +370,84 @@ msgstr "Фото профілю"
 #: signatur.php
 msgid "Margin"
 msgstr "Відступ"
+
+msgid "Edit signatures"
+msgstr "Редагувати підписи"
+
+msgid "Signatures in the menu: open any signature and change it."
+msgstr "Підписи в меню: відкривати будь-який підпис і змінювати його."
+
+msgid "Add"
+msgstr "Додавати"
+
+msgid "New signatures. With Edit signatures only."
+msgstr "Нові підписи. Лише разом із «Редагувати підписи»."
+
+msgid "Delete signatures. With Edit signatures only."
+msgstr "Видаляти підписи. Лише разом із «Редагувати підписи»."
+
+msgid "WPBakery element"
+msgstr "Елемент WPBakery"
+
+msgid "Put a signature on a page with the WPBakery element. With Edit signatures only. Pages show the signatures to everyone anyway."
+msgstr "Додавати підпис на сторінку елементом WPBakery. Лише разом із «Редагувати підписи». Сторінки все одно показують підписи всім."
+
+msgid "Signatures settings"
+msgstr "Налаштування підписів"
+
+msgid "Settings"
+msgstr "Налаштування"
+
+msgid "Roles"
+msgstr "Ролі"
+
+msgid "What each role may do with the signatures. Roles that manage the site (Administrators) may do all of it, and only they open this page. Visitors see the signatures on the pages whatever is set here."
+msgstr "Що кожна роль може робити з підписами. Ролі, що керують сайтом (адміністратори), можуть усе, і лише вони відкривають цю сторінку. Відвідувачі бачать підписи на сторінках незалежно від цих налаштувань."
+
+msgid "Role"
+msgstr "Роль"
+
+msgid "always all"
+msgstr "завжди все"
+
+msgid "%1$s: %2$s"
+msgstr "%1$s: %2$s"
+
+msgid "Content"
+msgstr "Вміст"
+
+msgid "Email signature created in Signatures"
+msgstr "Підпис для пошти, створений у Signatures"
+
+msgid "Signature"
+msgstr "Підпис"
+
+msgid "Create and edit signatures under %s."
+msgstr "Створюйте й редагуйте підписи в розділі %s."
+
+msgid "\"Copy signature\" button"
+msgstr "Кнопка «Скопіювати підпис»"
+
+msgid "Show"
+msgstr "Показати"
+
+msgid "Hide"
+msgstr "Сховати"
+
+msgid "Hidden, visitors only see the signature and cannot fill in its fields."
+msgstr "Якщо сховати, відвідувачі лише бачать підпис і не можуть заповнити його поля."
+
+msgid "Opens in a new tab. Back here, a signature saved there is in the list, chosen."
+msgstr "Відкривається в новій вкладці. Коли повернетеся сюди, збережений там підпис буде в списку й обраний."
+
+msgid "(no title)"
+msgstr "(без назви)"
+
+msgid "— Select signature —"
+msgstr "— Оберіть підпис —"
+
+msgid "Type"
+msgstr "Тип"
+
+msgid "Placeholder"
+msgstr "Підказка в полі"

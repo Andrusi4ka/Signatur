@@ -370,3 +370,84 @@ msgstr "Profile photo"
 #: signatur.php
 msgid "Margin"
 msgstr "Margin"
+
+msgid "Edit signatures"
+msgstr "Edit signatures"
+
+msgid "Signatures in the menu: open any signature and change it."
+msgstr "Signatures in the menu: open any signature and change it."
+
+msgid "Add"
+msgstr "Add"
+
+msgid "New signatures. With Edit signatures only."
+msgstr "New signatures. With Edit signatures only."
+
+msgid "Delete signatures. With Edit signatures only."
+msgstr "Delete signatures. With Edit signatures only."
+
+msgid "WPBakery element"
+msgstr "WPBakery element"
+
+msgid "Put a signature on a page with the WPBakery element. With Edit signatures only. Pages show the signatures to everyone anyway."
+msgstr "Put a signature on a page with the WPBakery element. With Edit signatures only. Pages show the signatures to everyone anyway."
+
+msgid "Signatures settings"
+msgstr "Signatures settings"
+
+msgid "Settings"
+msgstr "Settings"
+
+msgid "Roles"
+msgstr "Roles"
+
+msgid "What each role may do with the signatures. Roles that manage the site (Administrators) may do all of it, and only they open this page. Visitors see the signatures on the pages whatever is set here."
+msgstr "What each role may do with the signatures. Roles that manage the site (Administrators) may do all of it, and only they open this page. Visitors see the signatures on the pages whatever is set here."
+
+msgid "Role"
+msgstr "Role"
+
+msgid "always all"
+msgstr "always all"
+
+msgid "%1$s: %2$s"
+msgstr "%1$s: %2$s"
+
+msgid "Content"
+msgstr "Content"
+
+msgid "Email signature created in Signatures"
+msgstr "Email signature created in Signatures"
+
+msgid "Signature"
+msgstr "Signature"
+
+msgid "Create and edit signatures under %s."
+msgstr "Create and edit signatures under %s."
+
+msgid "\"Copy signature\" button"
+msgstr "\"Copy signature\" button"
+
+msgid "Show"
+msgstr "Show"
+
+msgid "Hide"
+msgstr "Hide"
+
+msgid "Hidden, visitors only see the signature and cannot fill in its fields."
+msgstr "Hidden, visitors only see the signature and cannot fill in its fields."
+
+msgid "Opens in a new tab. Back here, a signature saved there is in the list, chosen."
+msgstr "Opens in a new tab. Back here, a signature saved there is in the list, chosen."
+
+msgid "(no title)"
+msgstr "(no title)"
+
+msgid "— Select signature —"
+msgstr "— Select signature —"
+
+msgid "Type"
+msgstr "Type"
+
+msgid "Placeholder"
+msgstr "Placeholder"

@@ -9,13 +9,15 @@ if (! defined('ABSPATH')) {
  */
 function signatur_register_admin_pages()
 {
+    // 'none': the icon is drawn by CSS (signatur_menu_icon_style()), so it
+    // takes the menu's own colours like the dashicons around it.
     add_menu_page(
         __('All signatures', 'signatur'),
         __('Signatures', 'signatur'),
-        'manage_options',
+        SIGNATUR_CAP_EDIT,
         'signatur-all-signatures',
         'signatur_render_all_signatures_page',
-        plugins_url('assets/icon.svg', SIGNATUR_PLUGIN_FILE),
+        'none',
         25
     );
 
@@ -23,21 +25,49 @@ function signatur_register_admin_pages()
         'signatur-all-signatures',
         __('All signatures', 'signatur'),
         __('All signatures', 'signatur'),
-        'manage_options',
+        SIGNATUR_CAP_EDIT,
         'signatur-all-signatures',
         'signatur_render_all_signatures_page'
     );
 
+    // The same screen adds a signature and edits one (?id=), so it opens for
+    // Edit signatures; without Add it is left out of the menu (no parent:
+    // a hidden page) and refuses a new signature itself.
     $add_signature_hook = add_submenu_page(
-        'signatur-all-signatures',
+        current_user_can(SIGNATUR_CAP_CREATE) ? 'signatur-all-signatures' : '',
         __('Add signature', 'signatur'),
         __('Add signature', 'signatur'),
-        'manage_options',
+        SIGNATUR_CAP_EDIT,
         'signatur-add-signature',
         'signatur_render_add_signature_page'
     );
 
     signatur_add_signature_hook_suffix($add_signature_hook);
+}
+
+/**
+ * The menu icon: assets/menu-icon.svg as a mask over the menu's text
+ * colour, so it is as white / grey / blue as the dashicons beside it in
+ * every admin colour scheme, and as large (20px) and as placed. Inlined as
+ * a data URI: a mask from another origin (a CDN for wp-content) would need
+ * CORS and stay blank without it.
+ */
+function signatur_menu_icon_style()
+{
+    $svg  = (string) file_get_contents(SIGNATUR_PLUGIN_DIR . 'assets/menu-icon.svg'); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local plugin file.
+    $icon = 'data:image/svg+xml,' . rawurlencode(trim($svg));
+?>
+    <style id="signatur-menu-icon">
+        #adminmenu .toplevel_page_signatur-all-signatures div.wp-menu-image::before {
+            content: "";
+            background-color: currentColor;
+            -webkit-mask: url("<?php echo $icon; ?>") center / 20px auto no-repeat;
+            mask: url("<?php echo $icon; ?>") center / 20px auto no-repeat;
+            padding: 0;
+            margin-top: 7px;
+        }
+    </style>
+<?php
 }
 
 /**
@@ -129,9 +159,11 @@ function signatur_render_all_signatures_page()
 ?>
     <div class="wrap">
         <h1 class="wp-heading-inline"><?php esc_html_e('All signatures', 'signatur'); ?></h1>
-        <a href="<?php echo esc_url(admin_url('admin.php?page=signatur-add-signature')); ?>" class="page-title-action">
-            <?php esc_html_e('Add signature', 'signatur'); ?>
-        </a>
+        <?php if (current_user_can(SIGNATUR_CAP_CREATE)) : ?>
+            <a href="<?php echo esc_url(admin_url('admin.php?page=signatur-add-signature')); ?>" class="page-title-action">
+                <?php esc_html_e('Add signature', 'signatur'); ?>
+            </a>
+        <?php endif; ?>
         <hr class="wp-header-end">
 
         <?php if (! empty($_GET['signatur_saved'])) : ?>
@@ -180,8 +212,10 @@ function signatur_render_all_signatures_page()
                             <td><code>[signatur id="<?php echo esc_html($signature->id); ?>"]</code></td>
                             <td>
                                 <a href="<?php echo $edit_url; ?>"><?php esc_html_e('Edit', 'signatur'); ?></a>
-                                |
-                                <a href="<?php echo $delete_url; ?>" onclick="return confirm('<?php echo $confirm; ?>');" class="submitdelete"><?php esc_html_e('Delete', 'signatur'); ?></a>
+                                <?php if (current_user_can(SIGNATUR_CAP_DELETE)) : ?>
+                                    |
+                                    <a href="<?php echo $delete_url; ?>" onclick="return confirm('<?php echo $confirm; ?>');" class="submitdelete"><?php esc_html_e('Delete', 'signatur'); ?></a>
+                                <?php endif; ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -252,6 +286,11 @@ function signatur_render_add_signature_page()
         } else {
             $id = 0;
         }
+    }
+
+    // A new signature (also a missing one) needs Add.
+    if (! $id && ! current_user_can(SIGNATUR_CAP_CREATE)) {
+        wp_die(esc_html__('You are not allowed to perform this action.', 'signatur'));
     }
 
     $group_width = $settings['width'] + 200;

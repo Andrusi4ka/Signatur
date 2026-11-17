@@ -1,0 +1,32 @@
+/* Signatures → Settings (includes/roles.php): the roles' table. */
+.signatur-roles__table {
+    max-width: 960px;
+    margin-top: 12px;
+}
+
+.signatur-roles__table th,
+.signatur-roles__table td {
+    vertical-align: middle;
+}
+
+.signatur-roles__table thead th {
+    vertical-align: bottom;
+    font-weight: 600;
+}
+
+.signatur-roles__table .signatur-roles__action {
+    width: 17%;
+    text-align: center;
+}
+
+/* Administrators: always all, their boxes greyed. */
+.signatur-roles__always {
+    display: block;
+    color: #646970;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.signatur-roles__table input[type="checkbox"] {
+    margin: 0;
+}

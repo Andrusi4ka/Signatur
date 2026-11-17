@@ -370,3 +370,84 @@ msgstr "Фото профиля"
 #: signatur.php
 msgid "Margin"
 msgstr "Отступ"
+
+msgid "Edit signatures"
+msgstr "Редактировать подписи"
+
+msgid "Signatures in the menu: open any signature and change it."
+msgstr "Подписи в меню: открывать любую подпись и изменять её."
+
+msgid "Add"
+msgstr "Добавлять"
+
+msgid "New signatures. With Edit signatures only."
+msgstr "Новые подписи. Только вместе с «Редактировать подписи»."
+
+msgid "Delete signatures. With Edit signatures only."
+msgstr "Удалять подписи. Только вместе с «Редактировать подписи»."
+
+msgid "WPBakery element"
+msgstr "Элемент WPBakery"
+
+msgid "Put a signature on a page with the WPBakery element. With Edit signatures only. Pages show the signatures to everyone anyway."
+msgstr "Добавлять подпись на страницу элементом WPBakery. Только вместе с «Редактировать подписи». Страницы всё равно показывают подписи всем."
+
+msgid "Signatures settings"
+msgstr "Настройки подписей"
+
+msgid "Settings"
+msgstr "Настройки"
+
+msgid "Roles"
+msgstr "Роли"
+
+msgid "What each role may do with the signatures. Roles that manage the site (Administrators) may do all of it, and only they open this page. Visitors see the signatures on the pages whatever is set here."
+msgstr "Что каждая роль может делать с подписями. Роли, управляющие сайтом (администраторы), могут всё, и только они открывают эту страницу. Посетители видят подписи на страницах независимо от этих настроек."
+
+msgid "Role"
+msgstr "Роль"
+
+msgid "always all"
+msgstr "всегда всё"
+
+msgid "%1$s: %2$s"
+msgstr "%1$s: %2$s"
+
+msgid "Content"
+msgstr "Содержимое"
+
+msgid "Email signature created in Signatures"
+msgstr "Подпись для почты, созданная в Signatures"
+
+msgid "Signature"
+msgstr "Подпись"
+
+msgid "Create and edit signatures under %s."
+msgstr "Создавайте и редактируйте подписи в разделе %s."
+
+msgid "\"Copy signature\" button"
+msgstr "Кнопка «Скопировать подпись»"
+
+msgid "Show"
+msgstr "Показать"
+
+msgid "Hide"
+msgstr "Скрыть"
+
+msgid "Hidden, visitors only see the signature and cannot fill in its fields."
+msgstr "Если скрыть, посетители только видят подпись и не могут заполнить её поля."
+
+msgid "Opens in a new tab. Back here, a signature saved there is in the list, chosen."
+msgstr "Открывается в новой вкладке. Когда вернётесь сюда, сохранённая там подпись будет в списке и выбрана."
+
+msgid "(no title)"
+msgstr "(без названия)"
+
+msgid "— Select signature —"
+msgstr "— Выберите подпись —"
+
+msgid "Type"
+msgstr "Тип"
+
+msgid "Placeholder"
+msgstr "Подсказка в поле"

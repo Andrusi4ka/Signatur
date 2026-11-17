@@ -11,6 +11,7 @@ $table_name = $wpdb->prefix . 'signatur_signatures';
 $wpdb->query("DROP TABLE IF EXISTS {$table_name}");
 
 delete_option('signatur_db_version');
+delete_option('signatur_roles');
 
 // Remove the plugin's uploaded signature images (wp-content/uploads/signatur/).
 $uploads = wp_upload_dir();
