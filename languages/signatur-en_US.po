@@ -784,3 +784,24 @@ msgstr "How to put the signature into Gmail / Outlook"
 
 msgid "Paste it as it is, not as plain text: the layout, colours and links come with it."
 msgstr "Paste it as it is, not as plain text: the layout, colours and links come with it."
+
+msgid "Instructions for admins"
+msgstr "Instructions for admins"
+
+msgid "How to build a signature"
+msgstr "How to build a signature"
+
+msgid "Instructions for the site"
+msgstr "Instructions for the site"
+
+msgid "Text for your page: copy it and put it beside the signature, so visitors know how to add it to their email."
+msgstr "Text for your page: copy it and put it beside the signature, so visitors know how to add it to their email."
+
+msgid "Close"
+msgstr "Close"
+
+msgid "Copied"
+msgstr "Copied"
+
+msgid "Copy"
+msgstr "Copy"

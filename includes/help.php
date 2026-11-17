@@ -4,9 +4,10 @@
  * Help for whoever builds a signature in the admin (1.9.0, the user's
  * request): an "i" beside a field with what it does (signatur_tip()), a
  * fuller tip on the editor's icon buttons (signatur_button_tips(), shown by
- * assets/js/tips.js instead of their short title), a "Getting started"
- * guide above the editor and "How to put it into Gmail / Outlook" beside
- * the copy button's preview (signatur_render_*_help()).
+ * assets/js/tips.js instead of their short title), and two buttons under
+ * the editor's title opening the admin's instructions and the instructions
+ * for the site (how visitors put it into Gmail / Outlook) in modals with a
+ * Copy button (signatur_render_help()).
  */
 
 if (! defined('ABSPATH')) {
@@ -56,12 +57,11 @@ function signatur_button_tips()
 }
 
 /**
- * "Getting started", above the editor: the steps from an empty signature to
- * one on a page. Open until closed; tips.js keeps it closed for this browser.
+ * The admin's instructions: from an empty signature to one on a page.
  */
-function signatur_render_getting_started()
+function signatur_help_admin_steps()
 {
-    $steps = array(
+    return array(
         __('Width: click the pencil above the table and set how wide the signature is (450–600 px suits most emails).', 'signatur'),
         __('Grid: add rows with the + under the table and columns with the + above it. Drag a column\'s edge to change its width. Drag across cells to select them and merge them, e.g. for a logo beside several lines.', 'signatur'),
         __('Content: click a cell, then + to put text, an image or a social icon in it. Use a Field for what each person fills in themselves (name, phone, photo).', 'signatur'),
@@ -69,27 +69,15 @@ function signatur_render_getting_started()
         __('Give the signature a title and click Save.', 'signatur'),
         __('Put it on a page: the shortcode from All signatures, or the "Signatures" element in WPBakery (WoodMart\'s Theme elements). Then open the page, fill it in, copy it and paste it into your email to check it.', 'signatur'),
     );
-?>
-    <details class="signatur-guide" id="signatur_getting_started" open>
-        <summary><?php esc_html_e('Getting started', 'signatur'); ?></summary>
-        <ol>
-            <?php foreach ($steps as $step) : ?>
-                <li><?php echo esc_html($step); ?></li>
-            <?php endforeach; ?>
-        </ol>
-        <p class="description"><?php esc_html_e('Hover over an "i" or a button for what it does.', 'signatur'); ?></p>
-    </details>
-<?php
 }
 
 /**
- * How a visitor puts the copied signature into Gmail and Outlook, beside the
- * copy button's preview (for the one building it to know, and to check it
- * in their own email).
+ * The instructions for the site: how a visitor puts the copied signature
+ * into their email program, by program.
  */
-function signatur_render_email_help()
+function signatur_help_site_clients()
 {
-    $clients = array(
+    return array(
         'Gmail' => array(
             __('On the page, fill in the fields and click "Copy signature".', 'signatur'),
             __('In Gmail: the gear → See all settings → General → Signature → Create new.', 'signatur'),
@@ -107,18 +95,75 @@ function signatur_render_email_help()
             __('Paste into the box and click OK.', 'signatur'),
         ),
     );
+}
+
+/**
+ * Two buttons at the left under the editor's title, each opening its
+ * instructions in a modal with Copy (assets/js/tips.js): the admin's (how
+ * to build a signature) and the site's (how visitors put it into their
+ * email program: text to put on the page beside the signature).
+ */
+function signatur_render_help()
+{
+    $dialogs = array(
+        'signatur_help_admin' => array(
+            __('Instructions for admins', 'signatur'),
+            'dashicons-admin-tools',
+            __('How to build a signature', 'signatur'),
+            '',
+        ),
+        'signatur_help_site' => array(
+            __('Instructions for the site', 'signatur'),
+            'dashicons-email-alt',
+            __('How to put the signature into Gmail / Outlook', 'signatur'),
+            __('Text for your page: copy it and put it beside the signature, so visitors know how to add it to their email.', 'signatur'),
+        ),
+    );
 ?>
-    <details class="signatur-guide signatur-guide--email" id="signatur_email_help">
-        <summary><?php esc_html_e('How to put the signature into Gmail / Outlook', 'signatur'); ?></summary>
-        <?php foreach ($clients as $client => $steps) : ?>
-            <p class="signatur-guide__client"><?php echo esc_html($client); ?></p>
-            <ol>
-                <?php foreach ($steps as $step) : ?>
-                    <li><?php echo esc_html($step); ?></li>
-                <?php endforeach; ?>
-            </ol>
+    <div class="signatur-help-buttons">
+        <?php foreach ($dialogs as $id => $dialog) : ?>
+            <button type="button" class="button" data-signatur-help="<?php echo esc_attr($id); ?>" aria-haspopup="dialog">
+                <span class="dashicons <?php echo esc_attr($dialog[1]); ?>" aria-hidden="true"></span>
+                <?php echo esc_html($dialog[0]); ?>
+            </button>
         <?php endforeach; ?>
-        <p class="description"><?php esc_html_e('Paste it as it is, not as plain text: the layout, colours and links come with it.', 'signatur'); ?></p>
-    </details>
+    </div>
+
+    <?php foreach ($dialogs as $id => $dialog) : ?>
+        <dialog class="signatur-help-dialog" id="<?php echo esc_attr($id); ?>" aria-labelledby="<?php echo esc_attr($id . '_title'); ?>">
+            <h2 id="<?php echo esc_attr($id . '_title'); ?>"><?php echo esc_html($dialog[2]); ?></h2>
+            <?php if ($dialog[3]) : ?>
+                <p class="description"><?php echo esc_html($dialog[3]); ?></p>
+            <?php endif; ?>
+
+            <?php // What Copy copies: this box only (its heading, lists and note). ?>
+            <div class="signatur-help-dialog__content" data-signatur-help-content>
+                <?php if ('signatur_help_admin' === $id) : ?>
+                    <ol>
+                        <?php foreach (signatur_help_admin_steps() as $step) : ?>
+                            <li><?php echo esc_html($step); ?></li>
+                        <?php endforeach; ?>
+                    </ol>
+                    <p><?php esc_html_e('Hover over an "i" or a button for what it does.', 'signatur'); ?></p>
+                <?php else : ?>
+                    <?php foreach (signatur_help_site_clients() as $client => $steps) : ?>
+                        <h3><?php echo esc_html($client); ?></h3>
+                        <ol>
+                            <?php foreach ($steps as $step) : ?>
+                                <li><?php echo esc_html($step); ?></li>
+                            <?php endforeach; ?>
+                        </ol>
+                    <?php endforeach; ?>
+                    <p><?php esc_html_e('Paste it as it is, not as plain text: the layout, colours and links come with it.', 'signatur'); ?></p>
+                <?php endif; ?>
+            </div>
+
+            <div class="signatur-help-dialog__footer">
+                <span class="signatur-help-dialog__copied" role="status" aria-live="polite"></span>
+                <button type="button" class="button" data-signatur-help-close><?php esc_html_e('Close', 'signatur'); ?></button>
+                <button type="button" class="button button-primary" data-signatur-help-copy data-copied="<?php esc_attr_e('Copied', 'signatur'); ?>"><?php esc_html_e('Copy', 'signatur'); ?></button>
+            </div>
+        </dialog>
+    <?php endforeach; ?>
 <?php
 }

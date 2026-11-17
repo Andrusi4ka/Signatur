@@ -369,7 +369,7 @@ msgstr "Profilbilde"
 
 #: signatur.php
 msgid "Margin"
-msgstr "Marg"
+msgstr "Margin"
 
 msgid "Edit signatures"
 msgstr "Redigere signaturer"
@@ -453,7 +453,7 @@ msgid "Placeholder"
 msgstr "Plassholder"
 
 msgid "Padding"
-msgstr "Innvendig avstand"
+msgstr "Padding"
 
 msgid "%s: set the four sides together"
 msgstr "%s: angi alle fire sidene samtidig"
@@ -537,7 +537,7 @@ msgid "Size"
 msgstr "Størrelse"
 
 msgid "Preset sizes: padding, height and font size together."
-msgstr "Forhåndsinnstilte størrelser: avstand, høyde og skriftstørrelse samlet."
+msgstr "Forhåndsinnstilte størrelser: padding, høyde og skriftstørrelse samlet."
 
 msgid "Extra Small"
 msgstr "Ekstra liten"
@@ -573,7 +573,7 @@ msgid "A thin grey line around every cell, handy to see the grid while building.
 msgstr "En tynn grå linje rundt hver celle, nyttig for å se rutenettet mens du bygger. Den kopieres også med signaturen: slå den av hvis du ikke vil ha den i e-poster."
 
 msgid "Space inside every cell of this row, around its content, in px. The link sets the four sides together."
-msgstr "Avstand inne i hver celle i denne raden, rundt innholdet, i px. Lenken angir alle fire sidene samtidig."
+msgstr "Padding inne i hver celle i denne raden, rundt innholdet, i px. Lenken angir alle fire sidene samtidig."
 
 msgid "A line above, below or on both sides of this row: its style, width in px, colour and where. E.g. a divider between the name and the contacts."
 msgstr "En linje over, under eller på begge sider av denne raden: stil, bredde i px, farge og plassering. F.eks. et skille mellom navnet og kontaktinfoen."
@@ -594,7 +594,7 @@ msgid "Where the button sits under the signature on the page: left, centre or ri
 msgstr "Hvor knappen står under signaturen på siden: venstre, midten eller høyre."
 
 msgid "Space around the button on the page, in px, e.g. its distance from the signature above it."
-msgstr "Avstand rundt knappen på siden, i px, f.eks. avstanden til signaturen over den."
+msgstr "Margin rundt knappen på siden, i px, f.eks. avstanden til signaturen over den."
 
 msgid "The text as it shows in the email, e.g. a name or a job title. Enter starts a new line. Everyone who copies the signature gets the same text: for what each person writes, use a Field."
 msgstr "Teksten slik den vises i e-posten, f.eks. et navn eller en stillingstittel. Enter gir ny linje. Alle som kopierer signaturen får den samme teksten: bruk et Felt for det hver person skriver selv."
@@ -606,7 +606,7 @@ msgid "Optional: makes the text a link. A web address (https://…), mailto:name
 msgstr "Valgfritt: gjør teksten til en lenke. En nettadresse (https://…), mailto:navn@example.com for e-post eller tel:+4712345678 for telefon."
 
 msgid "Extra space around this text, in px, added to its row's."
-msgstr "Ekstra avstand rundt denne teksten, i px, i tillegg til radens."
+msgstr "Ekstra padding rundt denne teksten, i px, i tillegg til radens padding."
 
 msgid "PNG or JPG, the same for everyone (a logo, a banner). For a sharp image, upload one about twice as wide as its Width below."
 msgstr "PNG eller JPG, likt for alle (en logo, et banner). For et skarpt bilde, last opp et som er omtrent dobbelt så bredt som Bredde nedenfor."
@@ -618,7 +618,7 @@ msgid "How wide the image shows in the email, in px; its height follows. It neve
 msgstr "Hvor bredt bildet vises i e-posten, i px; høyden følger. Det blir aldri bredere enn cellen."
 
 msgid "Space around the image, in px."
-msgstr "Avstand rundt bildet, i px."
+msgstr "Padding rundt bildet, i px."
 
 msgid "Choose the network: its icon is used. For another network, upload its icon below."
 msgstr "Velg nettverket: ikonet brukes. For et annet nettverk, last opp ikonet nedenfor."
@@ -633,7 +633,7 @@ msgid "The icon's height in px; 20–32 px is usual."
 msgstr "Ikonets høyde i px; 20–32 px er vanlig."
 
 msgid "Space around the icon, in px, e.g. between icons in cells side by side."
-msgstr "Avstand rundt ikonet, i px, f.eks. mellom ikoner i celler ved siden av hverandre."
+msgstr "Padding rundt ikonet, i px, f.eks. mellom ikoner i celler ved siden av hverandre."
 
 msgid "What the visitor fills in on the page before copying: text (a name, a job title), an email, a phone number or their photo. It shows as a yellow cell on the page."
 msgstr "Det den besøkende fyller ut på siden før kopiering: tekst (navn, stillingstittel), e-post, telefonnummer eller sitt bilde. Det vises som en gul celle på siden."
@@ -654,7 +654,7 @@ msgid "How wide the visitor's photo shows in the signature, in px."
 msgstr "Hvor bredt den besøkendes bilde vises i signaturen, i px."
 
 msgid "Extra space around what the visitor fills in, in px, added to its row's."
-msgstr "Ekstra avstand rundt det den besøkende fyller ut, i px, i tillegg til radens."
+msgstr "Ekstra padding rundt det den besøkende fyller ut, i px, i tillegg til radens padding."
 
 msgid "Signature width and border: how wide the signature is in the email."
 msgstr "Signaturens bredde og kantlinje: hvor bred signaturen er i e-posten."
@@ -699,7 +699,7 @@ msgid "Merge the selected cells into one, e.g. for a logo or a photo beside seve
 msgstr "Slå sammen de valgte cellene til én, f.eks. for en logo eller et bilde ved siden av flere linjer."
 
 msgid "Row settings: the space inside its cells, a line above or below it, its background."
-msgstr "Radinnstillinger: avstanden inne i cellene, en linje over eller under, bakgrunnen."
+msgstr "Radinnstillinger: padding i cellene, en linje over eller under, bakgrunnen."
 
 msgid "Delete this row and everything in it."
 msgstr "Slett denne raden og alt i den."
@@ -732,7 +732,7 @@ msgid "Content: click a cell, then + to put text, an image or a social icon in i
 msgstr "Innhold: klikk på en celle, deretter + for å sette inn tekst, et bilde eller et sosialt ikon. Bruk et Felt for det hver person fyller ut selv (navn, telefon, bilde)."
 
 msgid "Look: the pencil beside a row sets its spacing, lines and background; the pencil beside the button below sets the \"Copy signature\" button."
-msgstr "Utseende: blyanten ved en rad angir avstand, linjer og bakgrunn; blyanten ved knappen nedenfor angir knappen «Kopier signatur»."
+msgstr "Utseende: blyanten ved en rad angir padding, linjer og bakgrunn; blyanten ved knappen nedenfor angir knappen «Kopier signatur»."
 
 msgid "Give the signature a title and click Save."
 msgstr "Gi signaturen en tittel og klikk Lagre."
@@ -784,3 +784,24 @@ msgstr "Slik legger du signaturen inn i Gmail / Outlook"
 
 msgid "Paste it as it is, not as plain text: the layout, colours and links come with it."
 msgstr "Lim den inn som den er, ikke som ren tekst: oppsett, farger og lenker blir med."
+
+msgid "Instructions for admins"
+msgstr "Instruksjoner for administratorer"
+
+msgid "How to build a signature"
+msgstr "Slik lager du en signatur"
+
+msgid "Instructions for the site"
+msgstr "Instruksjoner for nettsiden"
+
+msgid "Text for your page: copy it and put it beside the signature, so visitors know how to add it to their email."
+msgstr "Tekst til siden din: kopier den og legg den ved siden av signaturen, så de besøkende vet hvordan de legger den inn i e-posten sin."
+
+msgid "Close"
+msgstr "Lukk"
+
+msgid "Copied"
+msgstr "Kopiert"
+
+msgid "Copy"
+msgstr "Kopier"

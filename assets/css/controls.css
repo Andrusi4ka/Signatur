@@ -500,44 +500,81 @@
     pointer-events: none;
 }
 
-/* "Getting started" and "How to put it into Gmail / Outlook". */
-.signatur-guide {
-    max-width: 760px;
-    margin: 16px 0;
-    padding: 0 16px;
-    border: 1px solid #c3c4c7;
-    border-left: 4px solid #2271b1;
-    background: #fff;
+/* The instructions: two buttons at the left under the title, each opening a modal. */
+.signatur-help-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0 16px;
 }
 
-.signatur-guide > summary {
-    padding: 10px 0;
-    font-weight: 600;
-    cursor: pointer;
+.wrap .signatur-help-buttons .button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
 }
 
-.signatur-guide ol {
-    margin: 0 0 8px 20px;
+.signatur-help-buttons .dashicons {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+    line-height: 1;
 }
 
-.signatur-guide li {
-    margin: 0 0 6px;
+.signatur-help-dialog {
+    box-sizing: border-box;
+    width: min(640px, calc(100vw - 32px));
+    max-height: calc(100vh - 64px);
+    padding: 20px 24px;
+    border: 0;
+    border-radius: 4px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, .3);
 }
 
-.signatur-guide .description {
+.signatur-help-dialog::backdrop {
+    background: rgba(0, 0, 0, .5);
+}
+
+.signatur-help-dialog h2 {
+    margin: 0 0 8px;
+}
+
+.signatur-help-dialog > .description {
     margin: 0 0 12px;
 }
 
-.signatur-guide--email {
-    max-width: none;
-    margin: 12px 0 0;
-    text-align: left;
-    font-size: 13px;
+.signatur-help-dialog__content {
+    padding: 4px 16px;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    background: #f6f7f7;
 }
 
-.signatur-guide__client {
-    margin: 8px 0 4px;
-    font-weight: 600;
+.signatur-help-dialog__content h3 {
+    margin: 12px 0 4px;
+    font-size: 14px;
+}
+
+.signatur-help-dialog__content ol {
+    margin: 0 0 8px 20px;
+}
+
+.signatur-help-dialog__content li {
+    margin: 0 0 6px;
+}
+
+.signatur-help-dialog__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin: 16px 0 0;
+}
+
+.signatur-help-dialog__copied {
+    margin-right: auto;
+    color: #008a20;
 }
 
 /* A label with its "i". */

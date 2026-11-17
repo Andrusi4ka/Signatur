@@ -5,7 +5,7 @@
  * title is dropped then, so the browser's own slow tooltip does not show
  * too). The tip lives in the page body, above the modal, kept on screen.
  *
- * Also: "Getting started" stays closed once closed (this browser).
+ * Also: the instructions' modals, with Copy (signatur_render_help()).
  */
 (function () {
     'use strict';
@@ -126,21 +126,103 @@
         }
     });
 
-    // "Getting started": closed once, closed after (a per-browser convenience).
-    var guide = document.getElementById('signatur_getting_started');
-    var KEY = 'signaturGuideClosed';
+    /*
+     * The instructions (signatur_render_help()): a button opens its <dialog>
+     * (Esc, Close or a click beside it closes it); Copy puts its text on the
+     * clipboard, as HTML (the lists kept) and as plain text.
+     */
+    document.addEventListener('click', function (e) {
+        var open = e.target.closest && e.target.closest('[data-signatur-help]');
 
-    if (guide) {
-        try {
-            if ('1' === window.localStorage.getItem(KEY)) {
-                guide.open = false;
+        if (open) {
+            var dialog = document.getElementById(open.getAttribute('data-signatur-help'));
+
+            if (dialog && dialog.showModal && !dialog.open) {
+                hide();
+                dialog.showModal();
             }
-        } catch (err) { /* No storage: it stays open. */ }
 
-        guide.addEventListener('toggle', function () {
-            try {
-                window.localStorage.setItem(KEY, guide.open ? '0' : '1');
-            } catch (err) { /* Nothing kept. */ }
-        });
+            return;
+        }
+
+        var close = e.target.closest && e.target.closest('[data-signatur-help-close]');
+
+        if (close) {
+            close.closest('dialog').close();
+
+            return;
+        }
+
+        // A click on the backdrop lands on the <dialog> itself.
+        if (e.target.matches && e.target.matches('dialog.signatur-help-dialog')) {
+            var r = e.target.getBoundingClientRect();
+
+            if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) {
+                e.target.close();
+            }
+
+            return;
+        }
+
+        var copy = e.target.closest && e.target.closest('[data-signatur-help-copy]');
+
+        if (copy) {
+            copyInstructions(copy.closest('dialog'), copy);
+        }
+    });
+
+    function copied(dialog, button) {
+        var status = dialog.querySelector('.signatur-help-dialog__copied');
+
+        if (status) {
+            status.textContent = button.getAttribute('data-copied') || 'Copied';
+            window.setTimeout(function () {
+                status.textContent = '';
+            }, 2000);
+        }
+    }
+
+    function copyInstructions(dialog, button) {
+        var content = dialog.querySelector('[data-signatur-help-content]');
+
+        if (!content) {
+            return;
+        }
+
+        var html = content.innerHTML.trim();
+        var text = content.innerText.trim();
+
+        if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
+            navigator.clipboard.write([new window.ClipboardItem({
+                'text/html': new Blob([html], { type: 'text/html' }),
+                'text/plain': new Blob([text], { type: 'text/plain' })
+            })]).then(function () {
+                copied(dialog, button);
+            }, function () {
+                fallbackCopy(content, dialog, button);
+            });
+
+            return;
+        }
+
+        fallbackCopy(content, dialog, button);
+    }
+
+    // Without the Clipboard API (plain http): the box selected and copied.
+    function fallbackCopy(content, dialog, button) {
+        var selection = window.getSelection();
+        var range = document.createRange();
+
+        range.selectNodeContents(content);
+        selection.removeAllRanges();
+        selection.addRange(range);
+
+        try {
+            if (document.execCommand('copy')) {
+                copied(dialog, button);
+            }
+        } catch (err) { /* Nothing copied: the text stays selected to copy by hand. */ }
+
+        selection.removeAllRanges();
     }
 })();

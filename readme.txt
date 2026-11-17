@@ -19,7 +19,7 @@ Signatures adds a "Signatures" menu (for administrators, and the roles they allo
 * Fillable fields (text, email, phone, photo) that visitors fill in on the page; required fields are checked before copying.
 * A "Copy signature" button with its own look; the copied signature is a plain table with inline styles, made to paste into Gmail and Outlook.
 * `[signatur id="123" copy="no"]` shows the signature without the button.
-* Translations: English, Ukrainian, Norwegian (Bokmål) and Russian.
+* Languages: English and Norwegian (Bokmål).
 
 == Installation ==
 
@@ -29,7 +29,9 @@ Signatures adds a "Signatures" menu (for administrators, and the roles they allo
 == Changelog ==
 
 = 1.9.0 =
-* Help for whoever builds a signature: an "i" beside the fields of every window with what it does, a fuller tip on the editor's icon buttons, "Getting started" above the editor (stays closed once closed) and "How to put the signature into Gmail / Outlook" under the button preview.
+* Help for whoever builds a signature: an "i" beside the fields of every window with what it does, and a fuller tip on the editor's icon buttons.
+* Two buttons under the editor's title: "Instructions for admins" (how to build a signature) and "Instructions for the site" (how visitors put it into Gmail / Outlook), each in a window with a Copy button.
+* Languages: English and Norwegian only (Ukrainian and Russian removed). Padding and Margin keep these names in Norwegian.
 
 = 1.8.0 =
 * The built-in Facebook, Instagram, LinkedIn and Telegram icons are PNG: email clients do not show SVG.

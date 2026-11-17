@@ -396,7 +396,7 @@ function signatur_render_add_signature_page()
             </div>
         <?php endif; ?>
 
-        <?php signatur_render_getting_started(); ?>
+        <?php signatur_render_help(); ?>
 
         <form id="signatur_form" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
             <?php wp_nonce_field('signatur_save_signature'); ?>
@@ -564,10 +564,6 @@ function signatur_render_add_signature_page()
                         </button>
                     </div>
                 </div>
-            </div>
-
-            <div class="signatur-editor-only" style="max-width:600px; margin:16px auto 0;">
-                <?php signatur_render_email_help(); ?>
             </div>
 
             <?php submit_button(__('Save', 'signatur')); ?>

@@ -13,7 +13,7 @@ The first version provides a WordPress admin menu named `Signatures` with:
 - `All signatures` page
 - `Add signature` page
 - An `Add signature` button beside the `All signatures` title
-- Translations for English, Ukrainian, Norwegian Bokmal (`nb_NO`), and Russian
+- Translations for English and Norwegian Bokmal (`nb_NO`) only (Ukrainian and Russian removed in 1.9.0 at the user's request). In Norwegian, "Padding" and "Margin" stay as these words, untranslated.
 
 The plugin entry point is `signatur.php`. Translation files are stored in `languages/` and use the `signatur` text domain.
 
