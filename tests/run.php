@@ -166,8 +166,28 @@ check(array(array(array(2, 1))) === $s['rows'], 'a grid wider than its columns i
 $s = settings_of(array('columns' => array(100), 'rows' => array(array(array(1, 2)))));
 check(array(array(array(1, 1))) === $s['rows'], 'a rowspan past the last row is reset');
 
-$s = settings_of(array('copy_button' => array('align' => 'middle', 'bg_color' => '#ABCDEF', 'border_style' => 'groove')));
-check('left' === $s['copy_button']['align'] && '#abcdef' === $s['copy_button']['bg_color'] && 'solid' === $s['copy_button']['border_style'], 'copy button values are checked');
+// The copy button, as WP Banner's Button.
+$s = settings_of(array('copy_button' => array('align' => 'middle', 'style' => 'groove', 'shape' => 'round', 'size' => 'huge', 'color' => '#ABCDEF', 'text_color' => 'red')));
+$cb = $s['copy_button'];
+check('left' === $cb['align'] && 'filled' === $cb['style'] && 'round' === $cb['shape'] && 'default' === $cb['size'], 'copy button choices are checked');
+check('#abcdef' === $cb['color'] && '#ffffff' === $cb['text_color'], 'copy button colours are #rrggbb or the default');
+check(array('text', 'align', 'style', 'shape', 'size', 'color', 'text_color', 'margin') === array_keys($cb), 'copy button keeps only its own keys');
+
+// Saved before 1.7.0: its colours kept, the nearest Corners and Size.
+$old = settings_of(array('copy_button' => array('bg_color' => '#f6f7f7', 'text_color' => '#1d2327', 'border_radius' => 4, 'font_size' => 14, 'margin' => array('top' => 5))));
+check('filled' === $old['copy_button']['style'] && '#f6f7f7' === $old['copy_button']['color'] && '#1d2327' === $old['copy_button']['text_color'], 'an old copy button keeps its colours');
+check('rounded' === $old['copy_button']['shape'] && 'default' === $old['copy_button']['size'] && 5 === $old['copy_button']['margin']['top'], 'an old copy button gets the nearest Corners and Size, its margin kept');
+$old = settings_of(array('copy_button' => array('bg_color' => '#000000', 'border_radius' => 0, 'font_size' => 20)));
+check('square' === $old['copy_button']['shape'] && 'extra-large' === $old['copy_button']['size'], 'no radius: Square; a large font: Extra Large');
+
+// Its look: each Background as WP Banner's.
+$style = signatur_copy_button_style(array('style' => 'filled', 'shape' => 'rounded', 'size' => 'large', 'color' => '#112233', 'text_color' => '#ffffff'));
+check(false !== strpos($style, 'background-color:#112233') && false !== strpos($style, 'border-radius:5px') && false !== strpos($style, 'min-height:48px') && false !== strpos($style, 'font-size:14px'), 'Filled: the colour as background, Rounded, Large');
+$style = signatur_copy_button_style(array('style' => 'bordered', 'shape' => 'round', 'color' => '#112233'));
+check(false !== strpos($style, 'background-color:transparent') && false !== strpos($style, 'border:2px solid #112233') && false !== strpos($style, 'border-radius:35px'), 'Border: transparent, its line in the colour, Round');
+$style = signatur_copy_button_style(array('style' => 'underline', 'shape' => 'round', 'color' => '#112233'));
+check(false !== strpos($style, 'border-bottom:3px solid #112233') && false !== strpos($style, 'border-radius:0'), 'Underline: a line under it, no corners');
+check(false === strpos(signatur_copy_button_style(array(), false), 'margin:'), 'the editor preview has no margin');
 
 $s = settings_of(array('rows' => array(array(array(1, 1, array('type' => 'social', 'network' => 'myspace', 'link' => '')))), 'columns' => array(300)));
 check(! isset($s['rows'][0][0][2]), 'a social element without a link is dropped');

@@ -451,66 +451,112 @@
     var DEFAULT_COPY_BUTTON = {
         text: 'Copy signature',
         align: 'left',
-        bg_color: '#f6f7f7',
-        text_color: '#1d2327',
-        font_size: 14,
-        padding: { top: 8, right: 16, bottom: 8, left: 16 },
-        border_width: 1,
-        border_style: 'solid',
-        border_color: '#8c8f94',
-        border_radius: 4,
-        text_transform: 'none',
-        margin: { top: 12, right: 0, bottom: 0, left: 0 },
-        bold: false
+        style: 'filled',
+        shape: 'square',
+        size: 'default',
+        color: '#2271b1',
+        text_color: '#ffffff',
+        margin: { top: 12, right: 0, bottom: 0, left: 0 }
     };
 
-    function readCopyButtonSettings() {
-        try {
-            var stored = JSON.parse(copyButtonWrap.dataset.copyButton || '');
+    // Mirrors signatur_copy_button_sizes(): [padding, min height, font size].
+    var COPY_BUTTON_SIZES = {
+        'extra-small': ['5px 10px', 28, 11],
+        small: ['5px 14px', 36, 12],
+        'default': ['5px 20px', 42, 13],
+        large: ['5px 28px', 48, 14],
+        'extra-large': ['5px 40px', 56, 16]
+    };
+    var COPY_BUTTON_RADIUS = { square: 0, rounded: 5, round: 35 };
 
-            return {
-                text: stored.text || DEFAULT_COPY_BUTTON.text,
-                align: stored.align || DEFAULT_COPY_BUTTON.align,
-                bg_color: stored.bg_color || DEFAULT_COPY_BUTTON.bg_color,
-                text_color: stored.text_color || DEFAULT_COPY_BUTTON.text_color,
-                font_size: parseInt(stored.font_size, 10) || DEFAULT_COPY_BUTTON.font_size,
-                padding: stored.padding || DEFAULT_COPY_BUTTON.padding,
-                border_width: isNaN(parseInt(stored.border_width, 10)) ? DEFAULT_COPY_BUTTON.border_width : parseInt(stored.border_width, 10),
-                border_style: stored.border_style || DEFAULT_COPY_BUTTON.border_style,
-                border_color: stored.border_color || DEFAULT_COPY_BUTTON.border_color,
-                border_radius: isNaN(parseInt(stored.border_radius, 10)) ? DEFAULT_COPY_BUTTON.border_radius : parseInt(stored.border_radius, 10),
-                text_transform: stored.text_transform || DEFAULT_COPY_BUTTON.text_transform,
-                margin: stored.margin || DEFAULT_COPY_BUTTON.margin,
-                bold: !! stored.bold
-            };
+    function readCopyButtonSettings() {
+        var stored = {};
+
+        try {
+            stored = JSON.parse(copyButtonWrap.dataset.copyButton || '') || {};
         } catch (err) {
-            return JSON.parse(JSON.stringify(DEFAULT_COPY_BUTTON));
+            stored = {};
         }
+
+        var settings = JSON.parse(JSON.stringify(DEFAULT_COPY_BUTTON));
+
+        Object.keys(settings).forEach(function (key) {
+            if (stored[key]) {
+                settings[key] = stored[key];
+            }
+        });
+
+        return settings;
     }
 
     /**
-     * Apply the copy button's stored appearance to its admin-preview element
-     * - mirrors PHP signatur_copy_button_style() so the preview matches the
-     * real front-end button exactly. `align` is deliberately not applied
-     * here - the preview always sits centered in the editor, only the real
-     * front-end button (signatur_render_shortcode()) honours it.
+     * The copy button's inline style - mirrors PHP
+     * signatur_copy_button_style($cb, false), so the preview matches the
+     * real front-end button. Margin and `align` are front-end placement
+     * only, never on the editor preview.
      */
-    function applyCopyButtonPreview(settings) {
-        var p = settings.padding || ZERO_PADDING;
+    function copyButtonStyle(settings) {
+        var size = COPY_BUTTON_SIZES[settings.size] || COPY_BUTTON_SIZES['default'];
+        var style = 'display:inline-flex; align-items:center; justify-content:center; box-sizing:border-box'
+            + '; padding:' + size[0]
+            + '; min-height:' + size[1] + 'px'
+            + '; font-family:inherit; font-size:' + size[2] + 'px; font-weight:600; line-height:1.2'
+            + '; text-transform:uppercase; text-decoration:none; white-space:nowrap'
+            + '; color:' + settings.text_color;
 
-        copyButtonPreview.textContent = settings.text;
-        copyButtonPreview.style.padding = (p.top || 0) + 'px ' + (p.right || 0) + 'px ' + (p.bottom || 0) + 'px ' + (p.left || 0) + 'px';
-        // margin is front-end placement only - never on the editor preview
-        // (mirrors signatur_copy_button_style($cb, false) and how `align` is
-        // skipped here too).
-        copyButtonPreview.style.fontSize = settings.font_size + 'px';
-        copyButtonPreview.style.fontWeight = settings.bold ? 'bold' : 'normal';
-        copyButtonPreview.style.color = settings.text_color;
-        copyButtonPreview.style.backgroundColor = settings.bg_color;
-        copyButtonPreview.style.borderRadius = settings.border_radius + 'px';
-        copyButtonPreview.style.border = settings.border_width + 'px ' + settings.border_style + ' ' + settings.border_color;
-        copyButtonPreview.style.textTransform = settings.text_transform;
+        if ('underline' === settings.style) {
+            style += '; background-color:transparent; border:0; border-bottom:3px solid ' + settings.color + '; border-radius:0';
+        } else {
+            style += '; background-color:' + ('bordered' === settings.style ? 'transparent' : settings.color)
+                + '; border:2px solid ' + settings.color
+                + '; border-radius:' + (COPY_BUTTON_RADIUS[settings.shape] || 0) + 'px';
+        }
+
+        return style + ';';
     }
+
+    function applyCopyButtonPreview(settings) {
+        copyButtonPreview.textContent = settings.text;
+        copyButtonPreview.setAttribute('style', copyButtonStyle(settings));
+    }
+
+    /**
+     * The sample buttons of the copy button's modal (Background, Corners),
+     * as WP Banner's: the one chosen pressed, its value in the hidden input
+     * of the same key; Corners greyed for Underline (it has none).
+     */
+    function setCopyButtonChoice(key, value) {
+        var input = document.getElementById('signatur_copy_button_' + key);
+
+        if (!input) {
+            return;
+        }
+
+        input.value = value;
+
+        Array.prototype.forEach.call(modalBody.querySelectorAll('[data-choice="' + key + '"]'), function (button) {
+            button.setAttribute('aria-pressed', button.getAttribute('data-value') === value ? 'true' : 'false');
+        });
+
+        if ('style' === key) {
+            var corners = document.getElementById('signatur_copy_button_shape_field');
+
+            if (corners) {
+                corners.classList.toggle('is-disabled', 'underline' === value);
+                Array.prototype.forEach.call(corners.querySelectorAll('button'), function (button) {
+                    button.disabled = 'underline' === value;
+                });
+            }
+        }
+    }
+
+    modalBody.addEventListener('click', function (e) {
+        var choice = e.target.closest('.signatur-button-choice');
+
+        if (choice && !choice.disabled) {
+            setCopyButtonChoice(choice.getAttribute('data-choice'), choice.getAttribute('data-value'));
+        }
+    });
 
     var copyButtonSettings = readCopyButtonSettings();
 
@@ -988,18 +1034,13 @@
             var cb = readCopyButtonSettings();
 
             document.getElementById('signatur_copy_button_text').value = cb.text;
-            document.getElementById('signatur_copy_button_bg_color').value = cb.bg_color;
+            document.getElementById('signatur_copy_button_color').value = cb.color;
             document.getElementById('signatur_copy_button_text_color').value = cb.text_color;
             document.getElementById('signatur_copy_button_align').value = cb.align;
-            document.getElementById('signatur_copy_button_font_size').value = cb.font_size;
-            document.getElementById('signatur_copy_button_border_radius').value = cb.border_radius;
-            document.getElementById('signatur_copy_button_border_style').value = cb.border_style;
-            document.getElementById('signatur_copy_button_border_width').value = cb.border_width;
-            document.getElementById('signatur_copy_button_border_color').value = cb.border_color;
-            document.getElementById('signatur_copy_button_text_transform').value = cb.text_transform;
-            document.getElementById('signatur_copy_button_bold').checked = !! cb.bold;
+            document.getElementById('signatur_copy_button_size').value = cb.size;
+            setCopyButtonChoice('style', cb.style);
+            setCopyButtonChoice('shape', cb.shape);
 
-            populatePaddingInputs('signatur_copy_button_padding', cb.padding);
             populatePaddingInputs('signatur_copy_button_margin', cb.margin || ZERO_PADDING);
         }
 
@@ -2536,27 +2577,17 @@
         if ('copy_button' === activeModalType) {
             pushUndoSnapshot();
 
-            var cbFontSize = parseInt(document.getElementById('signatur_copy_button_font_size').value, 10);
-            var cbBorderWidth = parseInt(document.getElementById('signatur_copy_button_border_width').value, 10);
-            var cbBorderRadius = parseInt(document.getElementById('signatur_copy_button_border_radius').value, 10);
-            var cbPadding = readPaddingInputs('signatur_copy_button_padding');
-
             var cbText = document.getElementById('signatur_copy_button_text').value.trim();
 
             copyButtonSettings = {
                 text: '' === cbText ? DEFAULT_COPY_BUTTON.text : cbText,
                 align: document.getElementById('signatur_copy_button_align').value,
-                bg_color: document.getElementById('signatur_copy_button_bg_color').value,
+                style: document.getElementById('signatur_copy_button_style').value || DEFAULT_COPY_BUTTON.style,
+                shape: document.getElementById('signatur_copy_button_shape').value || DEFAULT_COPY_BUTTON.shape,
+                size: document.getElementById('signatur_copy_button_size').value || DEFAULT_COPY_BUTTON.size,
+                color: document.getElementById('signatur_copy_button_color').value,
                 text_color: document.getElementById('signatur_copy_button_text_color').value,
-                font_size: Math.max(8, Math.min(72, isNaN(cbFontSize) ? DEFAULT_COPY_BUTTON.font_size : cbFontSize)),
-                padding: cbPadding,
-                border_width: Math.max(0, Math.min(20, isNaN(cbBorderWidth) ? 0 : cbBorderWidth)),
-                border_style: document.getElementById('signatur_copy_button_border_style').value,
-                border_color: document.getElementById('signatur_copy_button_border_color').value,
-                border_radius: Math.max(0, Math.min(100, isNaN(cbBorderRadius) ? 0 : cbBorderRadius)),
-                text_transform: document.getElementById('signatur_copy_button_text_transform').value,
-                margin: readPaddingInputs('signatur_copy_button_margin'),
-                bold: document.getElementById('signatur_copy_button_bold').checked
+                margin: readPaddingInputs('signatur_copy_button_margin')
             };
 
             copyButtonWrap.dataset.copyButton = JSON.stringify(copyButtonSettings);

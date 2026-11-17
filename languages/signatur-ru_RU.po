@@ -451,3 +451,111 @@ msgstr "Тип"
 
 msgid "Placeholder"
 msgstr "Подсказка в поле"
+
+msgid "Padding"
+msgstr "Внутренний отступ"
+
+msgid "%s: set the four sides together"
+msgstr "%s: задать все четыре стороны вместе"
+
+msgid "Color picker"
+msgstr "Выбор цвета"
+
+msgid "Choose a color"
+msgstr "Выберите цвет"
+
+msgid "Color"
+msgstr "Цвет"
+
+msgid "Back to the color it had when opened"
+msgstr "Вернуть цвет, который был при открытии"
+
+msgid "Color value"
+msgstr "Значение цвета"
+
+msgid "Color and brightness"
+msgstr "Цвет и яркость"
+
+msgid "Hue"
+msgstr "Оттенок"
+
+msgid "Opacity"
+msgstr "Непрозрачность"
+
+msgid "Default"
+msgstr "По умолчанию"
+
+msgid "Back to the default color"
+msgstr "Вернуть цвет по умолчанию"
+
+msgid "Pick a color from the screen"
+msgstr "Взять цвет с экрана"
+
+msgid "Primary color"
+msgstr "Основной цвет"
+
+msgid "Secondary color"
+msgstr "Дополнительный цвет"
+
+msgid "Link color"
+msgstr "Цвет ссылок"
+
+msgid "Black"
+msgstr "Чёрный"
+
+msgid "Dark gray"
+msgstr "Тёмно-серый"
+
+msgid "Gray"
+msgstr "Серый"
+
+msgid "Light gray"
+msgstr "Светло-серый"
+
+msgid "White"
+msgstr "Белый"
+
+msgid "Button text"
+msgstr "Текст кнопки"
+
+msgid "Filled"
+msgstr "Заливка"
+
+msgid "Corners"
+msgstr "Углы"
+
+msgid "Square"
+msgstr "Прямые"
+
+msgid "Rounded"
+msgstr "Скруглённые"
+
+msgid "Round"
+msgstr "Круглые"
+
+msgid "Size"
+msgstr "Размер"
+
+msgid "Preset sizes: padding, height and font size together."
+msgstr "Готовые размеры: отступы, высота и размер шрифта вместе."
+
+msgid "Extra Small"
+msgstr "Очень маленький"
+
+msgid "Small"
+msgstr "Маленький"
+
+msgid "Large"
+msgstr "Большой"
+
+msgid "Extra Large"
+msgstr "Очень большой"
+
+msgid "Filled: the button's color; Border and Underline: their line's."
+msgstr "Заливка: цвет кнопки; Рамка и Подчёркивание: цвет линии."
+
+msgid "Fill / border color"
+msgstr "Цвет заливки / рамки"
+
+msgid "Text color"
+msgstr "Цвет текста"

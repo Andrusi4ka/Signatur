@@ -451,3 +451,111 @@ msgstr "Type"
 
 msgid "Placeholder"
 msgstr "Placeholder"
+
+msgid "Padding"
+msgstr "Padding"
+
+msgid "%s: set the four sides together"
+msgstr "%s: set the four sides together"
+
+msgid "Color picker"
+msgstr "Color picker"
+
+msgid "Choose a color"
+msgstr "Choose a color"
+
+msgid "Color"
+msgstr "Color"
+
+msgid "Back to the color it had when opened"
+msgstr "Back to the color it had when opened"
+
+msgid "Color value"
+msgstr "Color value"
+
+msgid "Color and brightness"
+msgstr "Color and brightness"
+
+msgid "Hue"
+msgstr "Hue"
+
+msgid "Opacity"
+msgstr "Opacity"
+
+msgid "Default"
+msgstr "Default"
+
+msgid "Back to the default color"
+msgstr "Back to the default color"
+
+msgid "Pick a color from the screen"
+msgstr "Pick a color from the screen"
+
+msgid "Primary color"
+msgstr "Primary color"
+
+msgid "Secondary color"
+msgstr "Secondary color"
+
+msgid "Link color"
+msgstr "Link color"
+
+msgid "Black"
+msgstr "Black"
+
+msgid "Dark gray"
+msgstr "Dark gray"
+
+msgid "Gray"
+msgstr "Gray"
+
+msgid "Light gray"
+msgstr "Light gray"
+
+msgid "White"
+msgstr "White"
+
+msgid "Button text"
+msgstr "Button text"
+
+msgid "Filled"
+msgstr "Filled"
+
+msgid "Corners"
+msgstr "Corners"
+
+msgid "Square"
+msgstr "Square"
+
+msgid "Rounded"
+msgstr "Rounded"
+
+msgid "Round"
+msgstr "Round"
+
+msgid "Size"
+msgstr "Size"
+
+msgid "Preset sizes: padding, height and font size together."
+msgstr "Preset sizes: padding, height and font size together."
+
+msgid "Extra Small"
+msgstr "Extra Small"
+
+msgid "Small"
+msgstr "Small"
+
+msgid "Large"
+msgstr "Large"
+
+msgid "Extra Large"
+msgstr "Extra Large"
+
+msgid "Filled: the button's color; Border and Underline: their line's."
+msgstr "Filled: the button's color; Border and Underline: their line's."
+
+msgid "Fill / border color"
+msgstr "Fill / border color"
+
+msgid "Text color"
+msgstr "Text color"

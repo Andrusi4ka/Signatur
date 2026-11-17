@@ -112,92 +112,81 @@ function signatur_get_default_settings()
 }
 
 /**
- * Default appearance for the front-end "Copy signature" button.
+ * The "Copy signature" button's preset sizes, as WP Banner's Button
+ * (WoodMart's sizes): key => [padding, min height, font size].
  */
-function signatur_get_default_copy_button()
+function signatur_copy_button_sizes()
 {
     return array(
-        'text'           => __('Copy signature', 'signatur'),
-        'align'          => 'left',
-        'bg_color'       => '#f6f7f7',
-        'text_color'     => '#1d2327',
-        'font_size'      => 14,
-        'padding'        => array('top' => 8, 'right' => 16, 'bottom' => 8, 'left' => 16),
-        'border_width'   => 1,
-        'border_style'   => 'solid',
-        'border_color'   => '#8c8f94',
-        'border_radius'  => 4,
-        'text_transform' => 'none',
-        'margin'         => array('top' => 12, 'right' => 0, 'bottom' => 0, 'left' => 0),
-        'bold'           => false,
+        'extra-small' => array('5px 10px', 28, 11),
+        'small'       => array('5px 14px', 36, 12),
+        'default'     => array('5px 20px', 42, 13),
+        'large'       => array('5px 28px', 48, 14),
+        'extra-large' => array('5px 40px', 56, 16),
     );
 }
 
 /**
- * Validate a raw "Copy signature" button appearance object.
+ * Default appearance for the front-end "Copy signature" button, as WP
+ * Banner's Button: Background (style), Corners (shape), Size, its colour
+ * (the fill, or the line of Border / Underline) and Text color.
+ */
+function signatur_get_default_copy_button()
+{
+    return array(
+        'text'       => __('Copy signature', 'signatur'),
+        'align'      => 'left',
+        'style'      => 'filled',
+        'shape'      => 'square',
+        'size'       => 'default',
+        'color'      => '#2271b1',
+        'text_color' => '#ffffff',
+        'margin'     => array('top' => 12, 'right' => 0, 'bottom' => 0, 'left' => 0),
+    );
+}
+
+/**
+ * Validate a raw "Copy signature" button appearance object. A button saved
+ * before 1.7.0 (its own background, radius, font size...) keeps its colours
+ * and is given the nearest Corners and Size.
  */
 function signatur_sanitize_copy_button($raw)
 {
     $raw      = is_array($raw) ? $raw : array();
     $defaults = signatur_get_default_copy_button();
 
-    $text = isset($raw['text']) ? sanitize_text_field((string) $raw['text']) : '';
-
-    if ('' === $text) {
-        $text = $defaults['text'];
+    // Saved before 1.7.0: no style, a bg_color of its own.
+    if (! isset($raw['style']) && isset($raw['bg_color'])) {
+        $radius    = isset($raw['border_radius']) ? absint($raw['border_radius']) : 4;
+        $font_size = isset($raw['font_size']) ? absint($raw['font_size']) : 14;
+        $raw       = array_merge($raw, array(
+            'style' => 'filled',
+            'shape' => 0 === $radius ? 'square' : ($radius >= 20 ? 'round' : 'rounded'),
+            'size'  => $font_size <= 11 ? 'extra-small' : ($font_size <= 12 ? 'small' : ($font_size <= 14 ? 'default' : ($font_size <= 15 ? 'large' : 'extra-large'))),
+            'color' => $raw['bg_color'],
+        ));
     }
 
-    $align = isset($raw['align']) && in_array($raw['align'], array('left', 'center', 'right'), true)
-        ? $raw['align']
-        : $defaults['align'];
+    $hex      = function ($key, $default) use ($raw) {
+        return isset($raw[$key]) && is_string($raw[$key]) && preg_match('/^#[0-9a-f]{6}$/i', $raw[$key])
+            ? strtolower($raw[$key])
+            : $default;
+    };
+    $pick     = function ($key, $allowed, $default) use ($raw) {
+        return isset($raw[$key]) && in_array($raw[$key], $allowed, true) ? $raw[$key] : $default;
+    };
 
-    $bg_color = isset($raw['bg_color']) && preg_match('/^#[0-9a-f]{6}$/i', $raw['bg_color'])
-        ? strtolower($raw['bg_color'])
-        : $defaults['bg_color'];
-
-    $text_color = isset($raw['text_color']) && preg_match('/^#[0-9a-f]{6}$/i', $raw['text_color'])
-        ? strtolower($raw['text_color'])
-        : $defaults['text_color'];
-
-    $font_size = isset($raw['font_size']) ? absint($raw['font_size']) : $defaults['font_size'];
-    $font_size = max(8, min(72, $font_size));
-
-    $padding = signatur_sanitize_padding(isset($raw['padding']) ? $raw['padding'] : array());
-
-    $border_width = isset($raw['border_width']) ? absint($raw['border_width']) : $defaults['border_width'];
-    $border_width = min(20, $border_width);
-
-    $border_style = isset($raw['border_style']) && in_array($raw['border_style'], array('solid', 'dashed', 'dotted'), true)
-        ? $raw['border_style']
-        : $defaults['border_style'];
-
-    $border_color = isset($raw['border_color']) && preg_match('/^#[0-9a-f]{6}$/i', $raw['border_color'])
-        ? strtolower($raw['border_color'])
-        : $defaults['border_color'];
-
-    $border_radius = isset($raw['border_radius']) ? absint($raw['border_radius']) : $defaults['border_radius'];
-    $border_radius = min(100, $border_radius);
-
-    $text_transform = isset($raw['text_transform']) && in_array($raw['text_transform'], array('none', 'uppercase', 'lowercase', 'capitalize'), true)
-        ? $raw['text_transform']
-        : $defaults['text_transform'];
-
-    $margin = signatur_sanitize_padding(isset($raw['margin']) ? $raw['margin'] : $defaults['margin']);
+    $text = isset($raw['text']) ? sanitize_text_field((string) $raw['text']) : '';
 
     return array(
-        'text'           => $text,
-        'align'          => $align,
-        'bg_color'       => $bg_color,
-        'text_color'     => $text_color,
-        'font_size'      => $font_size,
-        'padding'        => $padding,
-        'border_width'   => $border_width,
-        'border_style'   => $border_style,
-        'border_color'   => $border_color,
-        'border_radius'  => $border_radius,
-        'text_transform' => $text_transform,
-        'margin'         => $margin,
-        'bold'           => ! empty($raw['bold']),
+        'text'       => '' === $text ? $defaults['text'] : $text,
+        'align'      => $pick('align', array('left', 'center', 'right'), $defaults['align']),
+        'style'      => $pick('style', array('filled', 'bordered', 'underline'), $defaults['style']),
+        'shape'      => $pick('shape', array('square', 'rounded', 'round'), $defaults['shape']),
+        'size'       => $pick('size', array_keys(signatur_copy_button_sizes()), $defaults['size']),
+        'color'      => $hex('color', $defaults['color']),
+        'text_color' => $hex('text_color', $defaults['text_color']),
+        'margin'     => signatur_sanitize_padding(isset($raw['margin']) ? $raw['margin'] : $defaults['margin']),
     );
 }
 

@@ -4,7 +4,7 @@ Tags: email signature, signature, gmail, outlook
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.6.0
+Stable tag: 1.7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -27,6 +27,11 @@ Signatures adds a "Signatures" menu (for administrators, and the roles they allo
 2. Activate it. Updates then come from the plugin's GitHub releases under Plugins, like any other update.
 
 == Changelog ==
+
+= 1.7.0 =
+* Padding and Margin in a box as WP Banner's: a field on each side, the link in the middle sets the four sides together.
+* Colours with a picker as WP Banner's: the theme's colours, black, white and greys, Default and an eyedropper.
+* The "Copy signature" button as WP Banner's Button: Background (Filled, Border, Underline), Corners, preset Size, its colour and Text color. Buttons saved before keep their colours.
 
 = 1.6.0 =
 * Signatures → Settings: what each role may do with the signatures (edit, add, delete, the WPBakery element). Administrators may always do all of it.

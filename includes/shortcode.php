@@ -387,31 +387,46 @@ function signatur_padding_css($padding)
 /**
  * The inline style string for the "Copy signature" button, built from its
  * stored appearance settings (signatur_get_default_copy_button() /
- * signatur_sanitize_copy_button()). Shared between the real front-end
- * button (signatur_render_shortcode()) and its static admin-editor preview,
- * so they always look identical.
+ * signatur_sanitize_copy_button()), as WP Banner's Button looks: its
+ * Background (filled / bordered / underline), Corners and preset Size, font
+ * weight 600 and uppercase. Inline, so a theme's own button styles cannot
+ * change it. Shared between the real front-end button
+ * (signatur_render_shortcode()) and its admin-editor preview; builder.js
+ * copyButtonStyle() writes the same.
  */
 function signatur_copy_button_style($copy_button, $include_margin = true)
 {
-    $style = signatur_padding_css($copy_button['padding']);
+    $copy_button = signatur_sanitize_copy_button($copy_button);
+    $sizes       = signatur_copy_button_sizes();
+    $size        = $sizes[$copy_button['size']];
+    $radius      = array('square' => 0, 'rounded' => 5, 'round' => 35);
+    $color       = $copy_button['color'];
+
+    $style = 'display:inline-flex; align-items:center; justify-content:center; box-sizing:border-box'
+        . '; padding:' . $size[0]
+        . '; min-height:' . (int) $size[1] . 'px'
+        . '; font-family:inherit; font-size:' . (int) $size[2] . 'px; font-weight:600; line-height:1.2'
+        . '; text-transform:uppercase; text-decoration:none; white-space:nowrap'
+        . '; color:' . $copy_button['text_color'];
+
+    if ('underline' === $copy_button['style']) {
+        $style .= '; background-color:transparent; border:0; border-bottom:3px solid ' . $color . '; border-radius:0';
+    } else {
+        $style .= '; background-color:' . ('bordered' === $copy_button['style'] ? 'transparent' : $color)
+            . '; border:2px solid ' . $color
+            . '; border-radius:' . $radius[$copy_button['shape']] . 'px';
+    }
 
     // Margin is where the button sits on the page, not part of its look -
     // the admin-editor preview passes false so it stays centred next to its
     // edit button (mirrors how `align` is skipped there too).
     if ($include_margin) {
-        $margin = isset($copy_button['margin']) ? $copy_button['margin'] : array('top' => 0, 'right' => 0, 'bottom' => 0, 'left' => 0);
+        $margin = $copy_button['margin'];
         $style .= '; margin:' . (int) $margin['top'] . 'px ' . (int) $margin['right'] . 'px '
             . (int) $margin['bottom'] . 'px ' . (int) $margin['left'] . 'px';
     }
 
-    return $style
-        . '; font-size:' . (int) $copy_button['font_size'] . 'px'
-        . '; font-weight:' . (! empty($copy_button['bold']) ? 'bold' : 'normal')
-        . '; color:' . $copy_button['text_color']
-        . '; background-color:' . $copy_button['bg_color']
-        . '; border-radius:' . (int) $copy_button['border_radius'] . 'px'
-        . '; border:' . (int) $copy_button['border_width'] . 'px ' . $copy_button['border_style'] . ' ' . $copy_button['border_color']
-        . '; text-transform:' . $copy_button['text_transform'] . ';';
+    return $style . ';';
 }
 
 /**

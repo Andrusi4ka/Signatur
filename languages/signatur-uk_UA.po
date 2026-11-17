@@ -451,3 +451,111 @@ msgstr "Тип"
 
 msgid "Placeholder"
 msgstr "Підказка в полі"
+
+msgid "Padding"
+msgstr "Внутрішній відступ"
+
+msgid "%s: set the four sides together"
+msgstr "%s: задати всі чотири сторони разом"
+
+msgid "Color picker"
+msgstr "Вибір кольору"
+
+msgid "Choose a color"
+msgstr "Оберіть колір"
+
+msgid "Color"
+msgstr "Колір"
+
+msgid "Back to the color it had when opened"
+msgstr "Повернути колір, який був під час відкриття"
+
+msgid "Color value"
+msgstr "Значення кольору"
+
+msgid "Color and brightness"
+msgstr "Колір і яскравість"
+
+msgid "Hue"
+msgstr "Відтінок"
+
+msgid "Opacity"
+msgstr "Непрозорість"
+
+msgid "Default"
+msgstr "Типовий"
+
+msgid "Back to the default color"
+msgstr "Повернути типовий колір"
+
+msgid "Pick a color from the screen"
+msgstr "Взяти колір з екрана"
+
+msgid "Primary color"
+msgstr "Основний колір"
+
+msgid "Secondary color"
+msgstr "Додатковий колір"
+
+msgid "Link color"
+msgstr "Колір посилань"
+
+msgid "Black"
+msgstr "Чорний"
+
+msgid "Dark gray"
+msgstr "Темно-сірий"
+
+msgid "Gray"
+msgstr "Сірий"
+
+msgid "Light gray"
+msgstr "Світло-сірий"
+
+msgid "White"
+msgstr "Білий"
+
+msgid "Button text"
+msgstr "Текст кнопки"
+
+msgid "Filled"
+msgstr "Заливка"
+
+msgid "Corners"
+msgstr "Кути"
+
+msgid "Square"
+msgstr "Прямі"
+
+msgid "Rounded"
+msgstr "Заокруглені"
+
+msgid "Round"
+msgstr "Круглі"
+
+msgid "Size"
+msgstr "Розмір"
+
+msgid "Preset sizes: padding, height and font size together."
+msgstr "Готові розміри: відступи, висота і розмір шрифту разом."
+
+msgid "Extra Small"
+msgstr "Дуже малий"
+
+msgid "Small"
+msgstr "Малий"
+
+msgid "Large"
+msgstr "Великий"
+
+msgid "Extra Large"
+msgstr "Дуже великий"
+
+msgid "Filled: the button's color; Border and Underline: their line's."
+msgstr "Заливка: колір кнопки; Рамка і Підкреслення: колір лінії."
+
+msgid "Fill / border color"
+msgstr "Колір заливки / рамки"
+
+msgid "Text color"
+msgstr "Колір тексту"

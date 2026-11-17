@@ -71,6 +71,54 @@ function signatur_menu_icon_style()
 }
 
 /**
+ * The Padding (and Margin) box of a modal, as WP Banner's: a field on each
+ * side of a frame, the link in the middle setting the four together
+ * (assets/js/spacing.js). The fields keep the ids builder.js reads and
+ * fills (`<prefix>_top`, `_right`, `_bottom`, `_left`).
+ *
+ * @param array  $prefixes kind (padding | margin) => the fields' id prefix.
+ * @param string $id       The box's own id (builder.js shows / hides some).
+ */
+function signatur_render_spacing_box($prefixes, $id = '')
+{
+    $names = array(
+        'padding' => __('Padding', 'signatur'),
+        'margin'  => __('Margin', 'signatur'),
+    );
+    $sides = array(
+        'top'    => __('Top', 'signatur'),
+        'right'  => __('Right', 'signatur'),
+        'bottom' => __('Bottom', 'signatur'),
+        'left'   => __('Left', 'signatur'),
+    );
+    $link_icon = (string) file_get_contents(SIGNATUR_PLUGIN_DIR . 'assets/icon-spacing-link.svg'); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- local plugin file.
+    // Both: Margin's ring around Padding's (5 x 5); one of them: 3 x 3.
+    $classes   = 'signatur-spacing ' . (count($prefixes) > 1 ? 'signatur-spacing--margin' : 'signatur-spacing--single');
+?>
+    <div class="<?php echo esc_attr($classes); ?>"<?php echo $id ? ' id="' . esc_attr($id) . '"' : ''; ?>>
+        <?php foreach (array('margin', 'padding') as $kind) : ?>
+            <?php if (isset($prefixes[$kind])) : ?>
+                <span class="signatur-spacing__ring signatur-spacing__ring--<?php echo esc_attr($kind); ?>" aria-hidden="true"></span>
+                <span class="signatur-spacing__name signatur-spacing__name--<?php echo esc_attr($kind); ?>" aria-hidden="true"><?php echo esc_html($names[$kind]); ?></span>
+            <?php endif; ?>
+        <?php endforeach; ?>
+        <span class="signatur-spacing__core" aria-hidden="true"></span>
+        <?php foreach ($prefixes as $kind => $prefix) : ?>
+            <?php foreach ($sides as $side => $side_name) : ?>
+                <span class="signatur-spacing__side signatur-spacing__side--<?php echo esc_attr($kind . '-' . $side); ?> signatur-spacing__at--<?php echo esc_attr($side); ?>">
+                    <input type="number" id="<?php echo esc_attr($prefix . '_' . $side); ?>" data-spacing-kind="<?php echo esc_attr($kind); ?>" data-spacing-side="<?php echo esc_attr($side); ?>" min="0" max="500" step="1" placeholder="0" aria-label="<?php echo esc_attr($names[$kind] . ': ' . $side_name . ' (px)'); ?>">
+                    <span class="signatur-spacing__unit" aria-hidden="true">px</span>
+                </span>
+            <?php endforeach; ?>
+            <button type="button" class="signatur-spacing__link signatur-spacing__link--<?php echo esc_attr($kind); ?>" data-spacing-link="<?php echo esc_attr($kind); ?>" aria-pressed="false" title="<?php echo esc_attr(sprintf(/* translators: %s: Padding or Margin */ __('%s: set the four sides together', 'signatur'), $names[$kind])); ?>" aria-label="<?php echo esc_attr(sprintf(/* translators: %s: Padding or Margin */ __('%s: set the four sides together', 'signatur'), $names[$kind])); ?>">
+                <?php echo $link_icon; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the plugin's own SVG file. ?>
+            </button>
+        <?php endforeach; ?>
+    </div>
+<?php
+}
+
+/**
  * Store and retrieve the page hook suffix of the "Add signature" screen,
  * so the asset enqueue can target exactly that page. Called with a value
  * from signatur_register_admin_pages() (on admin_menu), read with no
@@ -115,10 +163,38 @@ function signatur_enqueue_builder_assets($hook_suffix)
         SIGNATUR_VERSION
     );
 
+    // The Padding / Margin box and the colour swatches (WP Banner's controls).
+    wp_enqueue_style('signatur-pickr', plugins_url('assets/vendor/pickr/classic.min.css', SIGNATUR_PLUGIN_FILE), array(), '1.9.1');
+    wp_enqueue_style('signatur-controls', plugins_url('assets/css/controls.css', SIGNATUR_PLUGIN_FILE), array('signatur-builder', 'signatur-pickr'), SIGNATUR_VERSION);
+    wp_enqueue_script('signatur-pickr', plugins_url('assets/vendor/pickr/pickr.min.js', SIGNATUR_PLUGIN_FILE), array(), '1.9.1', true);
+    wp_enqueue_script('signatur-spacing', plugins_url('assets/js/spacing.js', SIGNATUR_PLUGIN_FILE), array(), SIGNATUR_VERSION, true);
+    wp_enqueue_script('signatur-colors', plugins_url('assets/js/colors.js', SIGNATUR_PLUGIN_FILE), array('signatur-pickr'), SIGNATUR_VERSION, true);
+    wp_localize_script(
+        'signatur-colors',
+        'signaturColors',
+        array(
+            'palette' => signatur_palette_colors(),
+            'i18n'    => array(
+                'dialog'      => __('Color picker', 'signatur'),
+                'toggle'      => __('Choose a color', 'signatur'),
+                'swatch'      => __('Color', 'signatur'),
+                'cancel'      => __('Cancel', 'signatur'),
+                'cancelHelp'  => __('Back to the color it had when opened', 'signatur'),
+                'value'       => __('Color value', 'signatur'),
+                'palette'     => __('Color and brightness', 'signatur'),
+                'hue'         => __('Hue', 'signatur'),
+                'opacity'     => __('Opacity', 'signatur'),
+                'default'     => __('Default', 'signatur'),
+                'defaultHelp' => __('Back to the default color', 'signatur'),
+                'dropper'     => __('Pick a color from the screen', 'signatur'),
+            ),
+        )
+    );
+
     wp_enqueue_script(
         'signatur-builder',
         plugins_url('assets/js/builder.js', SIGNATUR_PLUGIN_FILE),
-        array(),
+        array('signatur-spacing', 'signatur-colors'),
         SIGNATUR_VERSION,
         true
     );
@@ -561,13 +637,9 @@ function signatur_render_add_signature_page()
         </template>
 
         <template id="signatur_modal_template_row">
-            <p style="display:flex; align-items:center; gap:6px; margin:0;">
-                <span style="font-weight:600;">Padding</span>
-                <input type="number" id="signatur_row_padding_top" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Top', 'signatur'); ?>" style="width:50px;">
-                <input type="number" id="signatur_row_padding_left" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Left', 'signatur'); ?>" style="width:50px;">
-                <input type="number" id="signatur_row_padding_bottom" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Bottom', 'signatur'); ?>" style="width:50px;">
-                <input type="number" id="signatur_row_padding_right" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Right', 'signatur'); ?>" style="width:50px;">
-            </p>
+            <div class="signatur-spacing-field">
+                <?php signatur_render_spacing_box(array('padding' => 'signatur_row_padding')); ?>
+            </div>
 
             <p style="display:flex; align-items:center; gap:6px; margin:12px 0 0;">
                 <span style="font-weight:600;">Border</span>
@@ -595,15 +667,54 @@ function signatur_render_add_signature_page()
 
         <template id="signatur_modal_template_copy_button">
             <p style="margin:0;">
-                <input type="text" id="signatur_copy_button_text" class="regular-text" style="width:100%;">
+                <input type="text" id="signatur_copy_button_text" class="regular-text" style="width:100%;" aria-label="<?php esc_attr_e('Button text', 'signatur'); ?>">
             </p>
 
-            <div class="signatur-text-controls" style="margin-top:12px;">
-                <label for="signatur_copy_button_bg_color"><?php esc_html_e('Background', 'signatur'); ?></label>
-                <input type="color" id="signatur_copy_button_bg_color" value="#f6f7f7">
+            <?php
+            // As WP Banner's Button: sample buttons for Background and
+            // Corners (builder.js keeps the choice in the hidden inputs).
+            $signatur_choices = array(
+                'style' => array(
+                    __('Background', 'signatur'),
+                    array(
+                        'filled'    => __('Filled', 'signatur'),
+                        'bordered'  => __('Border', 'signatur'),
+                        'underline' => __('Underline', 'signatur'),
+                    ),
+                ),
+                'shape' => array(
+                    __('Corners', 'signatur'),
+                    array(
+                        'square'  => __('Square', 'signatur'),
+                        'rounded' => __('Rounded', 'signatur'),
+                        'round'   => __('Round', 'signatur'),
+                    ),
+                ),
+            );
+            ?>
+            <?php foreach ($signatur_choices as $signatur_key => $signatur_choice) : ?>
+                <div class="signatur-choice-field" id="signatur_copy_button_<?php echo esc_attr($signatur_key); ?>_field">
+                    <span class="signatur-choice-field__label"><?php echo esc_html($signatur_choice[0]); ?></span>
+                    <input type="hidden" id="signatur_copy_button_<?php echo esc_attr($signatur_key); ?>">
+                    <div class="signatur-button-choices" role="group" aria-label="<?php echo esc_attr($signatur_choice[0]); ?>">
+                        <?php foreach ($signatur_choice[1] as $signatur_value => $signatur_name) : ?>
+                            <button type="button" class="signatur-button-choice" data-choice="<?php echo esc_attr($signatur_key); ?>" data-value="<?php echo esc_attr($signatur_value); ?>" aria-pressed="false">
+                                <span class="signatur-button-choice__sample signatur-button-choice__sample--<?php echo esc_attr($signatur_value); ?>"><?php echo esc_html($signatur_name); ?></span>
+                            </button>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
 
-                <label for="signatur_copy_button_text_color"><?php esc_html_e('Text', 'signatur'); ?></label>
-                <input type="color" id="signatur_copy_button_text_color" value="#1d2327">
+            <div class="signatur-text-controls" style="margin-top:12px;">
+                <label for="signatur_copy_button_size"><?php esc_html_e('Size', 'signatur'); ?></label>
+                <select id="signatur_copy_button_size" title="<?php esc_attr_e('Preset sizes: padding, height and font size together.', 'signatur'); ?>">
+                    <option value="extra-small"><?php esc_html_e('Extra Small', 'signatur'); ?></option>
+                    <option value="small"><?php esc_html_e('Small', 'signatur'); ?></option>
+                    <option value="default"><?php esc_html_e('Default', 'signatur'); ?></option>
+                    <option value="large"><?php esc_html_e('Large', 'signatur'); ?></option>
+                    <option value="extra-large"><?php esc_html_e('Extra Large', 'signatur'); ?></option>
+                </select>
 
                 <select id="signatur_copy_button_align" aria-label="<?php esc_attr_e('Horizontal alignment', 'signatur'); ?>">
                     <option value="left"><?php esc_html_e('Left', 'signatur'); ?></option>
@@ -612,57 +723,17 @@ function signatur_render_add_signature_page()
                 </select>
             </div>
 
-            <p style="display:flex; align-items:center; gap:6px; margin:12px 0 0;">
-                <span style="font-weight:600;">Padding</span>
-                <input type="number" id="signatur_copy_button_padding_top" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Top', 'signatur'); ?>" style="width:50px;">
-                <input type="number" id="signatur_copy_button_padding_left" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Left', 'signatur'); ?>" style="width:50px;">
-                <input type="number" id="signatur_copy_button_padding_bottom" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Bottom', 'signatur'); ?>" style="width:50px;">
-                <input type="number" id="signatur_copy_button_padding_right" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Right', 'signatur'); ?>" style="width:50px;">
-            </p>
-
-            <p style="display:flex; align-items:center; gap:6px; margin:12px 0 0;">
-                <span style="font-weight:600;"><?php esc_html_e('Margin', 'signatur'); ?></span>
-                <input type="number" id="signatur_copy_button_margin_top" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Top', 'signatur'); ?>" style="width:50px;">
-                <input type="number" id="signatur_copy_button_margin_left" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Left', 'signatur'); ?>" style="width:50px;">
-                <input type="number" id="signatur_copy_button_margin_bottom" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Bottom', 'signatur'); ?>" style="width:50px;">
-                <input type="number" id="signatur_copy_button_margin_right" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Right', 'signatur'); ?>" style="width:50px;">
-            </p>
-
             <div class="signatur-text-controls" style="margin-top:12px;">
-                <label for="signatur_copy_button_font_size"><?php esc_html_e('Text size', 'signatur'); ?></label>
-                <input type="number" id="signatur_copy_button_font_size" class="small-text" min="8" max="72" step="1" style="width:56px;">
-                <span><?php esc_html_e('px', 'signatur'); ?></span>
+                <label for="signatur_copy_button_color" title="<?php esc_attr_e('Filled: the button\'s color; Border and Underline: their line\'s.', 'signatur'); ?>"><?php esc_html_e('Fill / border color', 'signatur'); ?></label>
+                <input type="color" id="signatur_copy_button_color" value="#2271b1">
 
-                <label for="signatur_copy_button_border_radius"><?php esc_html_e('Radius', 'signatur'); ?></label>
-                <input type="number" id="signatur_copy_button_border_radius" class="small-text" min="0" max="100" step="1" style="width:56px;">
-                <span><?php esc_html_e('px', 'signatur'); ?></span>
-
-                <label style="display:inline-flex; align-items:center; gap:6px;">
-                    <input type="checkbox" id="signatur_copy_button_bold">
-                    <?php esc_html_e('Bold', 'signatur'); ?>
-                </label>
+                <label for="signatur_copy_button_text_color"><?php esc_html_e('Text color', 'signatur'); ?></label>
+                <input type="color" id="signatur_copy_button_text_color" value="#ffffff">
             </div>
 
-            <p style="display:flex; align-items:center; gap:6px; margin:12px 0 0;">
-                <span style="font-weight:600;">Border</span>
-                <select id="signatur_copy_button_border_style">
-                    <option value="solid">solid</option>
-                    <option value="dashed">dashed</option>
-                    <option value="dotted">dotted</option>
-                </select>
-                <input type="number" id="signatur_copy_button_border_width" class="small-text" min="0" max="20" step="1" placeholder="px" style="width:50px;">
-                <input type="color" id="signatur_copy_button_border_color" value="#8c8f94">
-            </p>
-
-            <p style="display:flex; align-items:center; gap:6px; margin:12px 0 0;">
-                <span style="font-weight:600;"><?php esc_html_e('Text transform', 'signatur'); ?></span>
-                <select id="signatur_copy_button_text_transform">
-                    <option value="none"><?php esc_html_e('None', 'signatur'); ?></option>
-                    <option value="uppercase"><?php esc_html_e('Uppercase', 'signatur'); ?></option>
-                    <option value="lowercase"><?php esc_html_e('Lowercase', 'signatur'); ?></option>
-                    <option value="capitalize"><?php esc_html_e('Capitalize', 'signatur'); ?></option>
-                </select>
-            </p>
+            <div class="signatur-spacing-field">
+                <?php signatur_render_spacing_box(array('margin' => 'signatur_copy_button_margin')); ?>
+            </div>
         </template>
 
         <template id="signatur_modal_template_element">
@@ -714,13 +785,9 @@ function signatur_render_add_signature_page()
                 <input type="url" id="signatur_text_link" class="regular-text" style="width:100%;" placeholder="<?php echo esc_attr__('https://example.com', 'signatur'); ?>" aria-label="<?php echo esc_attr__('https://example.com', 'signatur'); ?>">
             </p>
 
-            <p class="signatur-text-controls" style="margin-top:12px;">
-                <span style="font-weight:600;">Padding</span>
-                <input type="number" id="signatur_text_padding_top" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Top', 'signatur'); ?>" style="width:50px;">
-                <input type="number" id="signatur_text_padding_left" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Left', 'signatur'); ?>" style="width:50px;">
-                <input type="number" id="signatur_text_padding_bottom" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Bottom', 'signatur'); ?>" style="width:50px;">
-                <input type="number" id="signatur_text_padding_right" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Right', 'signatur'); ?>" style="width:50px;">
-            </p>
+            <div class="signatur-spacing-field">
+                <?php signatur_render_spacing_box(array('padding' => 'signatur_text_padding')); ?>
+            </div>
         </template>
 
         <template id="signatur_modal_template_image">
@@ -753,13 +820,9 @@ function signatur_render_add_signature_page()
                 </select>
             </div>
 
-            <p style="display:flex; align-items:center; gap:6px; margin:12px 0 0;">
-                <span style="font-weight:600;">Padding</span>
-                <input type="number" id="signatur_image_padding_top" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Top', 'signatur'); ?>" style="width:50px;">
-                <input type="number" id="signatur_image_padding_left" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Left', 'signatur'); ?>" style="width:50px;">
-                <input type="number" id="signatur_image_padding_bottom" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Bottom', 'signatur'); ?>" style="width:50px;">
-                <input type="number" id="signatur_image_padding_right" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Right', 'signatur'); ?>" style="width:50px;">
-            </p>
+            <div class="signatur-spacing-field">
+                <?php signatur_render_spacing_box(array('padding' => 'signatur_image_padding')); ?>
+            </div>
 
             <p style="margin:12px 0 0;">
                 <img id="signatur_image_preview" src="" alt="" style="max-width:100%; display:none;">
@@ -810,13 +873,9 @@ function signatur_render_add_signature_page()
                 </select>
             </div>
 
-            <p style="display:flex; align-items:center; gap:6px; margin:12px 0 0;">
-                <span style="font-weight:600;">Padding</span>
-                <input type="number" id="signatur_social_padding_top" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Top', 'signatur'); ?>" style="width:50px;">
-                <input type="number" id="signatur_social_padding_left" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Left', 'signatur'); ?>" style="width:50px;">
-                <input type="number" id="signatur_social_padding_bottom" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Bottom', 'signatur'); ?>" style="width:50px;">
-                <input type="number" id="signatur_social_padding_right" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Right', 'signatur'); ?>" style="width:50px;">
-            </p>
+            <div class="signatur-spacing-field">
+                <?php signatur_render_spacing_box(array('padding' => 'signatur_social_padding')); ?>
+            </div>
         </template>
 
         <template id="signatur_modal_template_field">
@@ -887,13 +946,9 @@ function signatur_render_add_signature_page()
                 </select>
             </div>
 
-            <p id="signatur_field_padding_row" class="signatur-text-controls" hidden>
-                <span style="font-weight:600;">Padding</span>
-                <input type="number" id="signatur_field_padding_top" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Top', 'signatur'); ?>" style="width:50px;">
-                <input type="number" id="signatur_field_padding_left" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Left', 'signatur'); ?>" style="width:50px;">
-                <input type="number" id="signatur_field_padding_bottom" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Bottom', 'signatur'); ?>" style="width:50px;">
-                <input type="number" id="signatur_field_padding_right" class="small-text" min="0" step="1" placeholder="<?php esc_attr_e('Right', 'signatur'); ?>" style="width:50px;">
-            </p>
+            <div class="signatur-spacing-field" id="signatur_field_padding_row" hidden>
+                <?php signatur_render_spacing_box(array('padding' => 'signatur_field_padding')); ?>
+            </div>
         </template>
     </div>
 

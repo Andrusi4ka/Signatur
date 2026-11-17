@@ -3,7 +3,7 @@
 /**
  * Plugin Name: Signatures
  * Description: Creates and manages email signature templates.
- * Version: 1.6.0
+ * Version: 1.7.0
  * Author: Relevant AS (Andrii Boiko)
  * Plugin URI: https://relevant.no/
  * Author URI: https://relevant.no/
@@ -18,7 +18,7 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-define('SIGNATUR_VERSION', '1.6.0');
+define('SIGNATUR_VERSION', '1.7.0');
 define('SIGNATUR_DB_VERSION', '1.5.1');
 define('SIGNATUR_PLUGIN_FILE', __FILE__);
 define('SIGNATUR_PLUGIN_DIR', plugin_dir_path(__FILE__));
@@ -26,6 +26,7 @@ define('SIGNATUR_REPOSITORY', 'https://github.com/Andrusi4ka/Signatur/');
 
 require_once SIGNATUR_PLUGIN_DIR . 'includes/i18n.php';
 require_once SIGNATUR_PLUGIN_DIR . 'includes/roles.php';
+require_once SIGNATUR_PLUGIN_DIR . 'includes/palette.php';
 require_once SIGNATUR_PLUGIN_DIR . 'includes/wpbakery.php';
 require_once SIGNATUR_PLUGIN_DIR . 'includes/database.php';
 require_once SIGNATUR_PLUGIN_DIR . 'includes/admin-pages.php';

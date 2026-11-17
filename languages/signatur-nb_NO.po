@@ -451,3 +451,111 @@ msgstr "Type"
 
 msgid "Placeholder"
 msgstr "Plassholder"
+
+msgid "Padding"
+msgstr "Innvendig avstand"
+
+msgid "%s: set the four sides together"
+msgstr "%s: angi alle fire sidene samtidig"
+
+msgid "Color picker"
+msgstr "Fargevelger"
+
+msgid "Choose a color"
+msgstr "Velg en farge"
+
+msgid "Color"
+msgstr "Farge"
+
+msgid "Back to the color it had when opened"
+msgstr "Tilbake til fargen den hadde da den ble åpnet"
+
+msgid "Color value"
+msgstr "Fargeverdi"
+
+msgid "Color and brightness"
+msgstr "Farge og lysstyrke"
+
+msgid "Hue"
+msgstr "Fargetone"
+
+msgid "Opacity"
+msgstr "Gjennomsiktighet"
+
+msgid "Default"
+msgstr "Standard"
+
+msgid "Back to the default color"
+msgstr "Tilbake til standardfargen"
+
+msgid "Pick a color from the screen"
+msgstr "Hent en farge fra skjermen"
+
+msgid "Primary color"
+msgstr "Primærfarge"
+
+msgid "Secondary color"
+msgstr "Sekundærfarge"
+
+msgid "Link color"
+msgstr "Lenkefarge"
+
+msgid "Black"
+msgstr "Svart"
+
+msgid "Dark gray"
+msgstr "Mørkegrå"
+
+msgid "Gray"
+msgstr "Grå"
+
+msgid "Light gray"
+msgstr "Lysegrå"
+
+msgid "White"
+msgstr "Hvit"
+
+msgid "Button text"
+msgstr "Knappetekst"
+
+msgid "Filled"
+msgstr "Fylt"
+
+msgid "Corners"
+msgstr "Hjørner"
+
+msgid "Square"
+msgstr "Firkantet"
+
+msgid "Rounded"
+msgstr "Avrundet"
+
+msgid "Round"
+msgstr "Rund"
+
+msgid "Size"
+msgstr "Størrelse"
+
+msgid "Preset sizes: padding, height and font size together."
+msgstr "Forhåndsinnstilte størrelser: avstand, høyde og skriftstørrelse samlet."
+
+msgid "Extra Small"
+msgstr "Ekstra liten"
+
+msgid "Small"
+msgstr "Liten"
+
+msgid "Large"
+msgstr "Stor"
+
+msgid "Extra Large"
+msgstr "Ekstra stor"
+
+msgid "Filled: the button's color; Border and Underline: their line's."
+msgstr "Fylt: knappens farge; Kantlinje og Understreking: linjens farge."
+
+msgid "Fill / border color"
+msgstr "Fyll-/kantfarge"
+
+msgid "Text color"
+msgstr "Tekstfarge"
