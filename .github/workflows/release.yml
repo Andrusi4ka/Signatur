@@ -1,0 +1,48 @@
+# Publishes a release with signatur.zip for every "vX.Y.Z" tag; sites with
+# the plugin then see the update under Plugins (signatur.php:
+# signatur_updates()).
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+# To publish the release. The actions are pinned to a commit (their tag in
+# a comment): what runs with this right never changes behind our back.
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Check that the tag matches the plugin version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          header=$(grep -m1 -oP '^\s*\*\s*Version:\s*\K\S+' signatur.php)
+          constant=$(grep -m1 -oP "define\('SIGNATUR_VERSION',\s*'\K[^']+" signatur.php)
+          stable=$(grep -m1 -oP '^Stable tag:\s*\K\S+' readme.txt)
+          if [ "$tag" != "$header" ] || [ "$tag" != "$constant" ] || [ "$tag" != "$stable" ]; then
+            echo "::error::Tag v$tag, signatur.php Version $header, SIGNATUR_VERSION $constant and readme.txt Stable tag $stable must match."
+            exit 1
+          fi
+
+      - name: Check PHP syntax
+        run: |
+          find . -name '*.php' -not -path './.git/*' -print0 | xargs -0 -n1 php -l > /dev/null
+
+      # git archive leaves out what .gitattributes marks export-ignore (dev files).
+      - name: Build signatur.zip
+        run: |
+          mkdir build
+          git archive --format=tar --prefix=signatur/ HEAD | tar -x -C build
+          cd build
+          zip -qr ../signatur.zip signatur
+
+      - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        with:
+          files: signatur.zip
+          generate_release_notes: true
