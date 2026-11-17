@@ -508,18 +508,21 @@
     margin: 12px 0 16px;
 }
 
+/* WordPress's own button height and padding (as Save below); the icon centred beside the text. */
 .wrap .signatur-help-buttons .button {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    height: 32px;
 }
 
-.signatur-help-buttons .dashicons {
+.wp-core-ui .wrap .signatur-help-buttons .button .dashicons {
+    display: block;
     width: 18px;
     height: 18px;
+    margin: 0;
     font-size: 18px;
-    line-height: 1;
+    line-height: 18px;
+    vertical-align: middle;
 }
 
 .signatur-help-dialog {
