@@ -466,9 +466,6 @@ function signatur_render_add_signature_page()
                     <button type="button" id="signatur_redo" class="signatur-icon-button" title="<?php esc_attr_e('Redo', 'signatur'); ?>" aria-label="<?php esc_attr_e('Redo', 'signatur'); ?>" disabled>
                         <img src="<?php echo esc_url(plugins_url('assets/icon-next.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
                     </button>
-                    <button type="button" id="signatur_column_add_end" class="signatur-icon-button" title="<?php esc_attr_e('Add column', 'signatur'); ?>" aria-label="<?php esc_attr_e('Add column', 'signatur'); ?>">
-                        <img src="<?php echo esc_url(plugins_url('assets/icon-plus-column.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
-                    </button>
                 </div>
 
                 <div style="display:flex; align-items:flex-start; margin-top:8px;">
@@ -571,6 +568,12 @@ function signatur_render_add_signature_page()
                             <?php endforeach; ?>
                         </tbody>
                     </table>
+                    <?php // "Add column" at the right of the table, centred on its height. ?>
+                    <div class="signatur-editor-only" style="align-self:center;">
+                        <button type="button" id="signatur_column_add_end" class="signatur-icon-button" title="<?php esc_attr_e('Add column', 'signatur'); ?>" aria-label="<?php esc_attr_e('Add column', 'signatur'); ?>">
+                            <img src="<?php echo esc_url(plugins_url('assets/icon-plus-column.svg', SIGNATUR_PLUGIN_FILE)); ?>" alt="" width="16" height="16">
+                        </button>
+                    </div>
                 </div>
 
                 <div id="signatur_row_add_wrap" class="signatur-editor-only" style="width:<?php echo esc_attr($settings['width']); ?>px; margin:8px 0 0; display:flex; justify-content:center;">

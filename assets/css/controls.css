@@ -640,10 +640,6 @@
     gap: 8px;
 }
 
-.signatur-preview__devices {
-    display: inline-flex;
-}
-
 .wrap .signatur-preview__bar .button {
     display: inline-flex;
     align-items: center;
@@ -659,32 +655,12 @@
     line-height: 18px;
 }
 
-/* The screens as one segmented control. */
-.wrap .signatur-preview__devices .button {
-    border-radius: 0;
-    margin: 0 -1px 0 0;
-}
-
-.wrap .signatur-preview__devices .button:first-child {
-    border-radius: 4px 0 0 4px;
-}
-
-.wrap .signatur-preview__devices .button:last-child {
-    border-radius: 0 4px 4px 0;
-}
-
-.wrap .signatur-preview__devices .button[aria-pressed="true"],
 .wrap .signatur-preview__dev[aria-pressed="true"] {
     position: relative;
     z-index: 1;
     background: #f0f6fc;
     border-color: #2271b1;
     color: #2271b1;
-}
-
-.signatur-preview__device-width {
-    color: #646970;
-    font-size: 11px;
 }
 
 .signatur-preview__update {

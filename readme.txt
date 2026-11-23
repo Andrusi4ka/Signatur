@@ -4,7 +4,7 @@ Tags: email signature, signature, gmail, outlook
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.10.0
+Stable tag: 1.11.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -27,6 +27,13 @@ Signatures adds a "Signatures" menu (for administrators, and the roles they allo
 2. Activate it. Updates then come from the plugin's GitHub releases under Plugins, like any other update.
 
 == Changelog ==
+
+= 1.11.0 =
+* The WPBakery element: "Copy message" (Show / Hide) instead of hiding the copy button; after a copy, "Copied" shows at the right of the button for a moment.
+* The editor: the "Add column" button at the right of the table, centred on its height.
+* The preview: no screen buttons any more, only Developer and Update (a desktop width).
+* An SVG address typed in for an image or a social icon is not kept (email clients do not show SVG); the network's own icon shows instead.
+* A visitor's photo: only PNG, JPG, GIF or WebP; another file is refused with a message.
 
 = 1.10.0 =
 * A preview at the right of the editor, as WP Swiper's (without the devices' frames): the signature as on the site, unsaved changes included, at Desktop (1280), Tablet (820) or Phone (390) width; it changes on Update.

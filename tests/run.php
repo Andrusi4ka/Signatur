@@ -218,6 +218,8 @@ $GLOBALS['enqueued'] = array();
 $html = signatur_render_shortcode(array('id' => 7, 'copy' => 'no'));
 check(false === strpos($html, 'signatur-copy-button') && ! $GLOBALS['enqueued'], 'copy="no": no button, no script');
 check(false === strpos(signatur_render_shortcode(array('id' => 7)), 'signatur-photo-note'), 'no photo field: no photo note');
+check(false !== strpos(signatur_render_shortcode(array('id' => 7)), '<span class="signatur-copy-message" role="status" aria-live="polite" hidden>Copied</span>'), 'the "Copied" message by default, hidden until a copy');
+check(false === strpos(signatur_render_shortcode(array('id' => 7, 'message' => 'no')), 'signatur-copy-message'), 'message="no": no "Copied" message');
 
 // A "Profile photo" field: the page says some email programs may not show it (1.8.0, the user's choice: no upload).
 $GLOBALS['rows'][8] = array('Photo', json_encode(array(
@@ -235,7 +237,8 @@ check(false !== strpos($page, 'class="signatur-copy-button"') && false !== strpo
 check(false !== strpos($page, 'assets/js/frontend.js') && false !== strpos($page, 'var signaturFrontend = '), 'the preview runs frontend.js with its data, as a page does');
 check(false !== strpos($page, 'assets/js/preview-dev.js') && false !== strpos($page, 'assets/css/preview-dev.css'), 'the preview has Developer mode');
 check(false !== strpos($page, 'signatur-photo-note'), 'the preview shows what the page shows (the photo note)');
-check(array(1280, 820, 390) === array_column(signatur_preview_devices(), 1), 'the screens: 1280, 820 and 390 px');
+$panel = file_get_contents(SIGNATUR_PLUGIN_DIR . 'includes/preview.php');
+check(false === strpos($panel, 'signatur-preview__device') && false !== strpos($panel, 'signatur_preview_dev') && false !== strpos($panel, 'signatur_preview_update'), 'the preview: no screen buttons, only Developer and Update');
 
 // The shortcode and the preview draw the same signature.
 $GLOBALS['enqueued'] = array();
@@ -254,6 +257,11 @@ check(false !== strpos($social, 'icon-linkedin.png'), 'a Social element shows it
 check(! in_array('image/svg+xml', signatur_upload_mimes(), true), 'SVG is not an image type that can be uploaded');
 check(signatur_is_svg_name('logo.SVG') && signatur_is_svg_name('https://x.test/a.svg?v=2') && signatur_is_svg_name('a.svgz'), 'SVG names are found');
 check(! signatur_is_svg_name('photo.png') && ! signatur_is_svg_name('my.svg.png'), 'other names are not SVG');
+check(null === signatur_sanitize_image_element(array('type' => 'image', 'url' => 'https://x.test/logo.svg')), 'an image typed in as an SVG address is dropped');
+check('https://x.test/logo.png' === signatur_sanitize_image_element(array('type' => 'image', 'url' => 'https://x.test/logo.png'))['url'], 'a PNG address is kept');
+$icon = signatur_sanitize_social_element(array('type' => 'social', 'link' => 'https://x.test/me', 'icon' => 'https://x.test/i.SVG?v=1'));
+check(is_array($icon) && '' === $icon['icon'], 'an SVG social icon is dropped, the network icon shows');
+check(false !== strpos(signatur_render_field_element(array('type' => 'field', 'field_type' => 'photo'), 'front'), 'accept="image/png,image/jpeg,image/gif,image/webp"'), 'a visitor picks only PNG, JPG, GIF or WebP');
 
 // --- Roles -------------------------------------------------------------------
 
@@ -298,7 +306,8 @@ foreach ($element['params'] as $param) {
 
 check('signatur' === $element['base'], 'the element wraps [signatur]');
 check(isset($params['id']['value']['Test (#7)']) && '7' === $params['id']['value']['Test (#7)'], 'the list offers the signatures');
-check('yes' === reset($params['copy']['value']), 'the copy button is shown unless chosen otherwise (first value: yes)');
+check('yes' === reset($params['message']['value']), 'the copy message shows unless chosen otherwise (first value: yes)');
+check(! isset($params['copy']), 'the element no longer hides the copy button');
 
 $GLOBALS['user_caps'] = array(SIGNATUR_CAP_WPBAKERY => true);
 check(false === strpos(signatur_wpbakery_edit_param(array('param_name' => 'signatur_edit'), ''), 'signatur-vc-edit__add'), 'no Add signature button without Add');

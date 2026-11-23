@@ -383,7 +383,8 @@ function signatur_sanitize_image_element($raw)
 
     $url = isset($raw['url']) ? esc_url_raw((string) $raw['url']) : '';
 
-    if ('' === $url) {
+    // No SVG, typed in as an address either: email programs do not show it.
+    if ('' === $url || signatur_is_svg_name($url)) {
         return null;
     }
 
@@ -488,6 +489,11 @@ function signatur_sanitize_social_element($raw)
         : $defaults['network'];
 
     $icon = isset($raw['icon']) ? esc_url_raw((string) $raw['icon']) : '';
+
+    // An SVG icon is dropped: the network's own PNG icon shows instead.
+    if (signatur_is_svg_name($icon)) {
+        $icon = '';
+    }
 
     $height = isset($raw['height']) ? absint($raw['height']) : $defaults['height'];
     $height = max(8, min(200, $height));

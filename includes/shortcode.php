@@ -43,7 +43,9 @@ function signatur_render_shortcode($atts)
     $atts = shortcode_atts(
         array(
             'id'   => 0,
-            'copy' => 'yes',
+            'copy'    => 'yes',
+            // The "Copied" note at the right of the button after a copy (the WPBakery element's setting).
+            'message' => 'yes',
         ),
         $atts,
         'signatur'
@@ -71,7 +73,8 @@ function signatur_render_shortcode($atts)
     // The title is an admin-only label to tell signatures apart in the list
     // - it is never rendered on the front end.
     $settings  = json_decode(signatur_sanitize_settings($signature->settings), true);
-    $show_copy = ! in_array(strtolower((string) $atts['copy']), array('no', 'false', '0', ''), true);
+    $show_copy    = ! in_array(strtolower((string) $atts['copy']), array('no', 'false', '0', ''), true);
+    $show_message = ! in_array(strtolower((string) $atts['message']), array('no', 'false', '0', ''), true);
 
     if ($show_copy) {
         wp_enqueue_style('signatur-frontend');
@@ -79,7 +82,7 @@ function signatur_render_shortcode($atts)
         wp_localize_script('signatur-frontend', 'signaturFrontend', signatur_frontend_data());
     }
 
-    return signatur_render_signature($settings, 'signatur-signature-' . $id, $show_copy);
+    return signatur_render_signature($settings, 'signatur-signature-' . $id, $show_copy, $show_message);
 }
 
 /**
@@ -94,6 +97,7 @@ function signatur_frontend_data()
         ),
         'i18n' => array(
             'requiredFields' => __('Please fill in all required fields before copying.', 'signatur'),
+            'photoType'      => __('Choose a PNG, JPG, GIF or WebP image.', 'signatur'),
         ),
     );
 }
@@ -102,9 +106,10 @@ function signatur_frontend_data()
  * A signature's markup as on a page: its frame, the table, and with
  * $show_copy the "Copy signature" button (and the photo note). Shared by
  * the shortcode and the editor's preview (includes/preview.php); the
- * caller loads frontend.css / frontend.js.
+ * caller loads frontend.css / frontend.js. With $show_message a "Copied"
+ * note sits at the right of the button, shown for a moment after a copy.
  */
-function signatur_render_signature($settings, $dom_id, $show_copy)
+function signatur_render_signature($settings, $dom_id, $show_copy, $show_message = true)
 {
     // Fillable "field" elements only render as live <input>s when the copy
     // button is there to turn them into text - otherwise they show as their
@@ -140,7 +145,11 @@ function signatur_render_signature($settings, $dom_id, $show_copy)
         . ' style="' . esc_attr(signatur_copy_button_style($copy_button)) . '"'
         . ' data-target="' . esc_attr($dom_id) . '">'
         . esc_html($copy_button['text'])
-        . '</button></p>';
+        . '</button>'
+        . ($show_message
+            ? '<span class="signatur-copy-message" role="status" aria-live="polite" hidden>' . esc_html__('Copied', 'signatur') . '</span>'
+            : '')
+        . '</p>';
 
     // A photo the visitor adds is copied inside the signature (a data: image,
     // the user's choice in 1.8.0: nothing is uploaded), which some email
@@ -359,7 +368,7 @@ function signatur_render_field_element($element, $context = 'front')
         // the placeholder icon.
         if ('front' === $context) {
             return '<label class="signatur-field-photo" data-required="' . $required . '">'
-                . '<input type="file" accept="image/*" hidden>'
+                . '<input type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden>'
                 . '<img class="signatur-field-photo-img" src="' . $icon_url . '" style="' . esc_attr($img_style) . '" alt="">'
                 . '<span class="signatur-field-photo-plus" aria-hidden="true">'
                 . '<img src="' . esc_url(plugins_url('assets/icon-plus.svg', SIGNATUR_PLUGIN_FILE)) . '" alt="">'

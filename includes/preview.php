@@ -4,7 +4,8 @@
  * The editor's preview (1.10.0, the user's request, as WP Swiper's without
  * the devices' frames): the signature as on a page, drawn from the editor's
  * unsaved settings (admin-ajax signatur_preview, only on Update) into an
- * iframe at a screen's width (assets/js/preview.js). Its own small page:
+ * iframe at a desktop width (assets/js/preview.js; the screen buttons were
+ * removed at the user's request). Its own small page:
  * frontend.css / frontend.js, so the fields and the copy button work as on
  * the site, and preview-dev.css / preview-dev.js for Developer mode.
  */
@@ -15,18 +16,6 @@ if (! defined('ABSPATH')) {
 
 // As large as the settings may be posted (a signature is far smaller).
 define('SIGNATUR_PREVIEW_MAX', 1024 * 1024);
-
-/**
- * The preview's screens, without frames: key => [name, width in px].
- */
-function signatur_preview_devices()
-{
-    return array(
-        'desktop' => array(__('Desktop', 'signatur'), 1280),
-        'tablet'  => array(__('Tablet', 'signatur'), 820),
-        'mobile'  => array(__('Phone', 'signatur'), 390),
-    );
-}
 
 /**
  * admin-ajax signatur_preview: the preview's page for the posted settings.
@@ -76,7 +65,7 @@ function signatur_preview_page($settings)
 }
 
 /**
- * The preview's column, right of the editor: the screens, Developer, Update
+ * The preview's column, right of the editor: Developer, Update
  * and the frame (assets/js/preview.js fills it).
  */
 function signatur_render_preview_panel()
@@ -84,15 +73,6 @@ function signatur_render_preview_panel()
 ?>
     <aside class="signatur-preview signatur-editor-only" id="signatur_preview" aria-label="<?php esc_attr_e('Preview', 'signatur'); ?>">
         <div class="signatur-preview__bar">
-            <div class="signatur-preview__devices" role="group" aria-label="<?php esc_attr_e('Screen size', 'signatur'); ?>">
-                <?php foreach (signatur_preview_devices() as $key => $device) : ?>
-                    <button type="button" class="button signatur-preview__device" data-device="<?php echo esc_attr($key); ?>" data-width="<?php echo (int) $device[1]; ?>" aria-pressed="<?php echo 'desktop' === $key ? 'true' : 'false'; ?>">
-                        <span class="dashicons dashicons-<?php echo esc_attr('mobile' === $key ? 'smartphone' : $key); ?>" aria-hidden="true"></span>
-                        <span class="signatur-preview__device-name"><?php echo esc_html($device[0]); ?></span>
-                        <span class="signatur-preview__device-width"><?php echo (int) $device[1]; ?></span>
-                    </button>
-                <?php endforeach; ?>
-            </div>
             <button type="button" class="button signatur-preview__dev" id="signatur_preview_dev" aria-pressed="false" data-signatur-tip="<?php esc_attr_e('Developer mode: each cell\'s size, its padding (green) and the button\'s margin (orange), in px.', 'signatur'); ?>">
                 <span class="dashicons dashicons-editor-code" aria-hidden="true"></span>
                 <?php esc_html_e('Developer', 'signatur'); ?>

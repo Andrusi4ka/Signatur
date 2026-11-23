@@ -243,10 +243,26 @@
      * anything wider/taller than 512px so the copied signature stays a
      * sane size.
      */
+    var PHOTO_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+
     function loadPhotoIntoLabel(label, file) {
         var preview = photoImg(label);
 
         if (!preview) {
+            return;
+        }
+
+        // Only images email programs can show: no SVG, nothing else.
+        var refuse = function () {
+            window.alert(
+                (window.signaturFrontend && signaturFrontend.i18n && signaturFrontend.i18n.photoType)
+                    || 'Choose a PNG, JPG, GIF or WebP image.'
+            );
+        };
+
+        if (PHOTO_TYPES.indexOf(file.type) < 0) {
+            refuse();
+
             return;
         }
 
@@ -266,9 +282,8 @@
                 apply(downscaleDataUrl(probe, reader.result, 'image/png' === file.type ? 'image/png' : 'image/jpeg'));
             };
 
-            probe.onerror = function () {
-                apply(reader.result);
-            };
+            // Not a picture after all (e.g. a renamed file): keep the old one.
+            probe.onerror = refuse;
 
             probe.src = reader.result;
         };
@@ -447,8 +462,21 @@
             // resize/jump when copying succeeds.
             button.classList.add('is-copied');
 
-            window.setTimeout(function () {
+            // "Copied" at the right of the button, when the element shows it
+            // (message="yes", signatur_render_signature()).
+            var message = button.parentNode.querySelector('.signatur-copy-message');
+
+            if (message) {
+                message.hidden = false;
+            }
+
+            window.clearTimeout(button.signaturCopiedTimer);
+            button.signaturCopiedTimer = window.setTimeout(function () {
                 button.classList.remove('is-copied');
+
+                if (message) {
+                    message.hidden = true;
+                }
             }, 2000);
         });
     });

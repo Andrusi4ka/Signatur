@@ -3,7 +3,8 @@
 /**
  * WPBakery Page Builder element that wraps the [signatur] shortcode (as WP
  * Swiper's): a Signature list with "Edit signature" / "Add signature" under
- * it, and whether the "Copy signature" button shows.
+ * it, and whether "Copied" shows at the right of the "Copy signature"
+ * button after a click.
  */
 
 if (! defined('ABSPATH')) {
@@ -92,18 +93,19 @@ function signatur_wpbakery_settings()
                 'heading'    => '',
                 'param_name' => SIGNATUR_VC_EDIT_PARAM,
             ),
-            // The shortcode's copy="yes|no". Yes first: WPBakery leaves the
-            // first value out of the shortcode, and the shortcode's own
-            // default is yes.
+            // The shortcode's message="yes|no" (the button itself always
+            // shows; copy="no" still works in a shortcode typed by hand).
+            // Yes first: WPBakery leaves the first value out of the
+            // shortcode, and the shortcode's own default is yes.
             array(
                 'type'       => 'dropdown',
-                'heading'    => __('"Copy signature" button', 'signatur'),
-                'param_name' => 'copy',
+                'heading'    => __('Copy message', 'signatur'),
+                'param_name' => 'message',
                 'value'      => array(
                     __('Show', 'signatur') => 'yes',
                     __('Hide', 'signatur') => 'no',
                 ),
-                'description' => __('Hidden, visitors only see the signature and cannot fill in its fields.', 'signatur'),
+                'description' => __('After a click on "Copy signature", "Copied" shows at the right of the button for a few seconds.', 'signatur'),
             ),
         ),
     );

@@ -832,3 +832,12 @@ msgstr "Oppdater"
 
 msgid "The signature as on the site, unsaved changes included. Update shows the latest changes."
 msgstr "Signaturen slik den vises på nettsiden, også med endringer som ikke er lagret. Oppdater viser de siste endringene."
+
+msgid "Copy message"
+msgstr "Kopieringsmelding"
+
+msgid "After a click on \"Copy signature\", \"Copied\" shows at the right of the button for a few seconds."
+msgstr "Etter et klikk på «Kopier signatur» vises «Kopiert» til høyre for knappen i noen sekunder."
+
+msgid "Choose a PNG, JPG, GIF or WebP image."
+msgstr "Velg et PNG-, JPG-, GIF- eller WebP-bilde."

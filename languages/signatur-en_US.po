@@ -832,3 +832,12 @@ msgstr "Update"
 
 msgid "The signature as on the site, unsaved changes included. Update shows the latest changes."
 msgstr "The signature as on the site, unsaved changes included. Update shows the latest changes."
+
+msgid "Copy message"
+msgstr "Copy message"
+
+msgid "After a click on \"Copy signature\", \"Copied\" shows at the right of the button for a few seconds."
+msgstr "After a click on \"Copy signature\", \"Copied\" shows at the right of the button for a few seconds."
+
+msgid "Choose a PNG, JPG, GIF or WebP image."
+msgstr "Choose a PNG, JPG, GIF or WebP image."

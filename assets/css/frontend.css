@@ -36,6 +36,20 @@
     filter: brightness(0.85);
 }
 
+/* "Copied" at the right of the button after a copy (frontend.js). */
+.signatur-copy-message {
+    display: inline-block;
+    margin-left: 10px;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #00a32a;
+    vertical-align: middle;
+}
+
+.signatur-copy-message[hidden] {
+    display: none;
+}
+
 /* Click feedback only - never changes the label text (that used to resize
    the button and make it jump). */
 .signatur-copy-button.is-copied {
